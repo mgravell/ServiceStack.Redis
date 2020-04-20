@@ -15,7 +15,7 @@ however, having a pool that supports both sync+async awaiters is non-trivial.
 
 I *have* implemented such, but it is a bigger change to the pool core.
 
-2: generally working with Task[<T>]; this is a huge topic in itself, but... we can revisit it as needed
+2: generally working with `Task[<T>]`; this is a huge topic in itself, but... we can revisit it as needed
 
 3: need to investigate how timeouts work currently, and think whether to retain that model, or take
-CancellationToken inputs
+`CancellationToken` inputs
