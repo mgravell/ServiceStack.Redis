@@ -23,9 +23,14 @@ namespace ServiceStack.Redis
         // the typed client implements this for us
         IAsyncRedisTypedClient<T> IAsyncRedisClient.As<T>() => (IAsyncRedisTypedClient<T>)As<T>();
 
-        Task<DateTime> IAsyncRedisClient.GetServerTime(CancellationToken cancellationToken)
+        // convenience since we're not saturating the public API; this makes it easy to call
+        // the explicit interface implementations; the JIT should make this a direct call
+        private IAsyncRedisNativeClient NativeAsync => this;
+
+        async Task<DateTime> IAsyncRedisClient.GetServerTimeAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var parts = await NativeAsync.TimeAsync(cancellationToken).ConfigureAwait(false);
+            return ParseTimeResult(parts);
         }
     }
 }

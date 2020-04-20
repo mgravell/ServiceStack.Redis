@@ -108,6 +108,11 @@ namespace ServiceStack.Redis
         public DateTime GetServerTime()
         {
             var parts = base.Time();
+            return ParseTimeResult(parts);
+        }
+
+        private static DateTime ParseTimeResult(byte[][] parts)
+        {
             var unixTime = long.Parse(parts[0].FromUtf8Bytes());
             var microSecs = long.Parse(parts[1].FromUtf8Bytes());
             var ticks = microSecs / 1000 * TimeSpan.TicksPerMillisecond;

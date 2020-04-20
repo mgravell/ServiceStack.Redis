@@ -12,6 +12,8 @@
 #if ASYNC_REDIS
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ServiceStack.Redis
 {
@@ -37,7 +39,7 @@ namespace ServiceStack.Redis
         //void ConfigSet(string item, byte[] value);
         //void ConfigResetStat();
         //void ConfigRewrite();
-        //byte[][] Time();
+        Task<byte[][]> TimeAsync(CancellationToken cancellationToken = default);
         //void DebugSegfault();
         //byte[] Dump(string key);
         //byte[] Restore(string key, long expireMs, byte[] dumpValue);

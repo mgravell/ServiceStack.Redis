@@ -31,16 +31,16 @@ namespace ServiceStack.Redis
         // Task<long> DbSize(CancellationToken cancellationToken = default);
 
         //Dictionary<string, string> Info { get; }
-        Task<DateTime> GetServerTime(CancellationToken cancellationToken = default);
+        Task<DateTime> GetServerTimeAsync(CancellationToken cancellationToken = default);
         //DateTime LastSave { get; }
-        //string Host { get; }
-        //int Port { get; }
-        //int ConnectTimeout { get; set; }
-        //int RetryTimeout { get; set; }
-        //int RetryCount { get; set; }
-        //int SendTimeout { get; set; }
-        //string Password { get; set; }
-        //bool HadExceptions { get; }
+        string Host { get; }
+        int Port { get; }
+        int ConnectTimeout { get; set; }
+        int RetryTimeout { get; set; }
+        int RetryCount { get; set; }
+        int SendTimeout { get; set; }
+        string Password { get; set; }
+        bool HadExceptions { get; }
 
         //bool Ping();
         //string Echo(string text);
