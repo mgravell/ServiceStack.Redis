@@ -4,6 +4,8 @@
 
 1:
 
+(note: probably resolved via IAsyncRedisClientsManager)
+
 There is a tricky question around GetAsyncClient; because it is implemented via a lock, it is not really possible
 to make this a true async-friendly fetch when the queue is drained, so we could end up with (worker) threads
 blocked waiting to get connections; the ideal would be a method like
