@@ -1,5 +1,10 @@
 ﻿#if ASYNC_REDIS
+using ServiceStack.Redis.Pipeline;
+using ServiceStack.Text;
+using ServiceStack.Text.Pools;
 using System;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,102 +18,102 @@ namespace ServiceStack.Redis
             ?? TypeConstants.EmptyByteArrayArray;
         }
 
-        private Task<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
+        private async Task<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
             Func<Task<T>> fn,
             CancellationToken cancellationToken,
             Action<Func<T>> completePipelineFn = null,
             bool sendWithoutRead = false)
         {
-            throw new NotImplementedException();
             //if (TrackThread != null)
             //{
             //    if (TrackThread.Value.ThreadId != Thread.CurrentThread.ManagedThreadId)
             //        throw new InvalidAccessException(TrackThread.Value.ThreadId, TrackThread.Value.StackTrace);
             //}
 
-            //var i = 0;
-            //var didWriteToBuffer = false;
-            //Exception originalEx = null;
+            var i = 0;
+            var didWriteToBuffer = false;
+            Exception originalEx = null;
 
-            //var firstAttempt = DateTime.UtcNow;
+            var firstAttempt = DateTime.UtcNow;
 
-            //while (true)
-            //{
-            //    try
-            //    {
-            //        if (TryConnectIfNeeded())
-            //            didWriteToBuffer = false;
+            while (true)
+            {
+                try
+                {
+                    if (TryConnectIfNeeded()) // TODO: asyncify
+                        didWriteToBuffer = false;
 
-            //        if (socket == null)
-            //            throw new RedisRetryableException("Socket is not connected");
+                    if (socket == null)
+                        throw new RedisRetryableException("Socket is not connected");
 
-            //        if (!didWriteToBuffer) //only write to buffer once
-            //        {
-            //            WriteCommandToSendBuffer(cmdWithBinaryArgs);
-            //            didWriteToBuffer = true;
-            //        }
+                    if (!didWriteToBuffer) //only write to buffer once
+                    {
+                        WriteCommandToSendBuffer(cmdWithBinaryArgs);
+                        didWriteToBuffer = true;
+                    }
 
-            //        if (Pipeline == null) //pipeline will handle flush if in pipeline
-            //        {
-            //            FlushSendBuffer();
-            //        }
-            //        else if (!sendWithoutRead)
-            //        {
-            //            if (completePipelineFn == null)
-            //                throw new NotSupportedException("Pipeline is not supported.");
+                    if (Pipeline == null) //pipeline will handle flush if in pipeline
+                    {
+                        await FlushSendBufferAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    else if (!sendWithoutRead)
+                    {
+                        if (completePipelineFn == null)
+                            throw new NotSupportedException("Pipeline is not supported.");
 
-            //            completePipelineFn(fn);
-            //            return default(T);
-            //        }
+                        throw new NotImplementedException("pipeline async");
+                        //completePipelineFn(fn);
+                        //return default(T);
+                    }
 
-            //        var result = default(T);
-            //        if (fn != null)
-            //            result = fn();
+                    var result = default(T);
+                    if (fn != null)
+                        result = await fn().ConfigureAwait(false);
 
-            //        if (Pipeline == null)
-            //            ResetSendBuffer();
+                    if (Pipeline == null)
+                        ResetSendBuffer();
 
-            //        if (i > 0)
-            //            Interlocked.Increment(ref RedisState.TotalRetrySuccess);
+                    if (i > 0)
+                        Interlocked.Increment(ref RedisState.TotalRetrySuccess);
 
-            //        Interlocked.Increment(ref RedisState.TotalCommandsSent);
+                    Interlocked.Increment(ref RedisState.TotalCommandsSent);
 
-            //        return result;
-            //    }
-            //    catch (Exception outerEx)
-            //    {
-            //        if (log.IsDebugEnabled)
-            //            logDebug("SendReceive Exception: " + outerEx.Message);
+                    return result;
+                }
+                catch (Exception outerEx)
+                {
+                    if (log.IsDebugEnabled)
+                        logDebug("SendReceive Exception: " + outerEx.Message);
 
-            //        var retryableEx = outerEx as RedisRetryableException;
-            //        if (retryableEx == null && outerEx is RedisException
-            //            || outerEx is LicenseException)
-            //        {
-            //            ResetSendBuffer();
-            //            throw;
-            //        }
+                    var retryableEx = outerEx as RedisRetryableException;
+                    if (retryableEx == null && outerEx is RedisException
+                        || outerEx is LicenseException)
+                    {
+                        ResetSendBuffer();
+                        throw;
+                    }
 
-            //        var ex = retryableEx ?? GetRetryableException(outerEx);
-            //        if (ex == null)
-            //            throw CreateConnectionError(originalEx ?? outerEx);
+                    var ex = retryableEx ?? GetRetryableException(outerEx);
+                    if (ex == null)
+                        throw CreateConnectionError(originalEx ?? outerEx);
 
-            //        if (originalEx == null)
-            //            originalEx = ex;
+                    if (originalEx == null)
+                        originalEx = ex;
 
-            //        var retry = DateTime.UtcNow - firstAttempt < retryTimeout;
-            //        if (!retry)
-            //        {
-            //            if (Pipeline == null)
-            //                ResetSendBuffer();
+                    var retry = DateTime.UtcNow - firstAttempt < retryTimeout;
+                    if (!retry)
+                    {
+                        if (Pipeline == null)
+                            ResetSendBuffer();
 
-            //            Interlocked.Increment(ref RedisState.TotalRetryTimedout);
-            //            throw CreateRetryTimeoutException(retryTimeout, originalEx);
-            //        }
+                        Interlocked.Increment(ref RedisState.TotalRetryTimedout);
+                        throw CreateRetryTimeoutException(retryTimeout, originalEx);
+                    }
 
-            //        Interlocked.Increment(ref RedisState.TotalRetryCount);
-            //        TaskUtils.Sleep(GetBackOffMultiplier(++i));
-            //    }
-            //}
+                    Interlocked.Increment(ref RedisState.TotalRetryCount);
+                    await Task.Delay(GetBackOffMultiplier(++i)).ConfigureAwait(false);
+                }
+            }
         }
 
         private Task<byte[][]> ReadMultiDataAsync()
@@ -153,6 +158,54 @@ namespace ServiceStack.Redis
             //}
 
             //throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+        }
+
+        private async ValueTask FlushSendBufferAsync(CancellationToken cancellationToken)
+        {
+            if (currentBufferIndex > 0)
+                PushCurrentBuffer();
+
+            if (cmdBuffer.Count > 0)
+            {
+                if (OnBeforeFlush != null)
+                    OnBeforeFlush();
+
+                if (!Env.IsMono && sslStream == null)
+                {
+                    if (log.IsDebugEnabled && RedisConfig.EnableVerboseLogging)
+                    {
+                        var sb = StringBuilderCache.Allocate();
+                        foreach (var cmd in cmdBuffer)
+                        {
+                            if (sb.Length > 50)
+                                break;
+
+                            sb.Append(Encoding.UTF8.GetString(cmd.Array, cmd.Offset, cmd.Count));
+                        }
+                        logDebug("socket.Send: " + StringBuilderCache.ReturnAndFree(sb.Replace("\r\n", " ")).SafeSubstring(0, 50));
+                    }
+
+                    // todo: asyncify
+                    socket.Send(cmdBuffer); //Optimized for Windows
+                }
+                else
+                {
+                    //Sending IList<ArraySegment> Throws 'Message to Large' SocketException in Mono
+                    foreach (var segment in cmdBuffer)
+                    {
+                        var buffer = segment.Array;
+                        if (sslStream == null)
+                        {
+                            // todo: asyncify
+                            socket.Send(buffer, segment.Offset, segment.Count, SocketFlags.None);
+                        }
+                        else
+                        {
+                            await sslStream.WriteAsync(buffer, segment.Offset, segment.Count).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
         }
     }
 }

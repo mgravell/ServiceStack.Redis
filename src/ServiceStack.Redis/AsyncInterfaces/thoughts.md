@@ -19,3 +19,5 @@ I *have* implemented such, but it is a bigger change to the pool core.
 
 3: need to investigate how timeouts work currently, and think whether to retain that model, or take
 `CancellationToken` inputs
+
+4: `TrackThread` doesn't make sense with async; simply omitting
