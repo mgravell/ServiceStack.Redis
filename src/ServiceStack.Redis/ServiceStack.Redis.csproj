@@ -11,6 +11,10 @@
     </PackageDescription>
     <PackageTags>Redis;NoSQL;Client;Distributed;Cache;PubSub;Messaging;Transactions</PackageTags>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <!-- TODO: talk about TFMs; Microsoft.Bcl.AsyncInterfaces starts at net461 -->
+    <DefineConstants>$(DefineConstants);ASYNC_REDIS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="ServiceStack.Common" Version="$(Version)" />
   </ItemGroup>
@@ -24,6 +28,8 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+    <!-- note: not needed from netstandard2.1 or netcoreapp3.0 onwards -->
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="1.1.0" />
   </ItemGroup>
   
 </Project>
