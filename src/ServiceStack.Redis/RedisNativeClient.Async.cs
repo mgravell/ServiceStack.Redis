@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 namespace ServiceStack.Redis
 {
     partial class RedisNativeClient
-        : IAsyncRedisNativeClient
+        : IRedisNativeClientAsync
     {
-        Task<byte[][]> IAsyncRedisNativeClient.TimeAsync(CancellationToken cancellationToken)
+        Task<byte[][]> IRedisNativeClientAsync.TimeAsync(CancellationToken cancellationToken)
             => SendExpectMultiDataAsync(cancellationToken, Commands.Time);
     }
 }

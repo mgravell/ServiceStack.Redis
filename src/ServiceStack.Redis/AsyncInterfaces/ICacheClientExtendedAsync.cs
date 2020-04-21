@@ -7,7 +7,7 @@ namespace ServiceStack.Caching
     /// <summary>
     /// Extend ICacheClient API with shared, non-core features
     /// </summary>
-    public interface IAsyncCacheClientExtended : IAsyncCacheClient
+    public interface ICacheClientExtendedAsync : ICacheClientAsync
     {
         //TimeSpan? GetTimeToLive(string key);
 

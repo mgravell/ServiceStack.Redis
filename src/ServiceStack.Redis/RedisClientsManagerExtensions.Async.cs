@@ -36,17 +36,17 @@ namespace ServiceStack.Redis
 		//    };
 		//}
 
-		public static ValueTask<IAsyncRedisClient> GetClientAsync(this IRedisClientsManager redisManager, CancellationToken cancellationToken = default)
+		public static ValueTask<IRedisClientAsync> GetClientAsync(this IRedisClientsManager redisManager, CancellationToken cancellationToken = default)
 		{
-			return redisManager is IAsyncRedisClientsManager asyncManager
+			return redisManager is IRedisClientsManagerAsync asyncManager
 				? asyncManager.GetClientAsync(cancellationToken)
-				: new ValueTask<IAsyncRedisClient>(redisManager.GetClient() as IAsyncRedisClient ?? Throw(redisManager));
+				: new ValueTask<IRedisClientAsync>(redisManager.GetClient() as IRedisClientAsync ?? Throw(redisManager));
 
-			static IAsyncRedisClient Throw(IRedisClientsManager redisManager)
-				=> throw new NotSupportedException($"The client returned from '{redisManager?.GetType().FullName}' does not implement {nameof(IAsyncRedisClient)}");
+			static IRedisClientAsync Throw(IRedisClientsManager redisManager)
+				=> throw new NotSupportedException($"The client returned from '{redisManager?.GetType().FullName}' does not implement {nameof(IRedisClientAsync)}");
 		}
 
-		public static async Task ExecAsync(this IRedisClientsManager redisManager, Func<IAsyncRedisClient, Task> lambda)
+		public static async Task ExecAsync(this IRedisClientsManager redisManager, Func<IRedisClientAsync, Task> lambda)
 		{
 			using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
 			{
@@ -54,7 +54,7 @@ namespace ServiceStack.Redis
 			}
 		}
 
-		public static async Task<T> ExecAsync<T>(this IRedisClientsManager redisManager, Func<IAsyncRedisClient, Task<T>> lambda)
+		public static async Task<T> ExecAsync<T>(this IRedisClientsManager redisManager, Func<IRedisClientAsync, Task<T>> lambda)
 		{
 			using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
 			{
@@ -73,7 +73,7 @@ namespace ServiceStack.Redis
 		//	}
 		//}
 
-		public static async Task ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IAsyncRedisTypedClient<T>, Task> lambda)
+		public static async Task ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IRedisTypedClientAsync<T>, Task> lambda)
 		{
 			using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
 			{
@@ -81,7 +81,7 @@ namespace ServiceStack.Redis
 			}
 		}
 
-		public static async Task<T> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IAsyncRedisTypedClient<T>, Task<T>> lambda)
+		public static async Task<T> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IRedisTypedClientAsync<T>, Task<T>> lambda)
 		{
 			using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
 			{
@@ -89,7 +89,7 @@ namespace ServiceStack.Redis
 			}
 		}
 
-		public static async Task<IList<T>> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IAsyncRedisTypedClient<T>, Task<IList<T>>> lambda)
+		public static async Task<IList<T>> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IRedisTypedClientAsync<T>, Task<IList<T>>> lambda)
 		{
 			using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
 			{
@@ -97,7 +97,7 @@ namespace ServiceStack.Redis
 			}
 		}
 
-		public static async Task<List<T>> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IAsyncRedisTypedClient<T>, Task<List<T>>> lambda)
+		public static async Task<List<T>> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IRedisTypedClientAsync<T>, Task<List<T>>> lambda)
 		{
 			using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
 			{

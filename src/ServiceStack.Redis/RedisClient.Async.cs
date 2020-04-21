@@ -18,16 +18,16 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis
 {
-    partial class RedisClient : IAsyncRedisClient, IAsyncRemoveByPattern
+    partial class RedisClient : IRedisClientAsync, IRemoveByPatternAsync
     {
         // the typed client implements this for us
-        IAsyncRedisTypedClient<T> IAsyncRedisClient.As<T>() => (IAsyncRedisTypedClient<T>)As<T>();
+        IRedisTypedClientAsync<T> IRedisClientAsync.As<T>() => (IRedisTypedClientAsync<T>)As<T>();
 
         // convenience since we're not saturating the public API; this makes it easy to call
         // the explicit interface implementations; the JIT should make this a direct call
-        private IAsyncRedisNativeClient NativeAsync => this;
+        private IRedisNativeClientAsync NativeAsync => this;
 
-        async Task<DateTime> IAsyncRedisClient.GetServerTimeAsync(CancellationToken cancellationToken)
+        async Task<DateTime> IRedisClientAsync.GetServerTimeAsync(CancellationToken cancellationToken)
         {
             var parts = await NativeAsync.TimeAsync(cancellationToken).ConfigureAwait(false);
             return ParseTimeResult(parts);

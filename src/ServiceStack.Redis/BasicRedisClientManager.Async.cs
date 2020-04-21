@@ -9,7 +9,6 @@
 //
 // Licensed under the same terms of ServiceStack.
 //
-
 #if ASYNC_REDIS
 
 using ServiceStack.Caching;
@@ -18,21 +17,27 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis
 {
-    public partial class PooledRedisClientManager
+    /// <summary>
+    /// Provides thread-safe retrieval of redis clients since each client is a new one.
+    /// Allows the configuration of different ReadWrite and ReadOnly hosts
+    /// </summary>
+    public partial class BasicRedisClientManager
         : IRedisClientsManagerAsync
     {
         ValueTask<ICacheClientAsync> IRedisClientsManagerAsync.GetCacheClientAsync(CancellationToken cancellationToken)
             => new ValueTask<ICacheClientAsync>(new RedisClientManagerCacheClient(this));
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<IRedisClientAsync>(GetClient(true));
+            => new ValueTask<IRedisClientAsync>(GetClientImpl());
 
         ValueTask<ICacheClientAsync> IRedisClientsManagerAsync.GetReadOnlyCacheClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<ICacheClientAsync>(new RedisClientManagerCacheClient(this) { ReadOnly = true });
+            => new ValueTask<ICacheClientAsync>(ConfigureRedisClientAsync(this.GetReadOnlyClientImpl()));
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetReadOnlyClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<IRedisClientAsync>(GetReadOnlyClient(true));
-    }
+            => new ValueTask<IRedisClientAsync>(GetReadOnlyClientImpl());
 
+        private IRedisClientAsync ConfigureRedisClientAsync(IRedisClientAsync client)
+            => client;
+    }
 }
 #endif

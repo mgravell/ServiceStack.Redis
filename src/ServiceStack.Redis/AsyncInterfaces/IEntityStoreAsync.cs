@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace ServiceStack.Data
 {
-    public interface IAsyncEntityStore : IDisposable
+    public interface IEntityStoreAsync : IDisposable
     {
         //T GetById<T>(object id);
 

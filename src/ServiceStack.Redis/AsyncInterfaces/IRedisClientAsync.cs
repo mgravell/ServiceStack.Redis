@@ -23,8 +23,8 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis
 {
-    public interface IAsyncRedisClient
-        : IAsyncEntityStore, IAsyncCacheClientExtended, IAsyncRemoveByPattern
+    public interface IRedisClientAsync
+        : IEntityStoreAsync, ICacheClientExtendedAsync, IRemoveByPatternAsync
     {
         //Basic Redis Connection operations
         long Db { get; set; }
@@ -152,7 +152,7 @@ namespace ServiceStack.Redis
         ///// Returns a high-level typed client API
         ///// </summary>
         ///// <typeparam name="T"></typeparam>
-        IAsyncRedisTypedClient<T> As<T>();
+        IRedisTypedClientAsync<T> As<T>();
 
         //IHasNamed<IRedisList> Lists { get; set; }
         //IHasNamed<IRedisSet> Sets { get; set; }

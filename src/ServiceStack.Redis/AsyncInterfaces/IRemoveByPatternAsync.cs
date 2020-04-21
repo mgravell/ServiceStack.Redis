@@ -1,7 +1,7 @@
 ﻿#if ASYNC_REDIS
 namespace ServiceStack.Caching
 {
-    public interface IAsyncRemoveByPattern
+    public interface IRemoveByPatternAsync
     {
         ///// <summary>
         ///// Removes items from cache that have keys matching the specified wildcard pattern

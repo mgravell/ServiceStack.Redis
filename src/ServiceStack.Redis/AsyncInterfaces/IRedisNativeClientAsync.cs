@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis
 {
-    public interface IAsyncRedisNativeClient : IDisposable
+    public interface IRedisNativeClientAsync : IDisposable
     {
         ////Redis utility operations
         //Dictionary<string, string> Info { get; }

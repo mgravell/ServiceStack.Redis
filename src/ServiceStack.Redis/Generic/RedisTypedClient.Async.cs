@@ -13,7 +13,7 @@
 namespace ServiceStack.Redis.Generic
 {
     partial class RedisTypedClient<T>
-        : IAsyncRedisTypedClient<T>
+        : IRedisTypedClientAsync<T>
     {
     }
 }

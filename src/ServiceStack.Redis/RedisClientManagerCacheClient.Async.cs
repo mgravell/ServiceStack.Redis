@@ -4,7 +4,7 @@ using ServiceStack.Caching;
 
 namespace ServiceStack.Redis
 {
-    partial class RedisClientManagerCacheClient : IAsyncCacheClient, IAsyncRemoveByPattern, IAsyncCacheClientExtended
+    partial class RedisClientManagerCacheClient : ICacheClientAsync, IRemoveByPatternAsync, ICacheClientExtendedAsync
     {
 
     }

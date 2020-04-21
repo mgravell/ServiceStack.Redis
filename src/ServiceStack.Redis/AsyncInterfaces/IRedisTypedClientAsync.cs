@@ -17,7 +17,7 @@ using ServiceStack.Model;
 
 namespace ServiceStack.Redis.Generic
 {
-    public interface IAsyncRedisTypedClient<T> : IAsyncEntityStore<T>
+    public interface IRedisTypedClientAsync<T> : IEntityStoreAsync<T>
     {
         //IHasNamed<IRedisList<T>> Lists { get; set; }
         //IHasNamed<IRedisSet<T>> Sets { get; set; }

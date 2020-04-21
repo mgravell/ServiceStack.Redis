@@ -11,7 +11,7 @@ namespace ServiceStack.Data
     /// For providers that want a cleaner API with a little more perf
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IAsyncEntityStore<T>
+    public interface IEntityStoreAsync<T>
     {
         //T GetById(object id);
 

@@ -18,31 +18,31 @@ using ServiceStack.Caching;
 
 namespace ServiceStack.Redis
 {
-    public interface IAsyncRedisClientsManager : IDisposable
+    public interface IRedisClientsManagerAsync : IDisposable
     {
         /// <summary>
         /// Returns a Read/Write client (The default) using the hosts defined in ReadWriteHosts
         /// </summary>
         /// <returns></returns>
-        ValueTask<IAsyncRedisClient> GetClientAsync(CancellationToken cancellationToken = default);
+        ValueTask<IRedisClientAsync> GetClientAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns a ReadOnly client using the hosts defined in ReadOnlyHosts.
         /// </summary>
         /// <returns></returns>
-        ValueTask<IAsyncRedisClient> GetReadOnlyClientAsync(CancellationToken cancellationToken = default);
+        ValueTask<IRedisClientAsync> GetReadOnlyClientAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns a Read/Write ICacheClient (The default) using the hosts defined in ReadWriteHosts
         /// </summary>
         /// <returns></returns>
-        ValueTask<IAsyncCacheClient> GetCacheClientAsync(CancellationToken cancellationToken = default);
+        ValueTask<ICacheClientAsync> GetCacheClientAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns a ReadOnly ICacheClient using the hosts defined in ReadOnlyHosts.
         /// </summary>
         /// <returns></returns>
-        ValueTask<IAsyncCacheClient> GetReadOnlyCacheClientAsync(CancellationToken cancellationToken = default);
+        ValueTask<ICacheClientAsync> GetReadOnlyCacheClientAsync(CancellationToken cancellationToken = default);
     }
 }
 #endif
