@@ -3,6 +3,8 @@ using ServiceStack.Redis.Pipeline;
 using ServiceStack.Text;
 using ServiceStack.Text.Pools;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -14,12 +16,12 @@ namespace ServiceStack.Redis
     {
         private async Task<byte[][]> SendExpectMultiDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
-            return (await SendReceiveAsync(cmdWithBinaryArgs, ReadMultiDataAsync, cancellationToken, Pipeline != null ? Pipeline.CompleteMultiBytesQueuedCommand : (Action<Func<byte[][]>>)null).ConfigureAwait(false))
+            return (await SendReceiveAsync(cmdWithBinaryArgs, ReadMultiData, cancellationToken, Pipeline != null ? Pipeline.CompleteMultiBytesQueuedCommand : (Action<Func<byte[][]>>)null).ConfigureAwait(false))
             ?? TypeConstants.EmptyByteArrayArray;
         }
 
         private async Task<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
-            Func<Task<T>> fn,
+            Func<T> fn,
             CancellationToken cancellationToken,
             Action<Func<T>> completePipelineFn = null,
             bool sendWithoutRead = false)
@@ -61,14 +63,13 @@ namespace ServiceStack.Redis
                         if (completePipelineFn == null)
                             throw new NotSupportedException("Pipeline is not supported.");
 
-                        throw new NotImplementedException("pipeline async");
-                        //completePipelineFn(fn);
-                        //return default(T);
+                        completePipelineFn(fn);
+                        return default(T);
                     }
 
                     var result = default(T);
                     if (fn != null)
-                        result = await fn().ConfigureAwait(false);
+                        result = fn();
 
                     if (Pipeline == null)
                         ResetSendBuffer();
@@ -116,51 +117,11 @@ namespace ServiceStack.Redis
             }
         }
 
-        private Task<byte[][]> ReadMultiDataAsync()
-        {
-            throw new NotImplementedException();
-            //int c = SafeReadByte(nameof(ReadMultiData));
-            //if (c == -1)
-            //    throw CreateNoMoreDataError();
+        private AwaitableSocketAsyncEventArgs _sendArgs, _receiveArgs;
+        private AwaitableSocketAsyncEventArgs SendArgs => _sendArgs ??= new AwaitableSocketAsyncEventArgs();
+        private AwaitableSocketAsyncEventArgs ReceiveArgs => _receiveArgs ??= new AwaitableSocketAsyncEventArgs();
 
-            //var s = ReadLine();
-            //if (log.IsDebugEnabled)
-            //    Log("R: {0}", s);
-
-            //switch (c)
-            //{
-            //    // Some commands like BRPOPLPUSH may return Bulk Reply instead of Multi-bulk
-            //    case '$':
-            //        var t = new byte[2][];
-            //        t[1] = ParseSingleLine(string.Concat(char.ToString((char)c), s));
-            //        return t;
-
-            //    case '-':
-            //        throw CreateResponseError(s.StartsWith("ERR") ? s.Substring(4) : s);
-
-            //    case '*':
-            //        if (int.TryParse(s, out var count))
-            //        {
-            //            if (count == -1)
-            //            {
-            //                //redis is in an invalid state
-            //                return TypeConstants.EmptyByteArrayArray;
-            //            }
-
-            //            var result = new byte[count][];
-
-            //            for (int i = 0; i < count; i++)
-            //                result[i] = ReadData();
-
-            //            return result;
-            //        }
-            //        break;
-            //}
-
-            //throw CreateResponseError("Unknown reply on multi-request: " + c + s);
-        }
-
-        private async ValueTask FlushSendBufferAsync(CancellationToken cancellationToken)
+        private ValueTask FlushSendBufferAsync(CancellationToken cancellationToken)
         {
             if (currentBufferIndex > 0)
                 PushCurrentBuffer();
@@ -186,24 +147,38 @@ namespace ServiceStack.Redis
                     }
 
                     // todo: asyncify
-                    socket.Send(cmdBuffer); //Optimized for Windows
+                    var args = SendArgs;
+                    args.BufferList = cmdBuffer;
+                    var pending = args.SendAsync(socket, cancellationToken);
+                    if (!pending.IsCompletedSuccessfully) return Awaited(pending);
                 }
                 else
                 {
                     //Sending IList<ArraySegment> Throws 'Message to Large' SocketException in Mono
-                    foreach (var segment in cmdBuffer)
+                    if (sslStream == null)
                     {
-                        var buffer = segment.Array;
-                        if (sslStream == null)
+                        foreach (var segment in cmdBuffer)
                         {
-                            // todo: asyncify
-                            socket.Send(buffer, segment.Offset, segment.Count, SocketFlags.None);
-                        }
-                        else
-                        {
-                            await sslStream.WriteAsync(buffer, segment.Offset, segment.Count).ConfigureAwait(false);
+                            socket.Send(segment.Array, segment.Offset, segment.Count, SocketFlags.None);
                         }
                     }
+                    else
+                    {
+                        return WriteAsync(sslStream, cmdBuffer, cancellationToken);
+                    }
+                }
+            }
+
+            return default;
+
+            static async ValueTask Awaited(ValueTask<int> pending)
+                => await pending.ConfigureAwait(false);
+
+            static async ValueTask WriteAsync(Stream destination, IList<ArraySegment<byte>> buffer, CancellationToken cancellationToken)
+            {
+                foreach (var segment in buffer)
+                {
+                    await destination.WriteAsync(segment.Array, segment.Offset, segment.Count, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
