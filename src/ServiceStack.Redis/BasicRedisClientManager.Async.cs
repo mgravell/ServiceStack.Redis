@@ -22,7 +22,7 @@ namespace ServiceStack.Redis
     /// Allows the configuration of different ReadWrite and ReadOnly hosts
     /// </summary>
     public partial class BasicRedisClientManager
-        : IRedisClientsManagerAsync
+        : IRedisClientsManagerAsync, ICacheClientAsync
     {
         ValueTask<ICacheClientAsync> IRedisClientsManagerAsync.GetCacheClientAsync(CancellationToken cancellationToken)
             => new ValueTask<ICacheClientAsync>(new RedisClientManagerCacheClient(this));
