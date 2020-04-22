@@ -16,7 +16,7 @@ namespace ServiceStack.Redis.Benchmark
     [SimpleJob(RuntimeMoniker.NetCoreApp31)]
     [MemoryDiagnoser]
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
-    [Orderer(SummaryOrderPolicy.Method)]
+    [Orderer(SummaryOrderPolicy.Method, MethodOrderPolicy.Alphabetical)]
     [CategoriesColumn]
     public class ServerTime
     {
