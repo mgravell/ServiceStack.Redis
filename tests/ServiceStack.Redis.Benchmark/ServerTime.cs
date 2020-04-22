@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Order;
 using Pipelines.Sockets.Unofficial;
 using Respite;
 using StackExchange.Redis;
@@ -13,8 +14,9 @@ namespace ServiceStack.Redis.Benchmark
 {
     [SimpleJob(RuntimeMoniker.Net472)]
     [SimpleJob(RuntimeMoniker.NetCoreApp31)]
-    [MemoryDiagnoser, MinColumn, MaxColumn]
+    [MemoryDiagnoser]
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
+    [Orderer(SummaryOrderPolicy.Method)]
     [CategoriesColumn]
     public class ServerTime
     {
@@ -71,7 +73,7 @@ namespace ServiceStack.Redis.Benchmark
         }
 
         [BenchmarkCategory("TimeAsync")]
-        [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST, Baseline = true)]
+        [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST)]
         public async Task SSRedisTimeAsync()
         {
             for (int i = 0; i < PER_TEST; i++)
@@ -92,7 +94,7 @@ namespace ServiceStack.Redis.Benchmark
         }
 
         [BenchmarkCategory("TimeSync")]
-        [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST, Baseline = true)]
+        [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST)]
         public void SSRedisTimeSync()
         {
             for (int i = 0; i < PER_TEST; i++)
