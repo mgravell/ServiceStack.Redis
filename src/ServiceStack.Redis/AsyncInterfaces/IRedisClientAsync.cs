@@ -160,7 +160,7 @@ namespace ServiceStack.Redis
         //IHasNamed<IRedisHash> Hashes { get; set; }
 
         //IRedisTransaction CreateTransaction();
-        //IRedisPipeline CreatePipeline();
+        ValueTask<IRedisPipelineAsync> CreatePipelineAsync(CancellationToken cancellationToken = default);
 
         //IDisposable AcquireLock(string key);
         //IDisposable AcquireLock(string key, TimeSpan timeOut);

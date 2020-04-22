@@ -4,7 +4,7 @@ using ServiceStack.Redis.Pipeline;
 namespace ServiceStack.Redis
 {
 
-    public class RedisAllPurposePipeline : RedisCommandQueue, IRedisPipeline
+    public partial class RedisAllPurposePipeline : RedisCommandQueue, IRedisPipeline
     {
         /// <summary>
         /// General purpose pipeline

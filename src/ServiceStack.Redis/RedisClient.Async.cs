@@ -12,6 +12,7 @@
 #if ASYNC_REDIS
 using ServiceStack.Caching;
 using ServiceStack.Redis.Generic;
+using ServiceStack.Redis.Pipeline;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,9 @@ namespace ServiceStack.Redis
         // convenience since we're not saturating the public API; this makes it easy to call
         // the explicit interface implementations; the JIT should make this a direct call
         private IRedisNativeClientAsync NativeAsync => this;
+
+        ValueTask<IRedisPipelineAsync> IRedisClientAsync.CreatePipelineAsync(CancellationToken cancellationToken)
+            => new ValueTask<IRedisPipelineAsync>(new RedisAllPurposePipeline(this));
 
         async Task<DateTime> IRedisClientAsync.GetServerTimeAsync(CancellationToken cancellationToken)
         {
