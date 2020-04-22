@@ -25,18 +25,23 @@ namespace ServiceStack.Redis.Benchmark
         RespConnection _respite;
 
         [GlobalSetup]
-        public async Task Setup()
+        public Task Setup() => Setup(false);
+        internal async Task Setup(bool minimal)
         {
-            _seredis = await ConnectionMultiplexer.ConnectAsync("127.0.0.1:6379");
-            _seredis_server = _seredis.GetServer(_seredis.GetEndPoints().Single());
             _ssredis = new RedisClient("127.0.0.1", 6379);
             _ssAsync = _ssredis;
 
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            SocketConnection.SetRecommendedClientOptions(socket);
-            socket.Connect("127.0.0.1", 6379);
-            
-            _respite = RespConnection.Create(socket);
+            if (!minimal)
+            {
+                _seredis = await ConnectionMultiplexer.ConnectAsync("127.0.0.1:6379");
+                _seredis_server = _seredis.GetServer(_seredis.GetEndPoints().Single());
+
+                var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                SocketConnection.SetRecommendedClientOptions(socket);
+                socket.Connect("127.0.0.1", 6379);
+
+                _respite = RespConnection.Create(socket);
+            }
         }
 
         [GlobalCleanup]

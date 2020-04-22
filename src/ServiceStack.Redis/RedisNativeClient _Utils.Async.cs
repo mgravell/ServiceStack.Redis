@@ -117,10 +117,6 @@ namespace ServiceStack.Redis
             }
         }
 
-        private AwaitableSocketAsyncEventArgs _sendArgs, _receiveArgs;
-        private AwaitableSocketAsyncEventArgs SendArgs => _sendArgs ??= new AwaitableSocketAsyncEventArgs();
-        private AwaitableSocketAsyncEventArgs ReceiveArgs => _receiveArgs ??= new AwaitableSocketAsyncEventArgs();
-
         private ValueTask FlushSendBufferAsync(CancellationToken cancellationToken)
         {
             if (currentBufferIndex > 0)
@@ -146,10 +142,7 @@ namespace ServiceStack.Redis
                         logDebug("socket.Send: " + StringBuilderCache.ReturnAndFree(sb.Replace("\r\n", " ")).SafeSubstring(0, 50));
                     }
 
-                    var args = SendArgs;
-                    args.BufferList = cmdBuffer;
-                    var pending = args.SendAsync(socket, cancellationToken);
-                    if (!pending.IsCompletedSuccessfully) return Awaited(pending);
+                    return new ValueTask(socket.SendAsync(cmdBuffer, SocketFlags.None));
                 }
                 else
                 {
@@ -169,9 +162,6 @@ namespace ServiceStack.Redis
             }
 
             return default;
-
-            static async ValueTask Awaited(ValueTask<int> pending)
-                => await pending.ConfigureAwait(false);
 
             static async ValueTask WriteAsync(Stream destination, List<ArraySegment<byte>> buffer, CancellationToken cancellationToken)
             {
