@@ -12,6 +12,7 @@
 #if ASYNC_REDIS
 using ServiceStack.Caching;
 using ServiceStack.Redis.Generic;
+using ServiceStack.Redis.Pipeline;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,9 @@ namespace ServiceStack.Redis
             var parts = await NativeAsync.TimeAsync(cancellationToken).ConfigureAwait(false);
             return ParseTimeResult(parts);
         }
+
+        ValueTask<IRedisPipelineAsync> IRedisClientAsync.CreatePipelineAsync(CancellationToken cancellationToken)
+            => new ValueTask<IRedisPipelineAsync>(new RedisAllPurposePipeline(this));
     }
 }
 #endif

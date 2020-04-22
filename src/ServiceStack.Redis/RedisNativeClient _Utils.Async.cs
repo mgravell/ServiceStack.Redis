@@ -120,7 +120,7 @@ namespace ServiceStack.Redis
             }
         }
 
-        private ValueTask FlushSendBufferAsync(CancellationToken cancellationToken)
+        internal ValueTask FlushSendBufferAsync(CancellationToken cancellationToken)
         {
             if (currentBufferIndex > 0)
                 PushCurrentBuffer();

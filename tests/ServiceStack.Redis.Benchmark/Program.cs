@@ -12,6 +12,7 @@ namespace ServiceStack.Redis.Benchmark
             try
             {
                 await obj.Setup(true);
+                await obj.SSRedisPipelineTimeAsync();
                 await obj.SSRedisTimeAsync();
             }
             finally

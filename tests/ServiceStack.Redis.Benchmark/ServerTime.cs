@@ -4,8 +4,10 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
 using Pipelines.Sockets.Unofficial;
 using Respite;
+using ServiceStack.Text;
 using StackExchange.Redis;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -82,6 +84,20 @@ namespace ServiceStack.Redis.Benchmark
             }
         }
 
+        [BenchmarkCategory("PipelineTimeAsync")]
+        [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST)]
+        public async Task SSRedisPipelineTimeAsync()
+        {
+            await using var trans = await _ssAsync.CreatePipelineAsync().ConfigureAwait(false);
+            var times = new List<long>(PER_TEST);
+            for (int i = 0; i < PER_TEST; i++)
+            {
+                trans.QueueCommand(async r => (await r.GetServerTimeAsync().ConfigureAwait(false)).ToUnixTime(), t => times.Add(t));
+            }
+            await trans.FlushAsync().ConfigureAwait(false);
+            if (times.Count != PER_TEST)
+                throw new InvalidOperationException($"Expected {PER_TEST}, was {times.Count}");
+        }
 
         [BenchmarkCategory("TimeSync")]
         [Benchmark(Description = "SERedis", OperationsPerInvoke = PER_TEST)]

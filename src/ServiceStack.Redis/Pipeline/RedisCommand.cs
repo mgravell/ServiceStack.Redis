@@ -9,7 +9,7 @@ namespace ServiceStack.Redis
     /// <summary>
     /// Redis command that does not get queued
     /// </summary>
-    internal class RedisCommand : QueuedRedisOperation
+    internal partial class RedisCommand : QueuedRedisOperation
     {
         public Action<IRedisClient> VoidReturnCommand { get; set; }
         public Func<IRedisClient, int> IntReturnCommand { get; set; }

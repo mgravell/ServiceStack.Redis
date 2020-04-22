@@ -34,6 +34,8 @@ namespace ServiceStack.Redis.Tests
         [TestCase(typeof(IRemoveByPattern), typeof(IRemoveByPatternAsync))]
         [TestCase(typeof(IEntityStore<>), typeof(IEntityStoreAsync<>))]
         [TestCase(typeof(IRedisTypedClient<>), typeof(IRedisTypedClientAsync<>))]
+        [TestCase(typeof(IRedisPipeline), typeof(IRedisPipelineAsync))]
+        [TestCase(typeof(IRedisQueueableOperation), typeof(IRedisQueueableOperationAsync))]
         public void TestFullyImplemented(Type syncInterface, Type asyncInterface)
         {
             var syncTypes = AllTypes.Where(x => Implements(x, syncInterface)).ToArray();

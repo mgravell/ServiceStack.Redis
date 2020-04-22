@@ -8,7 +8,7 @@ namespace ServiceStack.Redis.Pipeline
     /// <summary>
     /// Pipeline interface shared by typed and non-typed pipelines
     /// </summary>
-    public interface IRedisPipelineSharedAsync : IDisposable, IRedisQueueCompletableOperation
+    public interface IRedisPipelineSharedAsync : IAsyncDisposable, IRedisQueueCompletableOperation
     {
         Task FlushAsync(CancellationToken cancellationToken = default);
         Task<bool> ReplayAsync(CancellationToken cancellationToken = default);
