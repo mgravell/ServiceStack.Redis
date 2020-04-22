@@ -21,9 +21,7 @@ namespace ServiceStack.Redis.Benchmark
         ConnectionMultiplexer _seredis;
         IServer _seredis_server;
         RedisClient _ssredis;
-#if ASYNC_REDIS
         IRedisClientAsync _ssAsync;
-#endif
         RespConnection _respite;
 
         [GlobalSetup]
@@ -32,9 +30,7 @@ namespace ServiceStack.Redis.Benchmark
             _seredis = await ConnectionMultiplexer.ConnectAsync("127.0.0.1:6379");
             _seredis_server = _seredis.GetServer(_seredis.GetEndPoints().Single());
             _ssredis = new RedisClient("127.0.0.1", 6379);
-#if ASYNC_REDIS
             _ssAsync = _ssredis;
-#endif
 
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             SocketConnection.SetRecommendedClientOptions(socket);
@@ -54,9 +50,7 @@ namespace ServiceStack.Redis.Benchmark
             _seredis = null;
             _ssredis = null;
             _respite = null;
-#if ASYNC_REDIS
             _ssAsync = null;
-#endif
         }
 
         const int PER_TEST = 1000;
@@ -75,15 +69,10 @@ namespace ServiceStack.Redis.Benchmark
         [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST, Baseline = true)]
         public async Task SSRedisTimeAsync()
         {
-#if ASYNC_REDIS
             for (int i = 0; i < PER_TEST; i++)
             {
                 await _ssAsync.GetServerTimeAsync().ConfigureAwait(false);
             }
-#else
-            await Task.Yield();
-            throw new NotSupportedException();
-#endif
         }
 
 

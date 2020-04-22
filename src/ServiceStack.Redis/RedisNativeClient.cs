@@ -64,8 +64,11 @@ namespace ServiceStack.Redis
         public bool HadExceptions => deactivatedAtTicks > 0;
 
         protected Socket socket;
+        [Obsolete("The direct stream is no longer directly available", true)] // API BREAKING CHANGE since exposed
         protected BufferedStream Bstream;
         protected SslStream sslStream;
+
+        private BufferedReader bufferedReader;
 
         private IRedisTransactionBase transaction;
         private IRedisPipelineShared pipeline;
@@ -2432,7 +2435,7 @@ namespace ServiceStack.Redis
             try
             {
                 // workaround for a .net bug: http://support.microsoft.com/kb/821625
-                Bstream?.Close();
+                bufferedReader?.Close();
             }
             catch { }
             try
@@ -2446,7 +2449,7 @@ namespace ServiceStack.Redis
             }
             catch { }
 
-            Bstream = null;
+            bufferedReader = null;
             sslStream = null;
             socket = null;
         }

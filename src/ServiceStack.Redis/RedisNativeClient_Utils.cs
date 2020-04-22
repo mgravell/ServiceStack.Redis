@@ -180,7 +180,7 @@ namespace ServiceStack.Redis
                     networkStream = sslStream;
                 }
 
-                Bstream = new BufferedStream(networkStream, 16 * 1024);
+                bufferedReader = new BufferedReader(networkStream, 16 * 1024);
 
                 if (!string.IsNullOrEmpty(Password))
                     SendUnmanagedExpectSuccess(Commands.Auth, Password.ToUtf8Bytes());
@@ -248,7 +248,7 @@ namespace ServiceStack.Redis
             var sb = StringBuilderCache.Allocate();
 
             int c;
-            while ((c = Bstream.ReadByte()) != -1)
+            while ((c = bufferedReader.ReadByte()) != -1)
             {
                 if (c == '\r')
                     continue;
@@ -426,7 +426,7 @@ namespace ServiceStack.Redis
             if (log.IsDebugEnabled && RedisConfig.EnableVerboseLogging)
                 logDebug("stream.Write: " + Encoding.UTF8.GetString(bytes, 0, Math.Min(bytes.Length, 50)).Replace("\r\n"," ").SafeSubstring(0,50));
 
-            Bstream.Write(bytes, 0, bytes.Length);
+            SendDirectToSocket(new ArraySegment<byte>(bytes, 0, bytes.Length));
 
             ExpectSuccess();
         }
@@ -443,7 +443,9 @@ namespace ServiceStack.Redis
             }
         }
 
-        readonly IList<ArraySegment<byte>> cmdBuffer = new List<ArraySegment<byte>>();
+        // trated as List<T> rather than IList<T> to avoid allocs during foreach
+        readonly List<ArraySegment<byte>> cmdBuffer = new List<ArraySegment<byte>>();
+
         byte[] currentBuffer = BufferPool.GetBuffer();
         int currentBufferIndex;
 
@@ -524,17 +526,21 @@ namespace ServiceStack.Redis
                     //Sending IList<ArraySegment> Throws 'Message to Large' SocketException in Mono
                     foreach (var segment in cmdBuffer)
                     {
-                        var buffer = segment.Array;
-                        if (sslStream == null)
-                        {
-                            socket.Send(buffer, segment.Offset, segment.Count, SocketFlags.None);
-                        }
-                        else
-                        {
-                            sslStream.Write(buffer, segment.Offset, segment.Count);
-                        }
+                        SendDirectToSocket(segment);
                     }
                 }
+            }
+        }
+
+        private void SendDirectToSocket(ArraySegment<byte> segment)
+        {
+            if (sslStream == null)
+            {
+                socket.Send(segment.Array, segment.Offset, segment.Count, SocketFlags.None);
+            }
+            else
+            {
+                sslStream.Write(segment.Array, segment.Offset, segment.Count);
             }
         }
 
@@ -555,7 +561,7 @@ namespace ServiceStack.Redis
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void AssertNotDisposed()
         {
-            if (Bstream == null)
+            if (bufferedReader == null)
                 throw new ObjectDisposedException($"Redis Client {ClientId} is Disposed");
         }
 
@@ -566,7 +572,7 @@ namespace ServiceStack.Redis
             if (log.IsDebugEnabled && RedisConfig.EnableVerboseLogging)
                 logDebug(name + "()");
         
-            return Bstream.ReadByte();
+            return bufferedReader.ReadByte();
         }
 
         internal TrackThread? TrackThread;
@@ -963,7 +969,7 @@ namespace ServiceStack.Redis
                     var offset = 0;
                     while (count > 0)
                     {
-                        var readCount = Bstream.Read(retbuf, offset, count);
+                        var readCount = bufferedReader.Read(retbuf, offset, count);
                         if (readCount <= 0)
                             throw CreateResponseError("Unexpected end of Stream");
 
@@ -971,7 +977,7 @@ namespace ServiceStack.Redis
                         count -= readCount;
                     }
 
-                    if (Bstream.ReadByte() != '\r' || Bstream.ReadByte() != '\n')
+                    if (bufferedReader.ReadByte() != '\r' || bufferedReader.ReadByte() != '\n')
                         throw CreateResponseError("Invalid termination");
 
                     return retbuf;

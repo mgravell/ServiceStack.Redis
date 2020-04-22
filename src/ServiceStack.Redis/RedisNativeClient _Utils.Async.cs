@@ -146,7 +146,6 @@ namespace ServiceStack.Redis
                         logDebug("socket.Send: " + StringBuilderCache.ReturnAndFree(sb.Replace("\r\n", " ")).SafeSubstring(0, 50));
                     }
 
-                    // todo: asyncify
                     var args = SendArgs;
                     args.BufferList = cmdBuffer;
                     var pending = args.SendAsync(socket, cancellationToken);
@@ -158,7 +157,7 @@ namespace ServiceStack.Redis
                     if (sslStream == null)
                     {
                         foreach (var segment in cmdBuffer)
-                        {
+                        {   // TODO: what is modern Mono behavior here?
                             socket.Send(segment.Array, segment.Offset, segment.Count, SocketFlags.None);
                         }
                     }
@@ -174,7 +173,7 @@ namespace ServiceStack.Redis
             static async ValueTask Awaited(ValueTask<int> pending)
                 => await pending.ConfigureAwait(false);
 
-            static async ValueTask WriteAsync(Stream destination, IList<ArraySegment<byte>> buffer, CancellationToken cancellationToken)
+            static async ValueTask WriteAsync(Stream destination, List<ArraySegment<byte>> buffer, CancellationToken cancellationToken)
             {
                 foreach (var segment in buffer)
                 {
