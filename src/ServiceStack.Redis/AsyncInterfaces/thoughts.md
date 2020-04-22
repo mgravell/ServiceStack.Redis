@@ -29,4 +29,6 @@
 6. Similarly, have proposed deprecating local `BufferedStream` impl
 
 7. Have proposed adding TFM for net472; can't go as low as net45, and net462 is a mess re ns/netfx; net472 is a
-   reasonale starting point for adding the async API into netfx
+   reasonable starting point for adding the async API into netfx
+
+8. Have proposed adding a ns2.1 TFM; allows access to more efficient Stream/Socket APIs

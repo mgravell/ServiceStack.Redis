@@ -177,7 +177,11 @@ namespace ServiceStack.Redis
             {
                 foreach (var segment in buffer)
                 {
+#if ASYNC_MEMORY
+                    await destination.WriteAsync(new ReadOnlyMemory<byte>(segment.Array, segment.Offset, segment.Count), cancellationToken).ConfigureAwait(false);
+#else
                     await destination.WriteAsync(segment.Array, segment.Offset, segment.Count, cancellationToken).ConfigureAwait(false);
+#endif
                 }
             }
         }
