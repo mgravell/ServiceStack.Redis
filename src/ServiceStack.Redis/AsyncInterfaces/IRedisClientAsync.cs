@@ -28,7 +28,7 @@ namespace ServiceStack.Redis
     {
         //Basic Redis Connection operations
         long Db { get; set; }
-        // Task<long> DbSize(CancellationToken cancellationToken = default);
+        // ValueTask<long> DbSize(CancellationToken cancellationToken = default);
 
         //Dictionary<string, string> Info { get; }
         ValueTask<DateTime> GetServerTimeAsync(CancellationToken cancellationToken = default);

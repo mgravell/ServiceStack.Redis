@@ -12,7 +12,7 @@ namespace ServiceStack.Redis
     {
         private IRedisPipelineAsync AsyncPipeline => this;
 
-        async Task<bool> IRedisPipelineSharedAsync.ReplayAsync(CancellationToken cancellationToken)
+        async ValueTask<bool> IRedisPipelineSharedAsync.ReplayAsync(CancellationToken cancellationToken)
         {
             Init();
             Execute();
@@ -20,7 +20,7 @@ namespace ServiceStack.Redis
             return true;
         }
 
-        async Task IRedisPipelineSharedAsync.FlushAsync(CancellationToken cancellationToken)
+        async ValueTask IRedisPipelineSharedAsync.FlushAsync(CancellationToken cancellationToken)
         {
             // flush send buffers
             await RedisClient.FlushSendBufferAsync(cancellationToken).ConfigureAwait(false);
