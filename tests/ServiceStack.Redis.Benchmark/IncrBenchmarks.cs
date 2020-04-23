@@ -96,13 +96,27 @@ namespace ServiceStack.Redis.Benchmark
             return last;
         }
 
+        [BenchmarkCategory("PipelineIncrAsync")]
+        [Benchmark(Description = "SERedis", OperationsPerInvoke = PER_TEST)]
+        public async Task<long> SERedisPipelineIncrAsync()
+        {
+            var last = Task.FromResult(0L);
+            await _seredis_db.KeyDeleteAsync(Key).ConfigureAwait(false);
+            var batch = _seredis_db.CreateBatch();
+            for (int i = 0; i < PER_TEST; i++)
+            {
+                last = batch.StringIncrementAsync(Key);
+            }
+            batch.Execute();
+            return await last.ConfigureAwait(false);
+        }
 
         [BenchmarkCategory("IncrAsync")]
         [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST)]
         public async Task<long> SSRedisIncrAsync()
         {
             long last = default;
-            _ssredis.Del(Key);
+            _ssredis.Del(Key); // todo: asyncify
             for (int i = 0; i < PER_TEST; i++)
             {
                 last = await _ssAsync.IncrementValueAsync(Key).ConfigureAwait(false);
@@ -144,7 +158,7 @@ namespace ServiceStack.Redis.Benchmark
         public async Task<long> SSRedisPipelineIncrAsync()
         {
             long last = default;
-            _ssredis.Del(Key);
+            _ssredis.Del(Key); // todo: asyncify
             await using var trans = await _ssAsync.CreatePipelineAsync().ConfigureAwait(false);
             for (int i = 0; i < PER_TEST; i++)
             {

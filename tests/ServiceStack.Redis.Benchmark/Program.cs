@@ -11,7 +11,12 @@ namespace ServiceStack.Redis.Benchmark
             var obj = new IncrBenchmarks();
             try
             {
-                await obj.Setup(true);
+                await obj.Setup(false);
+
+                Console.WriteLine(obj.SERedisIncrSync());
+                Console.WriteLine(await obj.SERedisIncrAsync());
+                Console.WriteLine(await obj.SERedisPipelineIncrAsync());
+
                 Console.WriteLine(obj.SSRedisIncrSync());
                 Console.WriteLine(obj.SSRedisPipelineIncrSync());
                 Console.WriteLine(await obj.SSRedisIncrAsync());
