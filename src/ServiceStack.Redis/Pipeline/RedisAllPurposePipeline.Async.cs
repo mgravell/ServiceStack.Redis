@@ -190,6 +190,18 @@ namespace ServiceStack.Redis
             CurrentQueuedOperation.MultiBytesReadCommandAsync = multiBytesReadCommand;
             AddCurrentQueuedOperation();
         }
+
+
+        void IRedisQueueCompletableOperationAsync.CompleteLongQueuedCommandAsync(Func<CancellationToken, ValueTask<long>> longReadCommand)
+        {
+            //AssertCurrentOperation();
+            // this can happen when replaying pipeline/transaction
+            if (CurrentQueuedOperation == null) return;
+
+            CurrentQueuedOperation.LongReadCommandAsync = longReadCommand;
+            AddCurrentQueuedOperation();
+        }
+
     }
 }
 #endif

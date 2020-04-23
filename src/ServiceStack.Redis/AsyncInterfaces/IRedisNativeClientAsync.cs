@@ -39,7 +39,7 @@ namespace ServiceStack.Redis
         //void ConfigSet(string item, byte[] value);
         //void ConfigResetStat();
         //void ConfigRewrite();
-        Task<byte[][]> TimeAsync(CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> TimeAsync(CancellationToken cancellationToken = default);
         //void DebugSegfault();
         //byte[] Dump(string key);
         //byte[] Restore(string key, long expireMs, byte[] dumpValue);
@@ -78,7 +78,7 @@ namespace ServiceStack.Redis
         //byte[][] MGet(params string[] keys);
         //long Del(string key);
         //long Del(params string[] keys);
-        //long Incr(string key);
+        ValueTask<long> IncrAsync(string key, CancellationToken cancellationToken = default);
         //long IncrBy(string key, int incrBy);
         //double IncrByFloat(string key, double incrBy);
         //long Decr(string key);

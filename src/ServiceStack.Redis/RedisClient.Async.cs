@@ -28,11 +28,14 @@ namespace ServiceStack.Redis
         // the explicit interface implementations; the JIT should make this a direct call
         private IRedisNativeClientAsync NativeAsync => this;
 
-        async Task<DateTime> IRedisClientAsync.GetServerTimeAsync(CancellationToken cancellationToken)
+        async ValueTask<DateTime> IRedisClientAsync.GetServerTimeAsync(CancellationToken cancellationToken)
         {
             var parts = await NativeAsync.TimeAsync(cancellationToken).ConfigureAwait(false);
             return ParseTimeResult(parts);
         }
+
+        ValueTask<long> IRedisClientAsync.IncrementValueAsync(string key, CancellationToken cancellationToken)
+            => NativeAsync.IncrAsync(key, cancellationToken);
 
         ValueTask<IRedisPipelineAsync> IRedisClientAsync.CreatePipelineAsync(CancellationToken cancellationToken)
             => new ValueTask<IRedisPipelineAsync>(new RedisAllPurposePipeline(this));

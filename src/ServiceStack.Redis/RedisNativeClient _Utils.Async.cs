@@ -15,14 +15,20 @@ namespace ServiceStack.Redis
 {
     partial class RedisNativeClient
     {
-        private async Task<byte[][]> SendExpectMultiDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        private async ValueTask<byte[][]> SendExpectMultiDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
             return (await SendReceiveAsync(cmdWithBinaryArgs, ReadMultiDataAsync, cancellationToken,
                 PipelineAsync != null ? PipelineAsync.CompleteMultiBytesQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<byte[][]>>>)null).ConfigureAwait(false))
             ?? TypeConstants.EmptyByteArrayArray;
         }
 
-        private async Task<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
+        private ValueTask<long> SendExpectLongAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        {
+            return SendReceiveAsync(cmdWithBinaryArgs, ReadLongAsync, cancellationToken,
+                PipelineAsync != null ? PipelineAsync.CompleteLongQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<long>>>)null);
+        }
+
+        private async ValueTask<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
             Func<CancellationToken, ValueTask<T>> fn,
             CancellationToken cancellationToken,
             Action<Func<CancellationToken, ValueTask<T>>> completePipelineFn = null,
@@ -179,14 +185,14 @@ namespace ServiceStack.Redis
         }
 
 
-        private ValueTask<int> SafeReadByteAsync([CallerMemberName]string name = null)
+        private ValueTask<int> SafeReadByteAsync(in CancellationToken cancellationToken, [CallerMemberName]string name = null)
         {
             AssertNotDisposed();
 
             if (log.IsDebugEnabled && RedisConfig.EnableVerboseLogging)
                 logDebug(name + "()");
 
-            return bufferedReader.ReadByteAsync();
+            return bufferedReader.ReadByteAsync(cancellationToken);
         }
 
         private async ValueTask<string> ReadLineAsync(CancellationToken cancellationToken)
@@ -271,7 +277,7 @@ namespace ServiceStack.Redis
 
         private async ValueTask<byte[][]> ReadMultiDataAsync(CancellationToken cancellationToken)
         {
-            int c = await SafeReadByteAsync().ConfigureAwait(false);
+            int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
             if (c == -1)
                 throw CreateNoMoreDataError();
 
@@ -310,6 +316,29 @@ namespace ServiceStack.Redis
             }
 
             throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+        }
+
+        public async ValueTask<long> ReadLongAsync(CancellationToken cancellationToken)
+        {
+            int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
+            if (c == -1)
+                throw CreateNoMoreDataError();
+
+            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
+
+            if (log.IsDebugEnabled)
+                Log("R: {0}", s);
+
+            if (c == '-')
+                throw CreateResponseError(s.StartsWith("ERR") ? s.Substring(4) : s);
+
+            if (c == ':' || c == '$')//really strange why ZRANK needs the '$' here
+            {
+                long i;
+                if (long.TryParse(s, out i))
+                    return i;
+            }
+            throw CreateResponseError("Unknown reply on integer response: " + c + s);
         }
     }
 }

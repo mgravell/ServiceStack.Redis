@@ -31,7 +31,7 @@ namespace ServiceStack.Redis
         // Task<long> DbSize(CancellationToken cancellationToken = default);
 
         //Dictionary<string, string> Info { get; }
-        Task<DateTime> GetServerTimeAsync(CancellationToken cancellationToken = default);
+        ValueTask<DateTime> GetServerTimeAsync(CancellationToken cancellationToken = default);
         //DateTime LastSave { get; }
         string Host { get; }
         int Port { get; }
@@ -107,7 +107,7 @@ namespace ServiceStack.Redis
 
         //bool ContainsKey(string key);
         //bool RemoveEntry(params string[] args);
-        //long IncrementValue(string key);
+        ValueTask<long> IncrementValueAsync(string key, CancellationToken cancellationToken = default);
         //long IncrementValueBy(string key, int count);
         //long IncrementValueBy(string key, long count);
         //double IncrementValueBy(string key, double count);

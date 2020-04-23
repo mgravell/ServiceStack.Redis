@@ -8,12 +8,14 @@ namespace ServiceStack.Redis.Benchmark
 #if DEBUG
         static async Task Main()
         {
-            var obj = new ServerTime();
+            var obj = new IncrBenchmarks();
             try
             {
                 await obj.Setup(true);
-                Console.WriteLine(obj.SSRedisTimeSync());
-                Console.WriteLine(obj.SSRedisPipelineTimeSync());
+                Console.WriteLine(obj.SSRedisIncrSync());
+                Console.WriteLine(obj.SSRedisPipelineIncrSync());
+                Console.WriteLine(await obj.SSRedisIncrAsync());
+                Console.WriteLine(await obj.SSRedisPipelineIncrAsync());
                 //await obj.SSRedisTimeAsync();
             }
             finally
