@@ -28,13 +28,18 @@ namespace ServiceStack.Redis.Benchmark
         IRedisClientAsync _ssAsync;
         RespConnection _respite;
 
+        static ServerTime()
+        {
+            RedisClient.NewFactoryFn = () => new RedisClient("127.0.0.1", 6379);
+        }
+
         [GlobalSetup]
         public Task Setup() => Setup(false);
         internal async Task Setup(bool minimal)
         {
-            _ssredis = new RedisClient("127.0.0.1", 6379);
+            _ssredis = RedisClient.New();
             _ssAsync = _ssredis;
-
+            
             if (!minimal)
             {
                 _seredis = await ConnectionMultiplexer.ConnectAsync("127.0.0.1:6379");
@@ -66,22 +71,42 @@ namespace ServiceStack.Redis.Benchmark
 
         [BenchmarkCategory("TimeAsync")]
         [Benchmark(Description = "SERedis", OperationsPerInvoke = PER_TEST)]
-        public async Task SERedisTimeAsync()
+        public async Task<DateTime> SERedisTimeAsync()
         {
+            DateTime last = default;
             for (int i = 0; i < PER_TEST; i++)
             {
-                await _seredis_server.TimeAsync().ConfigureAwait(false);
+                last = await _seredis_server.TimeAsync().ConfigureAwait(false);
             }
+            return last;
         }
 
         [BenchmarkCategory("TimeAsync")]
         [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST)]
-        public async Task SSRedisTimeAsync()
+        public async Task<DateTime> SSRedisTimeAsync()
         {
+            DateTime last = default;
             for (int i = 0; i < PER_TEST; i++)
             {
-                await _ssAsync.GetServerTimeAsync().ConfigureAwait(false);
+                last = await _ssAsync.GetServerTimeAsync().ConfigureAwait(false);
             }
+            return last;
+        }
+
+        [BenchmarkCategory("PipelineTimeSync")]
+        [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST)]
+        public DateTime SSRedisPipelineTimeSync()
+        {
+            using var trans = _ssredis.CreatePipeline();
+            var times = new List<long>(PER_TEST);
+            for (int i = 0; i < PER_TEST; i++)
+            {
+                trans.QueueCommand(r => r.GetServerTime().ToUnixTime(), t => times.Add(t));
+            }
+            trans.Flush();
+            if (times.Count != PER_TEST)
+                throw new InvalidOperationException($"Expected {PER_TEST}, was {times.Count}");
+            return times.Last().FromUnixTime();
         }
 
         [BenchmarkCategory("PipelineTimeAsync")]
@@ -101,22 +126,26 @@ namespace ServiceStack.Redis.Benchmark
 
         [BenchmarkCategory("TimeSync")]
         [Benchmark(Description = "SERedis", OperationsPerInvoke = PER_TEST)]
-        public void SERedisTimeSync()
+        public DateTime SERedisTimeSync()
         {
+            DateTime last = default;
             for (int i = 0; i < PER_TEST; i++)
             {
-                _seredis_server.Time();
+                last = _seredis_server.Time();
             }
+            return last;
         }
 
         [BenchmarkCategory("TimeSync")]
         [Benchmark(Description = "SSRedis", OperationsPerInvoke = PER_TEST)]
-        public void SSRedisTimeSync()
+        public DateTime SSRedisTimeSync()
         {
+            DateTime last = default;
             for (int i = 0; i < PER_TEST; i++)
             {
-                _ssredis.GetServerTime();
+                last = _ssredis.GetServerTime();
             }
+            return last;
         }
 
         static readonly RespValue s_Time = RespValue.CreateAggregate(

@@ -17,14 +17,15 @@ namespace ServiceStack.Redis
     {
         private async Task<byte[][]> SendExpectMultiDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
-            return (await SendReceiveAsync(cmdWithBinaryArgs, ReadMultiDataAsync, cancellationToken, Pipeline != null ? Pipeline.CompleteMultiBytesQueuedCommand : (Action<Func<byte[][]>>)null).ConfigureAwait(false))
+            return (await SendReceiveAsync(cmdWithBinaryArgs, ReadMultiDataAsync, cancellationToken,
+                PipelineAsync != null ? PipelineAsync.CompleteMultiBytesQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<byte[][]>>>)null).ConfigureAwait(false))
             ?? TypeConstants.EmptyByteArrayArray;
         }
 
         private async Task<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
-            Func<Task<T>> fn,
+            Func<CancellationToken, ValueTask<T>> fn,
             CancellationToken cancellationToken,
-            Action<Func<T>> completePipelineFn = null,
+            Action<Func<CancellationToken, ValueTask<T>>> completePipelineFn = null,
             bool sendWithoutRead = false)
         {
             //if (TrackThread != null)
@@ -64,15 +65,13 @@ namespace ServiceStack.Redis
                         if (completePipelineFn == null)
                             throw new NotSupportedException("Pipeline is not supported.");
 
-                        // TODO: implement
-                        throw new NotImplementedException("Pipelines");
-                        //completePipelineFn(fn);
-                        //return default(T);
+                        completePipelineFn(fn);
+                        return default(T);
                     }
 
                     var result = default(T);
                     if (fn != null)
-                        result = await fn().ConfigureAwait(false);
+                        result = await fn(cancellationToken).ConfigureAwait(false);
 
                     if (Pipeline == null)
                         ResetSendBuffer();
@@ -190,14 +189,14 @@ namespace ServiceStack.Redis
             return bufferedReader.ReadByteAsync();
         }
 
-        private async ValueTask<string> ReadLineAsync()
+        private async ValueTask<string> ReadLineAsync(CancellationToken cancellationToken)
         {
             AssertNotDisposed();
 
             var sb = StringBuilderCache.Allocate();
 
             int c;
-            while ((c = await bufferedReader.ReadByteAsync().ConfigureAwait(false)) != -1)
+            while ((c = await bufferedReader.ReadByteAsync(cancellationToken).ConfigureAwait(false)) != -1)
             {
                 if (c == '\r')
                     continue;
@@ -208,7 +207,7 @@ namespace ServiceStack.Redis
             return StringBuilderCache.ReturnAndFree(sb);
         }
 
-        private async ValueTask<byte[]> ParseSingleLineAsync(string r)
+        private async ValueTask<byte[]> ParseSingleLineAsync(string r, CancellationToken cancellationToken)
         {
             if (log.IsDebugEnabled)
                 Log("R: {0}", r);
@@ -231,7 +230,7 @@ namespace ServiceStack.Redis
                     var offset = 0;
                     while (count > 0)
                     {
-                        var readCount = await bufferedReader.ReadAsync(retbuf, offset, count).ConfigureAwait(false);
+                        var readCount = await bufferedReader.ReadAsync(retbuf, offset, count, cancellationToken).ConfigureAwait(false);
                         if (readCount <= 0)
                             throw CreateResponseError("Unexpected end of Stream");
 
@@ -239,7 +238,8 @@ namespace ServiceStack.Redis
                         count -= readCount;
                     }
 
-                    if (await bufferedReader.ReadByteAsync().ConfigureAwait(false) != '\r' || await bufferedReader.ReadByteAsync().ConfigureAwait(false) != '\n')
+                    if (await bufferedReader.ReadByteAsync(cancellationToken).ConfigureAwait(false) != '\r'
+                        || await bufferedReader.ReadByteAsync(cancellationToken).ConfigureAwait(false) != '\n')
                         throw CreateResponseError("Invalid termination");
 
                     return retbuf;
@@ -255,27 +255,27 @@ namespace ServiceStack.Redis
             throw CreateResponseError("Unexpected reply: " + r);
         }
 
-        private ValueTask<byte[]> ReadDataAsync()
+        private ValueTask<byte[]> ReadDataAsync(in CancellationToken cancellationToken)
         {
-            var pending = ReadLineAsync();
+            var pending = ReadLineAsync(cancellationToken);
             return pending.IsCompletedSuccessfully
-                ? ParseSingleLineAsync(pending.Result)
-                : Awaited(this, pending);
+                ? ParseSingleLineAsync(pending.Result, cancellationToken)
+                : Awaited(this, pending, cancellationToken);
 
-            static async ValueTask<byte[]> Awaited(RedisNativeClient @this, ValueTask<string> pending)
+            static async ValueTask<byte[]> Awaited(RedisNativeClient @this, ValueTask<string> pending, CancellationToken cancellationToken)
             {
                 var r = await pending.ConfigureAwait(false);
-                return await @this.ParseSingleLineAsync(r).ConfigureAwait(false);
+                return await @this.ParseSingleLineAsync(r, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task<byte[][]> ReadMultiDataAsync()
+        private async ValueTask<byte[][]> ReadMultiDataAsync(CancellationToken cancellationToken)
         {
             int c = await SafeReadByteAsync().ConfigureAwait(false);
             if (c == -1)
                 throw CreateNoMoreDataError();
 
-            var s = await ReadLineAsync().ConfigureAwait(false);
+            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
             if (log.IsDebugEnabled)
                 Log("R: {0}", s);
 
@@ -284,7 +284,7 @@ namespace ServiceStack.Redis
                 // Some commands like BRPOPLPUSH may return Bulk Reply instead of Multi-bulk
                 case '$':
                     var t = new byte[2][];
-                    t[1] = await ParseSingleLineAsync(string.Concat(char.ToString((char)c), s)).ConfigureAwait(false);
+                    t[1] = await ParseSingleLineAsync(string.Concat(char.ToString((char)c), s), cancellationToken).ConfigureAwait(false);
                     return t;
 
                 case '-':
@@ -302,7 +302,7 @@ namespace ServiceStack.Redis
                         var result = new byte[count][];
 
                         for (int i = 0; i < count; i++)
-                            result[i] = await ReadDataAsync().ConfigureAwait(false);
+                            result[i] = await ReadDataAsync(cancellationToken).ConfigureAwait(false);
 
                         return result;
                     }

@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 using System.Threading.Tasks;
-
+using System;
 namespace ServiceStack.Redis.Benchmark
 {
     class Program
@@ -12,8 +12,9 @@ namespace ServiceStack.Redis.Benchmark
             try
             {
                 await obj.Setup(true);
-                await obj.SSRedisPipelineTimeAsync();
-                await obj.SSRedisTimeAsync();
+                Console.WriteLine(obj.SSRedisTimeSync());
+                Console.WriteLine(obj.SSRedisPipelineTimeSync());
+                //await obj.SSRedisTimeAsync();
             }
             finally
             {
