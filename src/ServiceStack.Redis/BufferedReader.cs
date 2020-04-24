@@ -81,6 +81,7 @@ namespace ServiceStack.Redis
         
         private ValueTask<int> ReadByteSlowAsync(in CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             _offset = 0;
 #if ASYNC_MEMORY
             var pending = _source.ReadAsync(new Memory<byte>(_buffer), cancellationToken);

@@ -340,6 +340,51 @@ namespace ServiceStack.Redis
             }
             throw CreateResponseError("Unknown reply on integer response: " + c + s);
         }
+
+        internal ValueTask ExpectOkAsync(CancellationToken cancellationToken)
+            => ExpectWordAsync(OK, cancellationToken);
+
+        internal ValueTask ExpectQueuedAsync(CancellationToken cancellationToken)
+            => ExpectWordAsync(QUEUED, cancellationToken);
+
+        private async ValueTask ExpectWordAsync(string word, CancellationToken cancellationToken)
+        {
+            int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
+            if (c == -1)
+                throw CreateNoMoreDataError();
+
+            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
+
+            if (log.IsDebugEnabled)
+                Log((char)c + s);
+
+            if (c == '-')
+                throw CreateResponseError(s.StartsWith("ERR") ? s.Substring(4) : s);
+
+            if (s != word)
+                throw CreateResponseError($"Expected '{word}' got '{s}'");
+        }
+
+        internal async ValueTask<int> ReadMultiDataResultCountAsync(CancellationToken cancellationToken)
+        {
+            int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
+            if (c == -1)
+                throw CreateNoMoreDataError();
+
+            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
+            if (log.IsDebugEnabled)
+                Log("R: {0}", s);
+            if (c == '-')
+                throw CreateResponseError(s.StartsWith("ERR") ? s.Substring(4) : s);
+            if (c == '*')
+            {
+                if (int.TryParse(s, out var count))
+                {
+                    return count;
+                }
+            }
+            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+        }
     }
 }
 #endif

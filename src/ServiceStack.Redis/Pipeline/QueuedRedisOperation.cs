@@ -44,8 +44,7 @@ namespace ServiceStack.Redis.Pipeline
 
         }
 
-        public void ProcessResult() => ProcessResult(true);
-        private void ProcessResult(bool asyncFallback)
+        public void ProcessResult()
         {
             try
             {
@@ -112,12 +111,10 @@ namespace ServiceStack.Redis.Pipeline
                     OnSuccessRedisTextCallback?.Invoke(data.ToRedisText());
                     OnSuccessRedisDataCallback?.Invoke(data);
                 }
-#if ASYNC_REDIS
-                else if (asyncFallback)
+                else
                 {
-                    ProcessResultAsync(default, false).AsTask().Wait();
+                    ThrowIfAsync();
                 }
-#endif
             }
             catch (Exception ex)
             {
@@ -133,6 +130,6 @@ namespace ServiceStack.Redis.Pipeline
                 }
             }
         }
-
+        partial void ThrowIfAsync();
     }
 }

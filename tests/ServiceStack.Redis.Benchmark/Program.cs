@@ -16,12 +16,15 @@ namespace ServiceStack.Redis.Benchmark
                 Console.WriteLine(obj.SERedisIncrSync());
                 Console.WriteLine(await obj.SERedisIncrAsync());
                 Console.WriteLine(await obj.SERedisPipelineIncrAsync());
+                Console.WriteLine(await obj.SERedisTransactionIncrAsync());
+                Console.WriteLine(await obj.SERedisTransactionIncrSync());
 
                 Console.WriteLine(obj.SSRedisIncrSync());
                 Console.WriteLine(obj.SSRedisPipelineIncrSync());
+                Console.WriteLine(obj.SSRedisTransactionIncrSync());
                 Console.WriteLine(await obj.SSRedisIncrAsync());
                 Console.WriteLine(await obj.SSRedisPipelineIncrAsync());
-                //await obj.SSRedisTimeAsync();
+                Console.WriteLine(await obj.SSRedisTransactionIncrAsync());
             }
             finally
             {

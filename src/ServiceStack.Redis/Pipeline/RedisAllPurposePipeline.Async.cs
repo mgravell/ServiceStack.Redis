@@ -12,13 +12,15 @@ namespace ServiceStack.Redis
     {
         private IRedisPipelineAsync AsyncPipeline => this;
 
-        async ValueTask<bool> IRedisPipelineSharedAsync.ReplayAsync(CancellationToken cancellationToken)
+        private protected virtual async ValueTask<bool> ReplayAsync(CancellationToken cancellationToken)
         {
             Init();
             Execute();
             await AsyncPipeline.FlushAsync(cancellationToken).ConfigureAwait(false);
             return true;
         }
+        ValueTask<bool> IRedisPipelineSharedAsync.ReplayAsync(CancellationToken cancellationToken)
+            => ReplayAsync(cancellationToken);
 
         async ValueTask IRedisPipelineSharedAsync.FlushAsync(CancellationToken cancellationToken)
         {
@@ -44,12 +46,15 @@ namespace ServiceStack.Redis
 
             ClosePipeline();
         }
-        ValueTask IAsyncDisposable.DisposeAsync()
+
+        private protected virtual ValueTask DisposeAsync()
         {
             // don't need to send anything; just clean up
             Dispose();
             return default;
         }
+
+        ValueTask IAsyncDisposable.DisposeAsync() => DisposeAsync();
 
         private static void AssertSync<T>(ValueTask<T> command)
         {

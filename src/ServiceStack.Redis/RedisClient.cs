@@ -401,7 +401,7 @@ namespace ServiceStack.Redis
         public IRedisTransaction CreateTransaction()
         {
             AssertServerVersionNumber(); // pre-fetch call to INFO before transaction if needed
-            return new RedisTransaction(this);
+            return new RedisTransaction(this, false);
         }
 
         public void AssertNotInTransaction()

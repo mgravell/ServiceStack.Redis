@@ -39,6 +39,12 @@ namespace ServiceStack.Redis
 
         ValueTask<IRedisPipelineAsync> IRedisClientAsync.CreatePipelineAsync(CancellationToken cancellationToken)
             => new ValueTask<IRedisPipelineAsync>(new RedisAllPurposePipeline(this));
+
+        ValueTask<IRedisTransactionAsync> IRedisClientAsync.CreateTransactionAsync(CancellationToken cancellationToken)
+        {
+            AssertServerVersionNumber(); // pre-fetch call to INFO before transaction if needed
+            return new ValueTask<IRedisTransactionAsync>(new RedisTransaction(this, true)); // note that the MULTI here will be held and flushed async
+        }
     }
 }
 #endif

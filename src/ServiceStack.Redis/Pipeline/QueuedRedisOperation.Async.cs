@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,8 +77,7 @@ namespace ServiceStack.Redis.Pipeline
             set => SetAsyncResultProcessor(value);
         }
 
-        public ValueTask ProcessResultAsync(in CancellationToken cancellationToken) => ProcessResultAsync(cancellationToken, true);
-        private async ValueTask ProcessResultAsync(CancellationToken cancellationToken, bool syncFallback)
+        public async ValueTask ProcessResultAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -144,9 +144,9 @@ namespace ServiceStack.Redis.Pipeline
                     OnSuccessRedisTextCallback?.Invoke(data.ToRedisText());
                     OnSuccessRedisDataCallback?.Invoke(data);
                 }
-                else if (syncFallback)
+                else
                 {
-                    ProcessResult(false);
+                    ThrowIfSync();
                 }
             }
             catch (Exception ex)
@@ -161,6 +161,30 @@ namespace ServiceStack.Redis.Pipeline
                 {
                     throw;
                 }
+            }
+        }
+        partial void ThrowIfAsync()
+        {
+            if (_asyncResultProcessor is object)
+            {
+                throw new InvalidOperationException("An async processor was present, but the queued operation is being processed synchronously");
+            }
+        }
+        private void ThrowIfSync()
+        {
+            if (VoidReadCommand is object
+                || IntReadCommand is object
+                || LongReadCommand is object
+                || BoolReadCommand is object
+                || BytesReadCommand is object
+                || MultiBytesReadCommand is object
+                || StringReadCommand is object
+                || MultiBytesReadCommand is object
+                || DictionaryStringReadCommand is object
+                || DoubleReadCommand is object
+                || RedisDataReadCommand is object)
+            {
+                throw new InvalidOperationException("A sync processor was present, but the queued operation is being processed asynchronously");
             }
         }
     }
