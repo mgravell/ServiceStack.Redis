@@ -27,16 +27,20 @@ namespace ServiceStack.Redis.Tests
         [TestCase(typeof(ICacheClient), typeof(ICacheClientAsync))]
         [TestCase(typeof(ICacheClientExtended), typeof(ICacheClientExtendedAsync))]
         [TestCase(typeof(IEntityStore), typeof(IEntityStoreAsync))]
+        [TestCase(typeof(IEntityStore<>), typeof(IEntityStoreAsync<>))]
         [TestCase(typeof(IRedisClient), typeof(IRedisClientAsync))]
+
         [TestCase(typeof(IRedisClientsManager), typeof(IRedisClientsManagerAsync))]
         [TestCase(typeof(IRedisNativeClient), typeof(IRedisNativeClientAsync))]
-        [TestCase(typeof(IRedisPipelineShared), typeof(IRedisPipelineSharedAsync))]
-        [TestCase(typeof(IRemoveByPattern), typeof(IRemoveByPatternAsync))]
-        [TestCase(typeof(IEntityStore<>), typeof(IEntityStoreAsync<>))]
-        [TestCase(typeof(IRedisTypedClient<>), typeof(IRedisTypedClientAsync<>))]
         [TestCase(typeof(IRedisPipeline), typeof(IRedisPipelineAsync))]
+        [TestCase(typeof(IRedisPipelineShared), typeof(IRedisPipelineSharedAsync))]
         [TestCase(typeof(IRedisQueueableOperation), typeof(IRedisQueueableOperationAsync))]
+
         [TestCase(typeof(IRedisQueueCompletableOperation), typeof(IRedisQueueCompletableOperationAsync))]
+        [TestCase(typeof(IRedisTransaction), typeof(IRedisTransactionAsync))]
+        [TestCase(typeof(IRedisTransactionBase), typeof(IRedisTransactionBaseAsync))]
+        [TestCase(typeof(IRedisTypedClient<>), typeof(IRedisTypedClientAsync<>))]
+        [TestCase(typeof(IRemoveByPattern), typeof(IRemoveByPatternAsync))]
         public void TestFullyImplemented(Type syncInterface, Type asyncInterface)
         {
             var syncTypes = AllTypes.Where(x => Implements(x, syncInterface)).ToArray();
