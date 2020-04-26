@@ -25,9 +25,10 @@
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
     <DefineConstants>$(DefineConstants);NET45</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
-    <DefineConstants>$(DefineConstants);ASYNC_REDIS</DefineConstants>
-  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net46'">
+    <Compile Remove="**/*.Async.cs" />
+    <None Include="**/*.Async.cs" />
+  </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Threading" />

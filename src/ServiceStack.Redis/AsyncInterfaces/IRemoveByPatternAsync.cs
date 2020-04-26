@@ -1,5 +1,4 @@
-﻿#if ASYNC_REDIS
-namespace ServiceStack.Caching
+﻿namespace ServiceStack.Caching
 {
     public interface IRemoveByPatternAsync
     {
@@ -15,4 +14,3 @@ namespace ServiceStack.Caching
         //void RemoveByRegex(string regex);
     }
 }
-#endif

@@ -9,7 +9,7 @@
 //
 // Licensed under the same terms of ServiceStack.
 //
-#if ASYNC_REDIS
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,4 +127,3 @@ namespace ServiceStack.Redis
         }
     }
 }
-#endif

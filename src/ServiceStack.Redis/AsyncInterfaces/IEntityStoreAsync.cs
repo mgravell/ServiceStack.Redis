@@ -1,6 +1,6 @@
 ﻿//Copyright (c) ServiceStack, Inc. All Rights Reserved.
 //License: https://raw.github.com/ServiceStack/ServiceStack/master/license.txt
-#if ASYNC_REDIS
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,4 +26,3 @@ namespace ServiceStack.Data
         //void DeleteAll<TEntity>();
     }
 }
-#endif

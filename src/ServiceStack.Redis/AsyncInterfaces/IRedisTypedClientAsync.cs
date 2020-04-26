@@ -9,7 +9,6 @@
 //
 // Licensed under the same terms of ServiceStack.
 //
-#if ASYNC_REDIS
 using System;
 using System.Collections.Generic;
 using ServiceStack.Data;
@@ -196,4 +195,3 @@ namespace ServiceStack.Redis.Generic
     }
 
 }
-#endif

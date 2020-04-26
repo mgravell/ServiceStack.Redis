@@ -1,5 +1,4 @@
-﻿#if ASYNC_REDIS
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace ServiceStack.Caching
@@ -113,4 +112,3 @@ namespace ServiceStack.Caching
         //void SetAll<T>(IDictionary<string, T> values);
     }
 }
-#endif

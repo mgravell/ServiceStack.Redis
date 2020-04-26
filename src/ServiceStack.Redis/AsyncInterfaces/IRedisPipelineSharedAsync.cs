@@ -1,5 +1,4 @@
-﻿#if ASYNC_REDIS
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,4 +13,3 @@ namespace ServiceStack.Redis.Pipeline
         ValueTask<bool> ReplayAsync(CancellationToken cancellationToken = default);
     }
 }
-#endif

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Service Stack LLC. All Rights Reserved.
 // License: https://raw.github.com/ServiceStack/ServiceStack/master/license.txt
 
-#if ASYNC_REDIS
 using NUnit.Framework;
 using NUnit.Framework.Internal.Execution;
 using ServiceStack.Caching;
@@ -76,4 +75,3 @@ namespace ServiceStack.Redis.Tests
 
     }
 }
-#endif

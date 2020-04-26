@@ -1,8 +1,6 @@
 //Copyright (c) Service Stack LLC. All Rights Reserved.
 //License: https://raw.github.com/ServiceStack/ServiceStack/master/license.txt
 
-#if ASYNC_REDIS
-
 using ServiceStack.Caching;
 using System;
 using System.Threading;
@@ -26,4 +24,3 @@ namespace ServiceStack.Redis
             => new ValueTask<IRedisClientAsync>(GetClient(true));
     }
 }
-#endif

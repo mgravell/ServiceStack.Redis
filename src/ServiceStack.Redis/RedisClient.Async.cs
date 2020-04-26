@@ -9,7 +9,7 @@
 //
 // Licensed under the same terms of ServiceStack.
 //
-#if ASYNC_REDIS
+
 using ServiceStack.Caching;
 using ServiceStack.Redis.Generic;
 using ServiceStack.Redis.Pipeline;
@@ -47,4 +47,3 @@ namespace ServiceStack.Redis
         }
     }
 }
-#endif

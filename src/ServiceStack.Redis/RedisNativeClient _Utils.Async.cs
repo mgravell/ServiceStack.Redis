@@ -1,5 +1,4 @@
-﻿#if ASYNC_REDIS
-using ServiceStack.Redis.Pipeline;
+﻿using ServiceStack.Redis.Pipeline;
 using ServiceStack.Text;
 using ServiceStack.Text.Pools;
 using System;
@@ -387,4 +386,3 @@ namespace ServiceStack.Redis
         }
     }
 }
-#endif

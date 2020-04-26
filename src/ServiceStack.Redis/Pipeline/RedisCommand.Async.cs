@@ -1,5 +1,4 @@
-﻿#if ASYNC_REDIS
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -125,4 +124,3 @@ namespace ServiceStack.Redis
         }
     }
 }
-#endif

@@ -1,5 +1,4 @@
-﻿#if ASYNC_REDIS
-using ServiceStack.Redis.Pipeline;
+﻿using ServiceStack.Redis.Pipeline;
 
 namespace ServiceStack.Redis
 {
@@ -10,4 +9,3 @@ namespace ServiceStack.Redis
     {
     }
 }
-#endif

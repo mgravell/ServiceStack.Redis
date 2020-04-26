@@ -1,5 +1,5 @@
-using System;
 using ServiceStack.Redis.Pipeline;
+using System;
 
 namespace ServiceStack.Redis
 {

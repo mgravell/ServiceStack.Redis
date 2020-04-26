@@ -1,5 +1,4 @@
-﻿#if ASYNC_REDIS
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -25,4 +24,3 @@ namespace ServiceStack.Redis.Pipeline
         void QueueCommand(Func<IRedisClientAsync, ValueTask<RedisText>> command, Action<RedisText> onSuccessCallback = null, Action<Exception> onErrorCallback = null);
     }
 }
-#endif

@@ -1,5 +1,3 @@
-#if ASYNC_REDIS
-
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -157,4 +155,3 @@ namespace ServiceStack.Redis.Pipeline
         }
     }
 }
-#endif

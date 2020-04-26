@@ -1,5 +1,3 @@
-#if ASYNC_REDIS
-
 using ServiceStack.Caching;
 
 namespace ServiceStack.Redis
@@ -9,4 +7,3 @@ namespace ServiceStack.Redis
 
     }
 }
-#endif

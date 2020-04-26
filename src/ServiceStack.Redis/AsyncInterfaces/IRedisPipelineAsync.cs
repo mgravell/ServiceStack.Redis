@@ -1,5 +1,4 @@
-﻿#if ASYNC_REDIS
-namespace ServiceStack.Redis.Pipeline
+﻿namespace ServiceStack.Redis.Pipeline
 {
     /// <summary>
     /// Interface to redis pipeline
@@ -8,4 +7,3 @@ namespace ServiceStack.Redis.Pipeline
     {
     }
 }
-#endif

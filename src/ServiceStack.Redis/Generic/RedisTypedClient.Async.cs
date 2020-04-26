@@ -9,7 +9,7 @@
 //
 // Licensed under the same terms of ServiceStack.
 //
-#if ASYNC_REDIS
+
 namespace ServiceStack.Redis.Generic
 {
     partial class RedisTypedClient<T>
@@ -17,4 +17,3 @@ namespace ServiceStack.Redis.Generic
     {
     }
 }
-#endif

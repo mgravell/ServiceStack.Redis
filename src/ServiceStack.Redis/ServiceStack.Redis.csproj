@@ -12,12 +12,15 @@
     <PackageTags>Redis;NoSQL;Client;Distributed;Cache;PubSub;Messaging;Transactions</PackageTags>
   </PropertyGroup>
   <!-- TODO: talk about TFMs; Microsoft.Bcl.AsyncInterfaces starts at net461 -->
-  <PropertyGroup Condition="'$(TargetFramework)' != 'net45'">
-    <DefineConstants>$(DefineConstants);ASYNC_REDIS</DefineConstants>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
     <DefineConstants>$(DefineConstants);ASYNC_MEMORY</DefineConstants>
   </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)'=='net45'">
+    <Compile Remove="**/*.Async.cs" />
+    <Compile Remove="AsyncInterfaces/*.cs" />
+    <None Include="**/*.Async.cs" />
+    <None Include="AsyncInterfaces/*.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ServiceStack.Common" Version="$(Version)" />
   </ItemGroup>
