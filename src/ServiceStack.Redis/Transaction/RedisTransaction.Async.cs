@@ -37,13 +37,11 @@ namespace ServiceStack.Redis
         /// <summary>
         /// Put "QUEUED" messages at back of queue
         /// </summary>
-        /// <param name="queued"></param>
         partial void QueueExpectQueuedAsync()
         {
             QueuedCommands.Insert(0, new QueuedRedisOperation
             {
-                VoidReadCommandAsync = RedisClient.ExpectQueuedAsync
-            });
+            }.WithAsyncReadCommand(RedisClient.ExpectQueuedAsync));
         }
 
         async ValueTask<bool> IRedisTransactionAsync.CommitAsync(CancellationToken cancellationToken)
@@ -56,23 +54,20 @@ namespace ServiceStack.Redis
                 //insert multi command at beginning
                 QueuedCommands.Insert(0, new QueuedRedisCommand
                 {
-                    VoidReturnCommandAsync = r => { Init(); return default; },
-                    VoidReadCommandAsync = RedisClient.ExpectOkAsync,
-                });
+                }.WithAsyncReturnCommand(VoidReturnCommandAsync: r => { Init(); return default; })
+                .WithAsyncReadCommand(RedisClient.ExpectOkAsync));
 
                 //the first half of the responses will be "QUEUED",
                 // so insert reading of multiline after these responses
                 QueuedCommands.Insert(numCommands + 1, new QueuedRedisOperation
                 {
-                    IntReadCommandAsync = RedisClient.ReadMultiDataResultCountAsync,
                     OnSuccessIntCallback = handleMultiDataResultCount
-                });
+                }.WithAsyncReadCommand(RedisClient.ReadMultiDataResultCountAsync));
 
                 // add Exec command at end (not queued)
                 QueuedCommands.Add(new RedisCommand
                 {
-                    VoidReturnCommandAsync = r => ExecAsync(cancellationToken)
-                });
+                }.WithAsyncReturnCommand(r => ExecAsync(cancellationToken)));
 
                 //execute transaction
                 await ExecAsync(cancellationToken);

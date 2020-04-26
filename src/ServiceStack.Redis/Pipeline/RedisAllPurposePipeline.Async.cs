@@ -95,10 +95,9 @@ namespace ServiceStack.Redis
         {
             BeginQueuedCommand(new QueuedRedisCommand
             {
-                VoidReturnCommandAsync = command,
                 OnSuccessVoidCallback = onSuccessCallback,
                 OnErrorCallback = onErrorCallback
-            });
+            }.WithAsyncReturnCommand(command));
             AssertSync(command(RedisClient));
         }
 
@@ -106,10 +105,9 @@ namespace ServiceStack.Redis
         {
             BeginQueuedCommand(new QueuedRedisCommand
             {
-                IntReturnCommandAsync = command,
                 OnSuccessIntCallback = onSuccessCallback,
                 OnErrorCallback = onErrorCallback
-            });
+            }.WithAsyncReturnCommand(command));
             AssertSync(command(RedisClient));
         }
 
@@ -117,10 +115,9 @@ namespace ServiceStack.Redis
         {
             BeginQueuedCommand(new QueuedRedisCommand
             {
-                LongReturnCommandAsync = command,
                 OnSuccessLongCallback = onSuccessCallback,
                 OnErrorCallback = onErrorCallback
-            });
+            }.WithAsyncReturnCommand(command));
             AssertSync(command(RedisClient));
         }
 
@@ -128,10 +125,9 @@ namespace ServiceStack.Redis
         {
             BeginQueuedCommand(new QueuedRedisCommand
             {
-                BoolReturnCommandAsync = command,
                 OnSuccessBoolCallback = onSuccessCallback,
                 OnErrorCallback = onErrorCallback
-            });
+            }.WithAsyncReturnCommand(command));
             AssertSync(command(RedisClient));
         }
 
@@ -139,10 +135,9 @@ namespace ServiceStack.Redis
         {
             BeginQueuedCommand(new QueuedRedisCommand
             {
-                DoubleReturnCommandAsync = command,
                 OnSuccessDoubleCallback = onSuccessCallback,
                 OnErrorCallback = onErrorCallback
-            });
+            }.WithAsyncReturnCommand(command));
             AssertSync(command(RedisClient));
         }
 
@@ -192,7 +187,7 @@ namespace ServiceStack.Redis
             // this can happen when replaying pipeline/transaction
             if (CurrentQueuedOperation == null) return;
 
-            CurrentQueuedOperation.MultiBytesReadCommandAsync = multiBytesReadCommand;
+            CurrentQueuedOperation.WithAsyncReadCommand(multiBytesReadCommand);
             AddCurrentQueuedOperation();
         }
 
@@ -203,7 +198,7 @@ namespace ServiceStack.Redis
             // this can happen when replaying pipeline/transaction
             if (CurrentQueuedOperation == null) return;
 
-            CurrentQueuedOperation.LongReadCommandAsync = longReadCommand;
+            CurrentQueuedOperation.WithAsyncReadCommand(longReadCommand);
             AddCurrentQueuedOperation();
         }
 

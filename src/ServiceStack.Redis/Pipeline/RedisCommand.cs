@@ -79,11 +79,21 @@ namespace ServiceStack.Redis
                 {
                     RedisTextReturnCommand(client);
                 }
+                else if (BoolReturnCommand != null)
+                {
+                    BoolReturnCommand(client);
+                }
+                else
+                {
+                    ThrowIfAsync();
+                }
             }
             catch (Exception ex)
             {
                 Log.Error(ex);
             }
         }
+
+        partial void ThrowIfAsync();
     }
 }

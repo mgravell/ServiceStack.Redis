@@ -111,6 +111,16 @@ namespace ServiceStack.Redis.Pipeline
                     OnSuccessRedisTextCallback?.Invoke(data.ToRedisText());
                     OnSuccessRedisDataCallback?.Invoke(data);
                 }
+                else if (BoolReadCommand != null)
+                {
+                    var result = BoolReadCommand();
+                    OnSuccessBoolCallback?.Invoke(result);
+                }
+                else if (DictionaryStringReadCommand != null)
+                {
+                    var result = DictionaryStringReadCommand();
+                    OnSuccessDictionaryStringCallback?.Invoke(result);
+                }
                 else
                 {
                     ThrowIfAsync();
