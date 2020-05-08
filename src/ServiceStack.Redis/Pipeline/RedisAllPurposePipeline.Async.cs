@@ -201,5 +201,25 @@ namespace ServiceStack.Redis
             AddCurrentQueuedOperation();
         }
 
+        void IRedisQueueCompletableOperationAsync.CompleteBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[]>> bytesReadCommand)
+        {
+            //AssertCurrentOperation();
+            // this can happen when replaying pipeline/transaction
+            if (CurrentQueuedOperation == null) return;
+
+            CurrentQueuedOperation.WithAsyncReadCommand(bytesReadCommand);
+            AddCurrentQueuedOperation();
+        }
+
+        void IRedisQueueCompletableOperationAsync.CompleteVoidQueuedCommandAsync(Func<CancellationToken, ValueTask> voidReadCommand)
+        {
+            //AssertCurrentOperation();
+            // this can happen when replaying pipeline/transaction
+            if (CurrentQueuedOperation == null) return;
+
+            CurrentQueuedOperation.WithAsyncReadCommand(voidReadCommand);
+            AddCurrentQueuedOperation();
+        }
+
     }
 }

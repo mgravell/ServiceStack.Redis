@@ -45,5 +45,25 @@ namespace ServiceStack.Redis
             AssertServerVersionNumber(); // pre-fetch call to INFO before transaction if needed
             return new ValueTask<IRedisTransactionAsync>(new RedisTransaction(this, true)); // note that the MULTI here will be held and flushed async
         }
+
+        ValueTask<byte[]> IRedisClientAsync.GetAsync(string key, CancellationToken cancellationToken)
+            => NativeAsync.GetAsync(key, cancellationToken);
+
+        async ValueTask<bool> IRedisClientAsync.RemoveAsync(string key, CancellationToken cancellationToken)
+        {
+            return await NativeAsync.DelAsync(key, cancellationToken).ConfigureAwait(false) == Success;
+        }
+
+        ValueTask IRedisClientAsync.SetValueAsync(string key, string value, CancellationToken cancellationToken)
+        {
+            var bytesValue = value?.ToUtf8Bytes();
+            return NativeAsync.SetAsync(key, bytesValue, cancellationToken);
+        }
+
+        async ValueTask<string> IRedisClientAsync.GetValueAsync(string key, CancellationToken cancellationToken)
+        {
+            var bytes = await NativeAsync.GetAsync(key, cancellationToken).ConfigureAwait(false);
+            return bytes?.FromUtf8Bytes();
+        }
     }
 }

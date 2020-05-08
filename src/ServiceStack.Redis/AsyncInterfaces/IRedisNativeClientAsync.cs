@@ -63,7 +63,7 @@ namespace ServiceStack.Redis
         //string Type(string key);
         //long Exists(string key);
         //long StrLen(string key);
-        //void Set(string key, byte[] value);
+        ValueTask SetAsync(string key, byte[] value, CancellationToken cancellationToken = default);
         //void SetEx(string key, int expireInSeconds, byte[] value);
         //bool Persist(string key);
         //void PSetEx(string key, long expireInMs, byte[] value);
@@ -72,11 +72,11 @@ namespace ServiceStack.Redis
         //void MSet(string[] keys, byte[][] values);
         //bool MSetNx(byte[][] keys, byte[][] values);
         //bool MSetNx(string[] keys, byte[][] values);
-        //byte[] Get(string key);
+        ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default);
         //byte[] GetSet(string key, byte[] value);
         //byte[][] MGet(params byte[][] keysAndArgs);
         //byte[][] MGet(params string[] keys);
-        //long Del(string key);
+        ValueTask<long> DelAsync(string key, CancellationToken cancellationToken = default);
         //long Del(params string[] keys);
         ValueTask<long> IncrAsync(string key, CancellationToken cancellationToken = default);
         //long IncrBy(string key, int incrBy);

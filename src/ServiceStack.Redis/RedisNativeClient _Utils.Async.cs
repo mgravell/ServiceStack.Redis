@@ -27,6 +27,23 @@ namespace ServiceStack.Redis
                 PipelineAsync != null ? PipelineAsync.CompleteLongQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<long>>>)null);
         }
 
+        private ValueTask SendExpectSuccessAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        {
+            //Turn Action into Func Hack
+            Action<Func<CancellationToken, ValueTask<long>>> completePipelineFn = null;
+            if (Pipeline != null) completePipelineFn = f => { PipelineAsync.CompleteVoidQueuedCommandAsync(async ct => await f(ct).ConfigureAwait(false)); };
+            
+            var pending = SendReceiveAsync(cmdWithBinaryArgs, ExpectSuccessFnAsync, cancellationToken, completePipelineFn);
+            return pending.IsCompletedSuccessfully ? default : Awaited(pending);
+
+            static async ValueTask Awaited(ValueTask<long> pending) => await pending.ConfigureAwait(false);
+        }
+
+        protected ValueTask<byte[]> SendExpectDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        {
+            return SendReceiveAsync(cmdWithBinaryArgs, ReadDataAsync, cancellationToken, Pipeline != null ? PipelineAsync.CompleteBytesQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<byte[]>>>)null);
+        }
+
         private async ValueTask<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
             Func<CancellationToken, ValueTask<T>> fn,
             CancellationToken cancellationToken,
@@ -260,7 +277,7 @@ namespace ServiceStack.Redis
             throw CreateResponseError("Unexpected reply: " + r);
         }
 
-        private ValueTask<byte[]> ReadDataAsync(in CancellationToken cancellationToken)
+        private ValueTask<byte[]> ReadDataAsync(CancellationToken cancellationToken)
         {
             var pending = ReadLineAsync(cancellationToken);
             return pending.IsCompletedSuccessfully
@@ -345,6 +362,34 @@ namespace ServiceStack.Redis
 
         internal ValueTask ExpectQueuedAsync(CancellationToken cancellationToken)
             => ExpectWordAsync(QUEUED, cancellationToken);
+
+        internal ValueTask<long> ExpectSuccessFnAsync(CancellationToken cancellationToken)
+        {
+            var pending = ExpectSuccessAsync(cancellationToken);
+            return pending.IsCompletedSuccessfully ? default : Awaited(pending);
+
+            static async ValueTask<long> Awaited(ValueTask pending)
+            {
+                await pending.ConfigureAwait(false);
+                return 0;
+            }
+        }
+
+        internal async ValueTask ExpectSuccessAsync(CancellationToken cancellationToken)
+        {
+            int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
+            if (c == -1)
+                throw CreateNoMoreDataError();
+
+            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
+
+            if (log.IsDebugEnabled)
+                Log((char)c + s);
+
+            if (c == '-')
+                throw CreateResponseError(s.StartsWith("ERR") && s.Length >= 4 ? s.Substring(4) : s);
+        }
+
 
         private async ValueTask ExpectWordAsync(string word, CancellationToken cancellationToken)
         {

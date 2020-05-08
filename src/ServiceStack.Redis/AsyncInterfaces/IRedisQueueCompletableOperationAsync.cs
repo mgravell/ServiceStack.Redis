@@ -9,10 +9,10 @@ namespace ServiceStack.Redis.Pipeline
     /// </summary>
     public interface IRedisQueueCompletableOperationAsync
     {
-        //void CompleteVoidQueuedCommand(Action voidReadCommand);
+        void CompleteVoidQueuedCommandAsync(Func<CancellationToken, ValueTask> voidReadCommand);
         //void CompleteIntQueuedCommand(Func<int> intReadCommand);
         void CompleteLongQueuedCommandAsync(Func<CancellationToken, ValueTask<long>> longReadCommand);
-        //void CompleteBytesQueuedCommand(Func<byte[]> bytesReadCommand);
+        void CompleteBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[]>> bytesReadCommand);
         void CompleteMultiBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[][]>> multiBytesReadCommand);
         //void CompleteStringQueuedCommand(Func<string> stringReadCommand);
         //void CompleteMultiStringQueuedCommand(Func<List<string>> multiStringReadCommand);

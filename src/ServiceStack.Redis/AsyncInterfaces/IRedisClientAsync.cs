@@ -25,6 +25,16 @@ namespace ServiceStack.Redis
     public interface IRedisClientAsync
         : IEntityStoreAsync, ICacheClientExtendedAsync, IRemoveByPatternAsync
     {
+        #region ADDITIONS - these methods did not exist on the interface, but are on RedisClient directly; thoughts?
+
+        ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveAsync(string key, CancellationToken cancellationToken = default);
+
+        #endregion
+        /*
+         * 
+         * 
+         */
         //Basic Redis Connection operations
         long Db { get; set; }
         // ValueTask<long> DbSize(CancellationToken cancellationToken = default);
@@ -81,14 +91,14 @@ namespace ServiceStack.Redis
         //void SetAll(Dictionary<string, string> map);
         //void SetValues(Dictionary<string, string> map);
 
-        //void SetValue(string key, string value);
+        ValueTask SetValueAsync(string key, string value, CancellationToken cancellationToken = default);
         //void SetValue(string key, string value, TimeSpan expireIn);
         //bool SetValueIfNotExists(string key, string value);
         //bool SetValueIfNotExists(string key, string value, TimeSpan expireIn);
         //bool SetValueIfExists(string key, string value);
         //bool SetValueIfExists(string key, string value, TimeSpan expireIn);
 
-        //string GetValue(string key);
+        ValueTask<string> GetValueAsync(string key, CancellationToken cancellationToken = default);
         //string GetAndSetValue(string key, string value);
 
         //List<string> GetValues(List<string> keys);
