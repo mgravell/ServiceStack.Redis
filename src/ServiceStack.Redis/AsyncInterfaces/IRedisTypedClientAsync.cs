@@ -11,6 +11,8 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using ServiceStack.Data;
 using ServiceStack.Model;
 
@@ -46,14 +48,14 @@ namespace ServiceStack.Redis.Generic
         //RedisKeyType GetEntryType(string key);
         //string GetRandomKey();
 
-        //void SetValue(string key, T entity);
+        ValueTask SetValueAsync(string key, T entity, CancellationToken cancellationToken = default);
         //void SetValue(string key, T entity, TimeSpan expireIn);
         //bool SetValueIfNotExists(string key, T entity);
         //bool SetValueIfExists(string key, T entity);
 
         //T Store(T entity, TimeSpan expireIn);
 
-        //T GetValue(string key);
+        ValueTask<T> GetValueAsync(string key, CancellationToken cancellationToken = default);
         //T GetAndSetValue(string key, T value);
         //bool ContainsKey(string key);
         //bool RemoveEntry(string key);

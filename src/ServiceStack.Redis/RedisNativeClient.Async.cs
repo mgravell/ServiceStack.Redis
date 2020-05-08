@@ -48,7 +48,17 @@ namespace ServiceStack.Redis
                 throw new ArgumentNullException("key");
 
             return SendExpectLongAsync(cancellationToken, Commands.Del, bytes);
+        }
 
+        ValueTask<ScanResult> IRedisNativeClientAsync.ScanAsync(ulong cursor, int count, string match, CancellationToken cancellationToken)
+        {
+            if (match == null)
+                return SendExpectScanResultAsync(cancellationToken, Commands.Scan, cursor.ToUtf8Bytes(),
+                                            Commands.Count, count.ToUtf8Bytes());
+
+            return SendExpectScanResultAsync(cancellationToken, Commands.Scan, cursor.ToUtf8Bytes(),
+                                        Commands.Match, match.ToUtf8Bytes(),
+                                        Commands.Count, count.ToUtf8Bytes());
         }
     }
 }

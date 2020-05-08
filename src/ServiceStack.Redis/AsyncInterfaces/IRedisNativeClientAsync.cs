@@ -100,7 +100,7 @@ namespace ServiceStack.Redis
         //long PTtl(string key);
 
         ////Scan APIs
-        //ScanResult Scan(ulong cursor, int count = 10, string match = null);
+        ValueTask<ScanResult> ScanAsync(ulong cursor, int count = 10, string match = null, CancellationToken cancellationToken = default);
         //ScanResult SScan(string setId, ulong cursor, int count = 10, string match = null);
         //ScanResult ZScan(string setId, ulong cursor, int count = 10, string match = null);
         //ScanResult HScan(string hashId, ulong cursor, int count = 10, string match = null);

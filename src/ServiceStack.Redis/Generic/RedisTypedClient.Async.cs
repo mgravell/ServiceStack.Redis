@@ -10,10 +10,25 @@
 // Licensed under the same terms of ServiceStack.
 //
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace ServiceStack.Redis.Generic
 {
     partial class RedisTypedClient<T>
         : IRedisTypedClientAsync<T>
     {
+        async ValueTask<T> IRedisTypedClientAsync<T>.GetValueAsync(string key, CancellationToken cancellationToken)
+            => DeserializeValue(await client.GetAsync(key, cancellationToken).ConfigureAwait(false));
+
+        async ValueTask IRedisTypedClientAsync<T>.SetValueAsync(string key, T entity, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException(nameof(key));
+
+            await client.SetAsync(key, SerializeValue(entity), cancellationToken).ConfigureAwait(false);
+            client.RegisterTypeId(entity);
+        }
     }
 }

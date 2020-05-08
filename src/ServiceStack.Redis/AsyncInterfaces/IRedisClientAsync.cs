@@ -25,16 +25,6 @@ namespace ServiceStack.Redis
     public interface IRedisClientAsync
         : IEntityStoreAsync, ICacheClientExtendedAsync, IRemoveByPatternAsync
     {
-        #region ADDITIONS - these methods did not exist on the interface, but are on RedisClient directly; thoughts?
-
-        ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default);
-        ValueTask<bool> RemoveAsync(string key, CancellationToken cancellationToken = default);
-
-        #endregion
-        /*
-         * 
-         * 
-         */
         //Basic Redis Connection operations
         long Db { get; set; }
         // ValueTask<long> DbSize(CancellationToken cancellationToken = default);
@@ -122,7 +112,7 @@ namespace ServiceStack.Redis
         //double IncrementValueBy(string key, double count);
         //long DecrementValue(string key);
         //long DecrementValueBy(string key, int count);
-        //List<string> SearchKeys(string pattern);
+        ValueTask<List<string>> SearchKeysAsync(string pattern, CancellationToken cancellationToken = default);
 
         //string Type(string key);
         //RedisKeyType GetEntryType(string key);
@@ -136,7 +126,7 @@ namespace ServiceStack.Redis
         //void WriteAll<TEntity>(IEnumerable<TEntity> entities);
 
         ////Scan APIs
-        //IEnumerable<string> ScanAllKeys(string pattern = null, int pageSize = 1000);
+        IAsyncEnumerable<string> ScanAllKeysAsync(string pattern = null, int pageSize = 1000, CancellationToken cancellationToken = default);
         //IEnumerable<string> ScanAllSetItems(string setId, string pattern = null, int pageSize = 1000);
         //IEnumerable<KeyValuePair<string, double>> ScanAllSortedSetItems(string setId, string pattern = null, int pageSize = 1000);
         //IEnumerable<KeyValuePair<string, string>> ScanAllHashEntries(string hashId, string pattern = null, int pageSize = 1000);

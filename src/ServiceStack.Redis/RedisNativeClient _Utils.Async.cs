@@ -39,9 +39,79 @@ namespace ServiceStack.Redis
             static async ValueTask Awaited(ValueTask<long> pending) => await pending.ConfigureAwait(false);
         }
 
-        protected ValueTask<byte[]> SendExpectDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        private ValueTask<byte[]> SendExpectDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
             return SendReceiveAsync(cmdWithBinaryArgs, ReadDataAsync, cancellationToken, Pipeline != null ? PipelineAsync.CompleteBytesQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<byte[]>>>)null);
+        }
+
+        private async ValueTask<ScanResult> SendExpectScanResultAsync(CancellationToken cancellationToken, byte[] cmd, params byte[][] args)
+        {
+            var cmdWithArgs = MergeCommandWithArgs(cmd, args);
+            var multiData = await SendExpectDeeplyNestedMultiDataAsync(cancellationToken, cmdWithArgs).ConfigureAwait(false);
+            var counterBytes = (byte[])multiData[0];
+
+            var ret = new ScanResult
+            {
+                Cursor = ulong.Parse(counterBytes.FromUtf8Bytes()),
+                Results = new List<byte[]>()
+            };
+            var keysBytes = (object[])multiData[1];
+
+            foreach (var keyBytes in keysBytes)
+            {
+                ret.Results.Add((byte[])keyBytes);
+            }
+
+            return ret;
+        }
+
+        private ValueTask<object[]> SendExpectDeeplyNestedMultiDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        {
+            return SendReceiveAsync(cmdWithBinaryArgs, ReadDeeplyNestedMultiDataAsync, cancellationToken);
+        }
+
+        private async ValueTask<object[]> ReadDeeplyNestedMultiDataAsync(CancellationToken cancellationToken)
+        {
+            var result = await ReadDeeplyNestedMultiDataItemAsync(cancellationToken).ConfigureAwait(false);
+            return (object[])result;
+        }
+
+        private async ValueTask<object> ReadDeeplyNestedMultiDataItemAsync(CancellationToken cancellationToken)
+        {
+            int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
+            if (c == -1)
+                throw CreateNoMoreDataError();
+
+            var s = ReadLine();
+            if (log.IsDebugEnabled)
+                Log("R: {0}", s);
+
+            switch (c)
+            {
+                case '$':
+                    return await ParseSingleLineAsync(string.Concat(char.ToString((char)c), s), cancellationToken).ConfigureAwait(false);
+
+                case '-':
+                    throw CreateResponseError(s.StartsWith("ERR") ? s.Substring(4) : s);
+
+                case '*':
+                    if (int.TryParse(s, out var count))
+                    {
+                        var array = new object[count];
+                        for (int i = 0; i < count; i++)
+                        {
+                            array[i] = await ReadDeeplyNestedMultiDataItemAsync(cancellationToken).ConfigureAwait(false);
+                        }
+
+                        return array;
+                    }
+                    break;
+
+                default:
+                    return s;
+            }
+
+            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
         }
 
         private async ValueTask<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,

@@ -19,16 +19,16 @@ namespace ServiceStack.Redis.Tests
         public override void OnBeforeEachTest()
         {
             base.OnBeforeEachTest();
-            RedisSync.NamespacePrefix = "RedisClientTestsAsync";
+            RedisRaw.NamespacePrefix = "RedisClientTestsAsync";
         }
 
         [Test]
         public async Task Can_Set_and_Get_string()
         {
             await RedisAsync.SetValueAsync("key", Value);
-            var valueBytes = await RedisAsync.GetAsync("key");
+            var valueBytes = await RedisRaw.GetAsync("key");
             var valueString = GetString(valueBytes);
-            await RedisAsync.RemoveAsync("key");
+            await RedisRaw.RemoveAsync("key");
 
             Assert.That(valueString, Is.EqualTo(Value));
         }
@@ -37,9 +37,9 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_Set_and_Get_key_with_space()
         {
             await RedisAsync.SetValueAsync("key with space", Value);
-            var valueBytes = await RedisAsync.GetAsync("key with space");
+            var valueBytes = await RedisRaw.GetAsync("key with space");
             var valueString = GetString(valueBytes);
-            await RedisAsync.RemoveAsync("key with space");
+            await RedisRaw.RemoveAsync("key with space");
 
             Assert.That(valueString, Is.EqualTo(Value));
         }
@@ -50,13 +50,12 @@ namespace ServiceStack.Redis.Tests
             const string key = "key with spaces";
 
             await RedisAsync.SetValueAsync(key, Value);
-            var valueBytes = await RedisAsync.GetAsync(key);
+            var valueBytes = await RedisRaw.GetAsync(key);
             var valueString = GetString(valueBytes);
 
             Assert.That(valueString, Is.EqualTo(Value));
         }
 
-/*
         [Test]
         public async Task Can_Set_and_Get_key_with_all_byte_values()
         {
@@ -68,22 +67,21 @@ namespace ServiceStack.Redis.Tests
                 value[i] = (byte)i;
             }
 
-            var redis = Redis.As<byte[]>();
+            var redis = RedisAsync.As<byte[]>();
 
-            redis.SetValue(key, value);
-            var resultValue = redis.GetValue(key);
+            await redis.SetValueAsync(key, value);
+            var resultValue = await redis.GetValueAsync(key);
 
             Assert.That(resultValue, Is.EquivalentTo(value));
         }
 
-
         [Test]
         public async Task GetKeys_returns_matching_collection()
         {
-            await RedisAsync.SetAsync("ss-tests:a1", "One");
-            await RedisAsync.SetAsync("ss-tests:a2", "One");
-            await RedisAsync.SetAsync("ss-tests:b3", "One");
-            var matchingKeys = await RedisAsync.SearchKeys("ss-tests:a*");
+            await RedisRaw.SetAsync("ss-tests:a1", "One");
+            await RedisRaw.SetAsync("ss-tests:a2", "One");
+            await RedisRaw.SetAsync("ss-tests:b3", "One");
+            var matchingKeys = await RedisAsync.SearchKeysAsync("ss-tests:a*");
 
             Assert.That(matchingKeys.Count, Is.EqualTo(2));
         }
@@ -91,11 +89,12 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task GetKeys_on_non_existent_keys_returns_empty_collection()
         {
-            var matchingKeys = Redis.SearchKeys("ss-tests:NOTEXISTS");
+            var matchingKeys = await RedisAsync.SearchKeysAsync("ss-tests:NOTEXISTS");
 
             Assert.That(matchingKeys.Count, Is.EqualTo(0));
         }
 
+        /*
         [Test]
         public async Task Can_get_Types()
         {
