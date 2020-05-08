@@ -135,21 +135,18 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisClientAsync.SetEntryInHashAsync(string hashId, string key, string value, CancellationToken cancellationToken)
             => IsSuccess(NativeAsync.HSetAsync(hashId, key.ToUtf8Bytes(), value.ToUtf8Bytes()));
 
-        static ValueTask<bool> IsSuccess(ValueTask<long> pending)
-        {
-            if (pending.IsCompletedSuccessfully)
-            {
-                return new ValueTask<bool>(pending.Result == Success);
-            }
-            else
-            {
-                return Awaited(pending);
-            }
-            async static ValueTask<bool> Awaited(ValueTask<long> pending)
-            {
-                return (await pending.ConfigureAwait(false)) == Success;
-            }
-        }
+        ValueTask IRedisClientAsync.SetAllAsync(Dictionary<string, string> map, CancellationToken cancellationToken)
+            => GetSetAllBytes(map, out var keyBytes, out var valBytes) ? NativeAsync.MSetAsync(keyBytes, valBytes, cancellationToken) : default;
+
+        ValueTask IRedisClientAsync.RenameKeyAsync(string fromName, string toName, CancellationToken cancellationToken)
+            => NativeAsync.RenameAsync(fromName, toName, cancellationToken);
+
+        ValueTask<bool> IRedisClientAsync.ContainsKeyAsync(string key, CancellationToken cancellationToken)
+            => IsSuccess(NativeAsync.ExistsAsync(key, cancellationToken));
+
+
+        ValueTask<string> IRedisClientAsync.GetRandomKeyAsync(CancellationToken cancellationToken)
+            => NativeAsync.RandomKeyAsync(cancellationToken);
     }
 }
  

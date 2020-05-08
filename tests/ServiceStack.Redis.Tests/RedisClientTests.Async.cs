@@ -111,42 +111,41 @@ namespace ServiceStack.Redis.Tests
             Assert.That(await RedisAsync.GetEntryTypeAsync("hash"), Is.EqualTo(RedisKeyType.Hash));
         }
 
-        /*
         [Test]
         public async Task Can_delete_keys()
         {
-            Redis.SetValue("key", "val");
+            await RedisAsync.SetValueAsync("key", "val");
 
-            Assert.That(Redis.ContainsKey("key"), Is.True);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
 
-            Redis.Del("key");
+            await RedisRaw.DelAsync("key");
 
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
 
             var keysMap = new Dictionary<string, string>();
 
             10.Times(i => keysMap.Add("key" + i, "val" + i));
 
-            Redis.SetAll(keysMap);
+            await RedisAsync.SetAllAsync(keysMap);
 
-            10.Times(i => Assert.That(Redis.ContainsKey("key" + i), Is.True));
+            10.TimesAsync(async i => Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.True));
 
-            Redis.Del(keysMap.Keys.ToArray());
+            await RedisRaw.DelAsync(keysMap.Keys.ToArray());
 
-            10.Times(i => Assert.That(Redis.ContainsKey("key" + i), Is.False));
+            10.TimesAsync(async i => Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.False));
         }
 
         [Test]
         public async Task Can_get_RandomKey()
         {
-            Redis.Db = 15;
+            RedisAsync.Db = 15;
             var keysMap = new Dictionary<string, string>();
 
-            10.Times(i => keysMap.Add(Redis.NamespacePrefix + "key" + i, "val" + i));
+            10.Times(i => keysMap.Add(RedisRaw.NamespacePrefix + "key" + i, "val" + i));
 
-            Redis.SetAll(keysMap);
+            await RedisAsync.SetAllAsync(keysMap);
 
-            var randKey = Redis.RandomKey();
+            var randKey = await RedisAsync.GetRandomKeyAsync();
 
             Assert.That(keysMap.ContainsKey(randKey), Is.True);
         }
@@ -154,13 +153,14 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_RenameKey()
         {
-            Redis.SetValue("oldkey", "val");
-            Redis.Rename("oldkey", "newkey");
+            await RedisAsync.SetValueAsync("oldkey", "val");
+            await RedisAsync.RenameKeyAsync("oldkey", "newkey");
 
-            Assert.That(Redis.ContainsKey("oldkey"), Is.False);
-            Assert.That(Redis.ContainsKey("newkey"), Is.True);
+            Assert.That(await RedisAsync.ContainsKeyAsync("oldkey"), Is.False);
+            Assert.That(await RedisAsync.ContainsKeyAsync("newkey"), Is.True);
         }
 
+        /*
         [Test]
         public async Task Can_Expire()
         {

@@ -219,10 +219,23 @@ namespace ServiceStack.Redis
 
         public void SetAll(Dictionary<string, string> map)
         {
-            if (map == null || map.Count == 0) return;
+            if (GetSetAllBytes(map, out var keyBytes, out var valBytes))
+            {
+                base.MSet(keyBytes, valBytes);
+            }
+        }
 
-            var keyBytes = new byte[map.Count][];
-            var valBytes = new byte[map.Count][];
+        private static bool GetSetAllBytes(Dictionary<string, string> map, out byte[][] keyBytes, out byte[][] valBytes)
+        {
+            if (map == null || map.Count == 0)
+            {
+                keyBytes = null;
+                valBytes = null;
+                return false;
+            }
+
+            keyBytes = new byte[map.Count][];
+            valBytes = new byte[map.Count][];
 
             var i = 0;
             foreach (var key in map.Keys)
@@ -232,8 +245,7 @@ namespace ServiceStack.Redis
                 valBytes[i] = val.ToUtf8Bytes();
                 i++;
             }
-
-            base.MSet(keyBytes, valBytes);
+            return true;
         }
 
         public string GetValue(string key)

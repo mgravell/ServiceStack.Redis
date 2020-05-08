@@ -725,21 +725,21 @@ namespace ServiceStack.Redis
 
         public void Rename(string oldKeyname, string newKeyname)
         {
-            if (oldKeyname == null)
-                throw new ArgumentNullException("oldKeyname");
-            if (newKeyname == null)
-                throw new ArgumentNullException("newKeyname");
-
+            CheckRenameKeys(oldKeyname, newKeyname);
             SendExpectSuccess(Commands.Rename, oldKeyname.ToUtf8Bytes(), newKeyname.ToUtf8Bytes());
         }
 
-        public bool RenameNx(string oldKeyname, string newKeyname)
+        private protected static void CheckRenameKeys(string oldKeyname, string newKeyname)
         {
             if (oldKeyname == null)
                 throw new ArgumentNullException("oldKeyname");
             if (newKeyname == null)
                 throw new ArgumentNullException("newKeyname");
+        }
 
+        public bool RenameNx(string oldKeyname, string newKeyname)
+        {
+            CheckRenameKeys(oldKeyname, newKeyname);
             return SendExpectLong(Commands.RenameNx, oldKeyname.ToUtf8Bytes(), newKeyname.ToUtf8Bytes()) == Success;
         }
 

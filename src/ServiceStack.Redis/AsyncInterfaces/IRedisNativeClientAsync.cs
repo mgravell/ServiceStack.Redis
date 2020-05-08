@@ -60,15 +60,15 @@ namespace ServiceStack.Redis
 
         ////Common key-value Redis operations
         //byte[][] Keys(string pattern);
-        ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken);
-        //long Exists(string key);
+        ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<long> ExistsAsync(string key, CancellationToken cancellationToken = default);
         //long StrLen(string key);
         ValueTask SetAsync(string key, byte[] value, CancellationToken cancellationToken = default);
         //void SetEx(string key, int expireInSeconds, byte[] value);
         //bool Persist(string key);
         //void PSetEx(string key, long expireInMs, byte[] value);
         //long SetNX(string key, byte[] value);
-        //void MSet(byte[][] keys, byte[][] values);
+        ValueTask MSetAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken = default);
         //void MSet(string[] keys, byte[][] values);
         //bool MSetNx(byte[][] keys, byte[][] values);
         //bool MSetNx(string[] keys, byte[][] values);
@@ -89,9 +89,9 @@ namespace ServiceStack.Redis
         //long GetBit(string key, int offset);
         //long SetBit(string key, int offset, int value);
 
-        //string RandomKey();
-        //void Rename(string oldKeyname, string newKeyname);
-        //bool RenameNx(string oldKeyname, string newKeyname);
+        ValueTask<string> RandomKeyAsync(CancellationToken cancellationToken = default);
+        ValueTask RenameAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);
+        ValueTask<bool> RenameNxAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);
         //bool Expire(string key, int seconds);
         //bool PExpire(string key, long ttlMs);
         //bool ExpireAt(string key, long unixTime);

@@ -78,7 +78,7 @@ namespace ServiceStack.Redis
         //string UrnKey(Type type, object id);
 
         //void SetAll(IEnumerable<string> keys, IEnumerable<string> values);
-        //void SetAll(Dictionary<string, string> map);
+        ValueTask SetAllAsync(Dictionary<string, string> map, CancellationToken cancellationToken = default);
         //void SetValues(Dictionary<string, string> map);
 
         ValueTask SetValueAsync(string key, string value, CancellationToken cancellationToken = default);
@@ -96,7 +96,7 @@ namespace ServiceStack.Redis
         //Dictionary<string, string> GetValuesMap(List<string> keys);
         //Dictionary<string, T> GetValuesMap<T>(List<string> keys);
         //long AppendToValue(string key, string value);
-        //void RenameKey(string fromName, string toName);
+        ValueTask RenameKeyAsync(string fromName, string toName, CancellationToken cancellationToken = default);
 
         ////store POCOs as hash
         //T GetFromHash<T>(object id);
@@ -104,7 +104,7 @@ namespace ServiceStack.Redis
 
         //object StoreObject(object entity);
 
-        //bool ContainsKey(string key);
+        ValueTask<bool> ContainsKeyAsync(string key, CancellationToken cancellationToken = default);
         //bool RemoveEntry(params string[] args);
         ValueTask<long> IncrementValueAsync(string key, CancellationToken cancellationToken = default);
         //long IncrementValueBy(string key, int count);
@@ -117,7 +117,7 @@ namespace ServiceStack.Redis
         //string Type(string key);
         ValueTask<RedisKeyType> GetEntryTypeAsync(string key, CancellationToken cancellationToken = default);
         //long GetStringCount(string key);
-        //string GetRandomKey();
+        ValueTask<string> GetRandomKeyAsync(CancellationToken cancellationToken = default);
         //bool ExpireEntryIn(string key, TimeSpan expireIn);
         //bool ExpireEntryAt(string key, DateTime expireAt);
         //List<string> GetSortedEntryValues(string key, int startingFrom, int endingAt);
