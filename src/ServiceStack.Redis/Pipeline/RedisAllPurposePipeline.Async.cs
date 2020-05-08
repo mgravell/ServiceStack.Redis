@@ -221,5 +221,15 @@ namespace ServiceStack.Redis
             AddCurrentQueuedOperation();
         }
 
+        void IRedisQueueCompletableOperationAsync.CompleteStringQueuedCommandAsync(Func<CancellationToken, ValueTask<string>> stringReadCommand)
+        {
+            //AssertCurrentOperation();
+            // this can happen when replaying pipeline/transaction
+            if (CurrentQueuedOperation == null) return;
+
+            CurrentQueuedOperation.WithAsyncReadCommand(stringReadCommand);
+            AddCurrentQueuedOperation();
+        }
+
     }
 }

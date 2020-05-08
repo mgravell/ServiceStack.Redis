@@ -115,7 +115,7 @@ namespace ServiceStack.Redis
         ValueTask<List<string>> SearchKeysAsync(string pattern, CancellationToken cancellationToken = default);
 
         //string Type(string key);
-        //RedisKeyType GetEntryType(string key);
+        ValueTask<RedisKeyType> GetEntryTypeAsync(string key, CancellationToken cancellationToken = default);
         //long GetStringCount(string key);
         //string GetRandomKey();
         //bool ExpireEntryIn(string key, TimeSpan expireIn);
@@ -177,7 +177,7 @@ namespace ServiceStack.Redis
         //#region Set operations
 
         //HashSet<string> GetAllItemsFromSet(string setId);
-        //void AddItemToSet(string setId, string item);
+        ValueTask AddItemToSetAsync(string setId, string item, CancellationToken cancellationToken = default);
         //void AddRangeToSet(string setId, List<string> items);
         //void RemoveItemFromSet(string setId, string item);
         //string PopItemFromSet(string setId);
@@ -202,7 +202,7 @@ namespace ServiceStack.Redis
         //List<string> GetRangeFromList(string listId, int startingFrom, int endingAt);
         //List<string> GetRangeFromSortedList(string listId, int startingFrom, int endingAt);
         //List<string> GetSortedItemsFromList(string listId, SortOptions sortOptions);
-        //void AddItemToList(string listId, string value);
+        ValueTask AddItemToListAsync(string listId, string value, CancellationToken cancellationToken = default);
         //void AddRangeToList(string listId, List<string> values);
         //void PrependItemToList(string listId, string value);
         //void PrependRangeToList(string listId, List<string> values);
@@ -238,8 +238,8 @@ namespace ServiceStack.Redis
 
         //#region Sorted Set operations
 
-        //bool AddItemToSortedSet(string setId, string value);
-        //bool AddItemToSortedSet(string setId, string value, double score);
+        ValueTask<bool> AddItemToSortedSetAsync(string setId, string value, CancellationToken cancellationToken = default);
+        ValueTask<bool> AddItemToSortedSetAsync(string setId, string value, double score, CancellationToken cancellationToken = default);
         //bool AddRangeToSortedSet(string setId, List<string> values, double score);
         //bool AddRangeToSortedSet(string setId, List<string> values, long score);
         //bool RemoveItemFromSortedSet(string setId, string value);
@@ -304,7 +304,7 @@ namespace ServiceStack.Redis
         //#region Hash operations
 
         //bool HashContainsEntry(string hashId, string key);
-        //bool SetEntryInHash(string hashId, string key, string value);
+        ValueTask<bool> SetEntryInHashAsync(string hashId, string key, string value, CancellationToken cancellationToken = default);
         //bool SetEntryInHashIfNotExists(string hashId, string key, string value);
         //void SetRangeInHash(string hashId, IEnumerable<KeyValuePair<string, string>> keyValuePairs);
         //long IncrementValueInHash(string hashId, string key, int incrementBy);

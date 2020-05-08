@@ -32,16 +32,24 @@ namespace ServiceStack.Redis
             //Turn Action into Func Hack
             Action<Func<CancellationToken, ValueTask<long>>> completePipelineFn = null;
             if (Pipeline != null) completePipelineFn = f => { PipelineAsync.CompleteVoidQueuedCommandAsync(async ct => await f(ct).ConfigureAwait(false)); };
-            
-            var pending = SendReceiveAsync(cmdWithBinaryArgs, ExpectSuccessFnAsync, cancellationToken, completePipelineFn);
-            return pending.IsCompletedSuccessfully ? default : Awaited(pending);
 
-            static async ValueTask Awaited(ValueTask<long> pending) => await pending.ConfigureAwait(false);
+            return DiscardResult(SendReceiveAsync(cmdWithBinaryArgs, ExpectSuccessFnAsync, cancellationToken, completePipelineFn));
+        }
+
+        internal static ValueTask DiscardResult<T>(ValueTask<T> pending)
+        {
+            return pending.IsCompletedSuccessfully ? default : Awaited(pending);
+            async static ValueTask Awaited(ValueTask<T> pending) => await pending.ConfigureAwait(false);
         }
 
         private ValueTask<byte[]> SendExpectDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
             return SendReceiveAsync(cmdWithBinaryArgs, ReadDataAsync, cancellationToken, Pipeline != null ? PipelineAsync.CompleteBytesQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<byte[]>>>)null);
+        }
+
+        private ValueTask<string> SendExpectCodeAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        {
+            return SendReceiveAsync(cmdWithBinaryArgs, ExpectCodeAsync, cancellationToken, Pipeline != null ? PipelineAsync.CompleteStringQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<string>>>)null);
         }
 
         private async ValueTask<ScanResult> SendExpectScanResultAsync(CancellationToken cancellationToken, byte[] cmd, params byte[][] args)
@@ -359,6 +367,23 @@ namespace ServiceStack.Redis
                 var r = await pending.ConfigureAwait(false);
                 return await @this.ParseSingleLineAsync(r, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        private async ValueTask<string> ExpectCodeAsync(CancellationToken cancellationToken)
+        {
+            int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
+            if (c == -1)
+                throw CreateNoMoreDataError();
+
+            var s = await ReadLineAsync(cancellationToken);
+
+            if (log.IsDebugEnabled)
+                Log((char)c + s);
+
+            if (c == '-')
+                throw CreateResponseError(s.StartsWith("ERR") ? s.Substring(4) : s);
+
+            return s;
         }
 
         private async ValueTask<byte[][]> ReadMultiDataAsync(CancellationToken cancellationToken)

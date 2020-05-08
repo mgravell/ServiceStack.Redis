@@ -53,8 +53,8 @@ namespace ServiceStack.Redis
         internal ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default)
             => NativeAsync.GetAsync(key, cancellationToken);
 
-        internal async ValueTask<bool> RemoveAsync(string key, CancellationToken cancellationToken = default)
-            => await NativeAsync.DelAsync(key, cancellationToken).ConfigureAwait(false) == Success;
+        internal ValueTask<bool> RemoveAsync(string key, CancellationToken cancellationToken = default)
+            => IsSuccess(NativeAsync.DelAsync(key, cancellationToken));
 
         internal async ValueTask<bool> SetAsync<T>(string key, T value, CancellationToken cancellationToken = default)
         {
@@ -69,8 +69,6 @@ namespace ServiceStack.Redis
                 await action(this).ConfigureAwait(false);
             }
         }
-
-
 
         ValueTask IRedisClientAsync.SetValueAsync(string key, string value, CancellationToken cancellationToken)
         {
@@ -100,8 +98,8 @@ namespace ServiceStack.Redis
             while (true)
             {
                 ret = await (pattern != null
-                    ? NativeAsync.ScanAsync(ret?.Cursor ?? 0, pageSize, match: pattern)
-                    : NativeAsync.ScanAsync(ret?.Cursor ?? 0, pageSize)
+                    ? NativeAsync.ScanAsync(ret?.Cursor ?? 0, pageSize, match: pattern, cancellationToken: cancellationToken)
+                    : NativeAsync.ScanAsync(ret?.Cursor ?? 0, pageSize, cancellationToken: cancellationToken)
                     ).ConfigureAwait(false);
 
                 foreach (var key in ret.Results)
@@ -110,6 +108,46 @@ namespace ServiceStack.Redis
                 }
 
                 if (ret.Cursor == 0) break;
+            }
+        }
+
+        ValueTask<RedisKeyType> IRedisClientAsync.GetEntryTypeAsync(string key, CancellationToken cancellationToken)
+        {
+            var pending = NativeAsync.TypeAsync(key, cancellationToken);
+            return pending.IsCompletedSuccessfully ? new ValueTask<RedisKeyType>(ParseEntryType(pending.Result)) : Awaited(this, pending);
+
+            static async ValueTask<RedisKeyType> Awaited(RedisClient @this, ValueTask<string> pending)
+                => @this.ParseEntryType(await pending.ConfigureAwait(false));
+        }
+
+        ValueTask IRedisClientAsync.AddItemToSetAsync(string setId, string item, CancellationToken cancellationToken)
+            => DiscardResult(NativeAsync.SAddAsync(setId, item.ToUtf8Bytes(), cancellationToken));
+
+        ValueTask IRedisClientAsync.AddItemToListAsync(string listId, string value, CancellationToken cancellationToken)
+            => DiscardResult(NativeAsync.RPushAsync(listId, value.ToUtf8Bytes(), cancellationToken));
+
+        ValueTask<bool> IRedisClientAsync.AddItemToSortedSetAsync(string setId, string value, CancellationToken cancellationToken)
+            => ((IRedisClientAsync)this).AddItemToSortedSetAsync(setId, value, GetLexicalScore(value), cancellationToken);
+
+        ValueTask<bool> IRedisClientAsync.AddItemToSortedSetAsync(string setId, string value, double score, CancellationToken cancellationToken)
+            => IsSuccess(NativeAsync.ZAddAsync(setId, score, value.ToUtf8Bytes()));
+
+        ValueTask<bool> IRedisClientAsync.SetEntryInHashAsync(string hashId, string key, string value, CancellationToken cancellationToken)
+            => IsSuccess(NativeAsync.HSetAsync(hashId, key.ToUtf8Bytes(), value.ToUtf8Bytes()));
+
+        static ValueTask<bool> IsSuccess(ValueTask<long> pending)
+        {
+            if (pending.IsCompletedSuccessfully)
+            {
+                return new ValueTask<bool>(pending.Result == Success);
+            }
+            else
+            {
+                return Awaited(pending);
+            }
+            async static ValueTask<bool> Awaited(ValueTask<long> pending)
+            {
+                return (await pending.ConfigureAwait(false)) == Success;
             }
         }
     }

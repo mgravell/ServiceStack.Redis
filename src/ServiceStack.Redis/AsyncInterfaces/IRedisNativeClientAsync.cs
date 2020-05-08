@@ -60,7 +60,7 @@ namespace ServiceStack.Redis
 
         ////Common key-value Redis operations
         //byte[][] Keys(string pattern);
-        //string Type(string key);
+        ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken);
         //long Exists(string key);
         //long StrLen(string key);
         ValueTask SetAsync(string key, byte[] value, CancellationToken cancellationToken = default);
@@ -115,7 +115,7 @@ namespace ServiceStack.Redis
 
         ////Redis List operations
         //byte[][] LRange(string listId, int startingFrom, int endingAt);
-        //long RPush(string listId, byte[] value);
+        ValueTask<long> RPushAsync(string listId, byte[] value, CancellationToken cancellationToken = default);
         //long RPushX(string listId, byte[] value);
         //long LPush(string listId, byte[] value);
         //long LPushX(string listId, byte[] value);
@@ -140,7 +140,7 @@ namespace ServiceStack.Redis
 
         ////Redis Set operations
         //byte[][] SMembers(string setId);
-        //long SAdd(string setId, byte[] value);
+        ValueTask<long> SAddAsync(string setId, byte[] value, CancellationToken cancellation = default);
         //long SAdd(string setId, byte[][] value);
         //long SRem(string setId, byte[] value);
         //byte[] SPop(string setId);
@@ -158,8 +158,8 @@ namespace ServiceStack.Redis
 
 
         ////Redis Sorted Set operations
-        //long ZAdd(string setId, double score, byte[] value);
-        //long ZAdd(string setId, long score, byte[] value);
+        ValueTask<long> ZAddAsync(string setId, double score, byte[] value, CancellationToken cancellation = default);
+        ValueTask<long> ZAddAsync(string setId, long score, byte[] value, CancellationToken cancellation = default);
         //long ZRem(string setId, byte[] value);
         //long ZRem(string setId, byte[][] values);
         //double ZIncrBy(string setId, double incrBy, byte[] value);
@@ -190,7 +190,7 @@ namespace ServiceStack.Redis
         //long ZRemRangeByLex(string setId, string min, string max);
 
         ////Redis Hash operations
-        //long HSet(string hashId, byte[] key, byte[] value);
+        ValueTask<long> HSetAsync(string hashId, byte[] key, byte[] value, CancellationToken cancellationToken = default);
         //void HMSet(string hashId, byte[][] keys, byte[][] values);
         //long HSetNX(string hashId, byte[] key, byte[] value);
         //long HIncrby(string hashId, byte[] key, int incrementBy);

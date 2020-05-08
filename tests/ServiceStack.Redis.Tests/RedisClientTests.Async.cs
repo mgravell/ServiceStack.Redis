@@ -94,24 +94,24 @@ namespace ServiceStack.Redis.Tests
             Assert.That(matchingKeys.Count, Is.EqualTo(0));
         }
 
-        /*
         [Test]
         public async Task Can_get_Types()
         {
-            Redis.SetValue("string", "string");
-            Redis.AddItemToList("list", "list");
-            Redis.AddItemToSet("set", "set");
-            Redis.AddItemToSortedSet("sortedset", "sortedset");
-            Redis.SetEntryInHash("hash", "key", "val");
+            await RedisAsync.SetValueAsync("string", "string");
+            await RedisAsync.AddItemToListAsync("list", "list");
+            await RedisAsync.AddItemToSetAsync("set", "set");
+            await RedisAsync.AddItemToSortedSetAsync("sortedset", "sortedset");
+            await RedisAsync.SetEntryInHashAsync("hash", "key", "val");
 
-            Assert.That(Redis.GetEntryType("nokey"), Is.EqualTo(RedisKeyType.None));
-            Assert.That(Redis.GetEntryType("string"), Is.EqualTo(RedisKeyType.String));
-            Assert.That(Redis.GetEntryType("list"), Is.EqualTo(RedisKeyType.List));
-            Assert.That(Redis.GetEntryType("set"), Is.EqualTo(RedisKeyType.Set));
-            Assert.That(Redis.GetEntryType("sortedset"), Is.EqualTo(RedisKeyType.SortedSet));
-            Assert.That(Redis.GetEntryType("hash"), Is.EqualTo(RedisKeyType.Hash));
+            Assert.That(await RedisAsync.GetEntryTypeAsync("nokey"), Is.EqualTo(RedisKeyType.None));
+            Assert.That(await RedisAsync.GetEntryTypeAsync("string"), Is.EqualTo(RedisKeyType.String));
+            Assert.That(await RedisAsync.GetEntryTypeAsync("list"), Is.EqualTo(RedisKeyType.List));
+            Assert.That(await RedisAsync.GetEntryTypeAsync("set"), Is.EqualTo(RedisKeyType.Set));
+            Assert.That(await RedisAsync.GetEntryTypeAsync("sortedset"), Is.EqualTo(RedisKeyType.SortedSet));
+            Assert.That(await RedisAsync.GetEntryTypeAsync("hash"), Is.EqualTo(RedisKeyType.Hash));
         }
 
+        /*
         [Test]
         public async Task Can_delete_keys()
         {

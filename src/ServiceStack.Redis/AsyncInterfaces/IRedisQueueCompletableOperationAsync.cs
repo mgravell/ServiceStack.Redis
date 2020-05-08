@@ -14,7 +14,7 @@ namespace ServiceStack.Redis.Pipeline
         void CompleteLongQueuedCommandAsync(Func<CancellationToken, ValueTask<long>> longReadCommand);
         void CompleteBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[]>> bytesReadCommand);
         void CompleteMultiBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[][]>> multiBytesReadCommand);
-        //void CompleteStringQueuedCommand(Func<string> stringReadCommand);
+        void CompleteStringQueuedCommandAsync(Func<CancellationToken, ValueTask<string>> stringReadCommand);
         //void CompleteMultiStringQueuedCommand(Func<List<string>> multiStringReadCommand);
         //void CompleteDoubleQueuedCommand(Func<double> doubleReadCommand);
         //void CompleteRedisDataQueuedCommand(Func<RedisData> redisDataReadCommand);

@@ -397,8 +397,10 @@ namespace ServiceStack.Redis
         }
 
         public RedisKeyType GetEntryType(string key)
+            => ParseEntryType(Type(key));
+
+        private protected RedisKeyType ParseEntryType(string type)
         {
-            var type = Type(key);
             switch (type)
             {
                 case "none":
