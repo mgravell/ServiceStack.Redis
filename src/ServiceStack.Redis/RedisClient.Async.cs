@@ -151,8 +151,27 @@ namespace ServiceStack.Redis
         ValueTask IRedisClientAsync.ChangeDbAsync(long db, CancellationToken cancellationToken)
             => NativeAsync.SelectAsync(db, cancellationToken);
 
-        ValueTask<byte[]> IRedisClientAsync.GetBytesAsync(string key, CancellationToken cancellationToken)
-            => NativeAsync.GetAsync(key, cancellationToken);
+        ValueTask<bool> IRedisClientAsync.ExpireEntryInAsync(string key, TimeSpan expireIn, CancellationToken cancellationToken)
+            => UseMillisecondExpiration(expireIn)
+            ? NativeAsync.PExpireAsync(key, (long)expireIn.TotalMilliseconds, cancellationToken)
+            : NativeAsync.ExpireAsync(key, (int)expireIn.TotalSeconds, cancellationToken);
+
+        ValueTask<bool> IRedisClientAsync.ExpireEntryAtAsync(string key, DateTime expireAt, CancellationToken cancellationToken)
+            => AssertServerVersionNumber() >= 2600
+            ? NativeAsync.PExpireAtAsync(key, ConvertToServerDate(expireAt).ToUnixTimeMs(), cancellationToken)
+            : NativeAsync.ExpireAtAsync(key, ConvertToServerDate(expireAt).ToUnixTime(), cancellationToken);
+
+        async ValueTask<TimeSpan?> IRedisClientAsync.GetTimeToLiveAsync(string key, CancellationToken cancellationToken)
+        {
+            var ttlSecs = await NativeAsync.TtlAsync(key, cancellationToken).ConfigureAwait(false);
+            if (ttlSecs == -1)
+                return TimeSpan.MaxValue; //no expiry set
+
+            if (ttlSecs == -2)
+                return null; //key does not exist
+
+            return TimeSpan.FromSeconds(ttlSecs);
+        }
     }
 }
  

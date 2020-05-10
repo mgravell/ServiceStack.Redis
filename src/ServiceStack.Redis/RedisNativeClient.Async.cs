@@ -170,5 +170,51 @@ namespace ServiceStack.Redis
             var cmdWithArgs = MergeCommandWithArgs(Commands.Del, keys);
             return SendExpectLongAsync(cancellationToken, cmdWithArgs);
         }
+
+        ValueTask<bool> IRedisNativeClientAsync.ExpireAsync(string key, int seconds, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.Expire, key.ToUtf8Bytes(), seconds.ToUtf8Bytes()));
+        }
+
+        ValueTask<bool> IRedisNativeClientAsync.PExpireAsync(string key, long ttlMs, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.PExpire, key.ToUtf8Bytes(), ttlMs.ToUtf8Bytes()));
+        }
+
+        ValueTask<bool> IRedisNativeClientAsync.ExpireAtAsync(string key, long unixTime, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+
+            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.ExpireAt, key.ToUtf8Bytes(), unixTime.ToUtf8Bytes()));
+        }
+
+        ValueTask<bool> IRedisNativeClientAsync.PExpireAtAsync(string key, long unixTimeMs, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+
+            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.PExpireAt, key.ToUtf8Bytes(), unixTimeMs.ToUtf8Bytes()));
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.TtlAsync(string key, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+
+            return SendExpectLongAsync(cancellationToken, Commands.Ttl, key.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.PTtlAsync(string key, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+
+            return SendExpectLongAsync(cancellationToken, Commands.PTtl, key.ToUtf8Bytes());
+        }
     }
 }

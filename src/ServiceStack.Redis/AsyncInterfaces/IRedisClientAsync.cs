@@ -28,7 +28,7 @@ namespace ServiceStack.Redis
         /* non-obvious changes from IRedisClient:
         - Db is read-only; added ChangeDbAsync for setting
         - added unary version of RemoveEntryAsync - because of losing "params", usage was awkward otherwise
-        - added GetBytesAsync - mostly for tet equivalence, but could lose this if desired
+        - added GetTimeToLiveAsync - not available on the interface
         */
         //Basic Redis Connection operations
         long Db { get; }
@@ -95,7 +95,6 @@ namespace ServiceStack.Redis
         //bool SetValueIfExists(string key, string value, TimeSpan expireIn);
 
         ValueTask<string> GetValueAsync(string key, CancellationToken cancellationToken = default);
-        ValueTask<byte[]> GetBytesAsync(string key, CancellationToken cancellationToken = default);
         //string GetAndSetValue(string key, string value);
 
         //List<string> GetValues(List<string> keys);
@@ -126,8 +125,9 @@ namespace ServiceStack.Redis
         ValueTask<RedisKeyType> GetEntryTypeAsync(string key, CancellationToken cancellationToken = default);
         //long GetStringCount(string key);
         ValueTask<string> GetRandomKeyAsync(CancellationToken cancellationToken = default);
-        //bool ExpireEntryIn(string key, TimeSpan expireIn);
-        //bool ExpireEntryAt(string key, DateTime expireAt);
+        ValueTask<bool> ExpireEntryInAsync(string key, TimeSpan expireIn, CancellationToken cancellationToken = default);
+        ValueTask<bool> ExpireEntryAtAsync(string key, DateTime expireAt, CancellationToken cancellationToken = default);
+        ValueTask<TimeSpan?> GetTimeToLiveAsync(string key, CancellationToken cancellationToken = default);
         //List<string> GetSortedEntryValues(string key, int startingFrom, int endingAt);
 
         ////Store entities without registering entity ids

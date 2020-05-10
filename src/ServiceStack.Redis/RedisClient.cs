@@ -333,25 +333,23 @@ namespace ServiceStack.Redis
 
         public bool ExpireEntryIn(string key, TimeSpan expireIn)
         {
-            if (AssertServerVersionNumber() >= 2600)
+            if (UseMillisecondExpiration(expireIn))
             {
-                if (expireIn.Milliseconds > 0)
-                {
-                    return PExpire(key, (long)expireIn.TotalMilliseconds);
-                }
+                return PExpire(key, (long)expireIn.TotalMilliseconds);
             }
 
             return Expire(key, (int)expireIn.TotalSeconds);
         }
 
+        private bool UseMillisecondExpiration(TimeSpan value)
+
+            => AssertServerVersionNumber() >= 2600 && value.Milliseconds > 0;
+
         public bool ExpireEntryIn(byte[] key, TimeSpan expireIn)
         {
-            if (AssertServerVersionNumber() >= 2600)
+            if (UseMillisecondExpiration(expireIn))
             {
-                if (expireIn.Milliseconds > 0)
-                {
-                    return PExpire(key, (long)expireIn.TotalMilliseconds);
-                }
+                return PExpire(key, (long)expireIn.TotalMilliseconds);
             }
 
             return Expire(key, (int)expireIn.TotalSeconds);

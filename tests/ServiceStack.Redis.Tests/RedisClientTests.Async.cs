@@ -26,7 +26,7 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_Set_and_Get_string()
         {
             await RedisAsync.SetValueAsync("key", Value);
-            var valueBytes = await RedisAsync.GetBytesAsync("key");
+            var valueBytes = await NativeAsync.GetAsync("key");
             var valueString = GetString(valueBytes);
             await RedisAsync.RemoveEntryAsync("key");
 
@@ -37,7 +37,7 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_Set_and_Get_key_with_space()
         {
             await RedisAsync.SetValueAsync("key with space", Value);
-            var valueBytes = await RedisAsync.GetBytesAsync("key with space");
+            var valueBytes = await NativeAsync.GetAsync("key with space");
             var valueString = GetString(valueBytes);
             await RedisAsync.RemoveEntryAsync("key with space");
 
@@ -50,7 +50,7 @@ namespace ServiceStack.Redis.Tests
             const string key = "key with spaces";
 
             await RedisAsync.SetValueAsync(key, Value);
-            var valueBytes = await RedisAsync.GetBytesAsync(key);
+            var valueBytes = await NativeAsync.GetAsync(key);
             var valueString = GetString(valueBytes);
 
             Assert.That(valueString, Is.EqualTo(Value));
@@ -114,6 +114,8 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_delete_keys()
         {
+            await NativeAsync.DelAsync("key");
+
             await RedisAsync.SetValueAsync("key", "val");
 
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
@@ -128,11 +130,13 @@ namespace ServiceStack.Redis.Tests
 
             await RedisAsync.SetAllAsync(keysMap);
 
-            10.TimesAsync(async i => Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.True));
+            for (int i = 0; i < 10; i++) // note: TimesAsync doesn't take Func<..., [Value]Task>; forces async void, which is bad
+                Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.True);
 
             await RedisAsync.RemoveEntryAsync(keysMap.Keys.ToArray());
 
-            10.TimesAsync(async i => Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.False));
+            for (int i = 0; i < 10; i++)
+                Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.False);
         }
 
         [Test]
@@ -160,57 +164,57 @@ namespace ServiceStack.Redis.Tests
             Assert.That(await RedisAsync.ContainsKeyAsync("newkey"), Is.True);
         }
 
-        /*
+        
         [Test]
         public async Task Can_Expire()
         {
-            Redis.SetValue("key", "val");
-            Redis.Expire("key", 1);
-            Assert.That(Redis.ContainsKey("key"), Is.True);
-            Thread.Sleep(2000);
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            await RedisAsync.SetValueAsync("key", "val");
+            await NativeAsync.ExpireAsync("key", 1);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
+            await Task.Delay(2000);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
         }
 
         [Test]
         public async Task Can_Expire_Ms()
         {
-            Redis.SetValue("key", "val");
-            Redis.ExpireEntryIn("key", TimeSpan.FromMilliseconds(100));
-            Assert.That(Redis.ContainsKey("key"), Is.True);
-            Thread.Sleep(500);
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            await RedisAsync.SetValueAsync("key", "val");
+            await RedisAsync.ExpireEntryInAsync("key", TimeSpan.FromMilliseconds(100));
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
+            await Task.Delay(500);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
         }
 
         [Ignore("Changes in system clock can break test")]
         [Test]
         public async Task Can_ExpireAt()
         {
-            Redis.SetValue("key", "val");
+            await RedisAsync.SetValueAsync("key", "val");
 
             var unixNow = DateTime.Now.ToUnixTime();
             var in2Secs = unixNow + 2;
 
-            Redis.ExpireAt("key", in2Secs);
+            await NativeAsync.ExpireAtAsync("key", in2Secs);
 
-            Assert.That(Redis.ContainsKey("key"), Is.True);
-            Thread.Sleep(3000);
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
+            await Task.Delay(3000);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
         }
 
         [Test]
         public async Task Can_GetTimeToLive()
         {
-            Redis.SetValue("key", "val");
-            Redis.Expire("key", 10);
+            await RedisAsync.SetValueAsync("key", "val");
+            await NativeAsync.ExpireAsync("key", 10);
 
-            var ttl = Redis.GetTimeToLive("key");
+            var ttl = await RedisAsync.GetTimeToLiveAsync("key");
             Assert.That(ttl.Value.TotalSeconds, Is.GreaterThanOrEqualTo(9));
-            Thread.Sleep(1700);
+            await Task.Delay(1700);
 
-            ttl = Redis.GetTimeToLive("key");
+            ttl = await RedisAsync.GetTimeToLiveAsync("key");
             Assert.That(ttl.Value.TotalSeconds, Is.LessThanOrEqualTo(9));
         }
-
+        /*
         [Test]
         public async Task Can_GetServerTime()
         {
@@ -373,7 +377,7 @@ namespace ServiceStack.Redis.Tests
                 Debug.WriteLine(String.Format("client {0} acquired lock", clientNo));
                 var val = client.Get<int>(key);
 
-                Thread.Sleep(200);
+                await Task.Delay(200);
 
                 client.Set(key, val + 1);
                 Debug.WriteLine(String.Format("client {0} released lock", clientNo));
@@ -456,7 +460,7 @@ namespace ServiceStack.Redis.Tests
             Assert.AreEqual(distributedLock.Lock(key, lockTimeout, lockTimeout, out lockExpire, Redis), DistributedLock.LOCK_NOT_ACQUIRED);
 
             // re-acquire lock after timeout
-            Thread.Sleep(lockTimeout * 1000 + 1000);
+            await Task.Delay(lockTimeout * 1000 + 1000);
             distributedLock = new DistributedLock();
             Assert.AreEqual(distributedLock.Lock(key, lockTimeout, lockTimeout, out lockExpire, Redis), DistributedLock.LOCK_RECOVERED);
 
@@ -611,7 +615,7 @@ namespace ServiceStack.Redis.Tests
         {
             Redis.SetValue("key", "val", expireIn: TimeSpan.FromSeconds(1));
             Assert.That(Redis.ContainsKey("key"), Is.True);
-            Thread.Sleep(2000);
+            await Task.Delay(2000);
             Assert.That(Redis.ContainsKey("key"), Is.False);
         }
 
@@ -620,7 +624,7 @@ namespace ServiceStack.Redis.Tests
         {
             Redis.SetValue("key", "val", expireIn: TimeSpan.FromMilliseconds(1000));
             Assert.That(Redis.ContainsKey("key"), Is.True);
-            Thread.Sleep(2000);
+            await Task.Delay(2000);
             Assert.That(Redis.ContainsKey("key"), Is.False);
         }
 
@@ -636,7 +640,7 @@ namespace ServiceStack.Redis.Tests
                 Is.True);
             Assert.That(Redis.ContainsKey("key"), Is.True);
 
-            Thread.Sleep(2000);
+            await Task.Delay(2000);
             Assert.That(Redis.ContainsKey("key"), Is.False);
         }
 
@@ -650,7 +654,7 @@ namespace ServiceStack.Redis.Tests
             Assert.That(Redis.SetValueIfNotExists("key", "val", expireIn: TimeSpan.FromMilliseconds(1000)),
                 Is.False);
 
-            Thread.Sleep(2000);
+            await Task.Delay(2000);
             Assert.That(Redis.ContainsKey("key"), Is.False);
 
             Redis.Remove("key");

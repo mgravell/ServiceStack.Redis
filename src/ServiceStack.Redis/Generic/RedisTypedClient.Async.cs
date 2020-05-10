@@ -20,8 +20,10 @@ namespace ServiceStack.Redis.Generic
         : IRedisTypedClientAsync<T>
     {
         IRedisClientAsync AsyncClient => client;
+        IRedisNativeClientAsync AsyncNative => client;
+
         async ValueTask<T> IRedisTypedClientAsync<T>.GetValueAsync(string key, CancellationToken cancellationToken)
-            => DeserializeValue(await AsyncClient.GetBytesAsync(key, cancellationToken).ConfigureAwait(false));
+            => DeserializeValue(await AsyncNative.GetAsync(key, cancellationToken).ConfigureAwait(false));
 
         async ValueTask IRedisTypedClientAsync<T>.SetValueAsync(string key, T entity, CancellationToken cancellationToken)
         {

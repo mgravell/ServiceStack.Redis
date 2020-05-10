@@ -99,12 +99,12 @@ namespace ServiceStack.Redis
         ValueTask<string> RandomKeyAsync(CancellationToken cancellationToken = default);
         ValueTask RenameAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);
         ValueTask<bool> RenameNxAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);
-        //ValueTask<bool> ExpireAsync(string key, int seconds, CancellationToken cancellationToken = default);
-        //ValueTask<bool> PExpireAsync(string key, long ttlMs, CancellationToken cancellationToken = default);
-        //ValueTask<bool> ExpireAtAsync(string key, long unixTime, CancellationToken cancellationToken = default);
-        //ValueTask<bool> PExpireAtAsync(string key, long unixTimeMs, CancellationToken cancellationToken = default);
-        //ValueTask<long> TtlAsync(string key, CancellationToken cancellationToken = default);
-        //ValueTask<long> PTtlAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<bool> ExpireAsync(string key, int seconds, CancellationToken cancellationToken = default);
+        ValueTask<bool> PExpireAsync(string key, long ttlMs, CancellationToken cancellationToken = default);
+        ValueTask<bool> ExpireAtAsync(string key, long unixTime, CancellationToken cancellationToken = default);
+        ValueTask<bool> PExpireAtAsync(string key, long unixTimeMs, CancellationToken cancellationToken = default);
+        ValueTask<long> TtlAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<long> PTtlAsync(string key, CancellationToken cancellationToken = default);
 
         ////Scan APIs
         ValueTask<ScanResult> ScanAsync(ulong cursor, int count = 10, string match = null, CancellationToken cancellationToken = default);
