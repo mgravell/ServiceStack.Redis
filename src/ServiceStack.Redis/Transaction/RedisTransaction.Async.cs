@@ -29,7 +29,7 @@ namespace ServiceStack.Redis
         private async ValueTask ExecAsync(CancellationToken cancellationToken)
         {
             RedisClient.Exec();
-            await RedisClient.FlushSendBufferAsync(cancellationToken);
+            await RedisClient.FlushSendBufferAsync(cancellationToken).ConfigureAwait(false);
             RedisClient.ResetSendBuffer();
         }
 
@@ -70,12 +70,12 @@ namespace ServiceStack.Redis
                 }.WithAsyncReturnCommand(r => ExecAsync(cancellationToken)));
 
                 //execute transaction
-                await ExecAsync(cancellationToken);
+                await ExecAsync(cancellationToken).ConfigureAwait(false);
 
                 //receive expected results
                 foreach (var queuedCommand in QueuedCommands)
                 {
-                    await queuedCommand.ProcessResultAsync(cancellationToken);
+                    await queuedCommand.ProcessResultAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (RedisTransactionFailedException)

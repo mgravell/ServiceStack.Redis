@@ -61,7 +61,7 @@ namespace ServiceStack.Redis
                         //Therefore we need to get the value of the lock to see when it should expire
 
                         await redisClient.WatchAsync(new[] { key }, ct).ConfigureAwait(false);
-                        var lockExpireString = await redisClient.GetValueAsync(key, ct);
+                        var lockExpireString = await redisClient.GetValueAsync(key, ct).ConfigureAwait(false);
                         if (!long.TryParse(lockExpireString, out var lockExpireTime))
                         {
                             await redisClient.UnWatchAsync(ct).ConfigureAwait(false);  // since the client is scoped externally

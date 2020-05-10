@@ -384,7 +384,7 @@ namespace ServiceStack.Redis
             if (c == -1)
                 throw CreateNoMoreDataError();
 
-            var s = await ReadLineAsync(cancellationToken);
+            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
 
             if (log.IsDebugEnabled)
                 Log((char)c + s);

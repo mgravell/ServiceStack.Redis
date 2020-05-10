@@ -58,11 +58,11 @@ namespace ServiceStack.Redis
 
         internal async ValueTask<bool> SetAsync<T>(string key, T value, CancellationToken cancellationToken = default)
         {
-            await Exec(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), cancellationToken: cancellationToken));
+            await ExecAsync(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), cancellationToken: cancellationToken)).ConfigureAwait(false);
             return true;
         }
 
-        private async ValueTask Exec(Func<IRedisClientAsync, ValueTask> action)
+        private async ValueTask ExecAsync(Func<IRedisClientAsync, ValueTask> action)
         {
             using (JsConfig.With(new Text.Config { ExcludeTypeInfo = false }))
             {
@@ -85,7 +85,7 @@ namespace ServiceStack.Redis
         async ValueTask<List<string>> IRedisClientAsync.SearchKeysAsync(string pattern, CancellationToken cancellationToken)
         {
             var list = new List<string>();
-            await foreach (var value in ((IRedisClientAsync)this).ScanAllKeysAsync(pattern, cancellationToken: cancellationToken))
+            await foreach (var value in ((IRedisClientAsync)this).ScanAllKeysAsync(pattern, cancellationToken: cancellationToken).ConfigureAwait(false))
             {
                 list.Add(value);
             }
