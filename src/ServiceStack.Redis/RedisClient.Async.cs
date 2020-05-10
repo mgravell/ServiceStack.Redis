@@ -58,7 +58,7 @@ namespace ServiceStack.Redis
 
         internal async ValueTask<bool> SetAsync<T>(string key, T value, CancellationToken cancellationToken = default)
         {
-            await Exec(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), cancellationToken));
+            await Exec(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), cancellationToken: cancellationToken));
             return true;
         }
 
@@ -73,7 +73,7 @@ namespace ServiceStack.Redis
         ValueTask IRedisClientAsync.SetValueAsync(string key, string value, CancellationToken cancellationToken)
         {
             var bytesValue = value?.ToUtf8Bytes();
-            return NativeAsync.SetAsync(key, bytesValue, cancellationToken);
+            return NativeAsync.SetAsync(key, bytesValue, cancellationToken: cancellationToken);
         }
 
         async ValueTask<string> IRedisClientAsync.GetValueAsync(string key, CancellationToken cancellationToken)
@@ -196,6 +196,99 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisClientAsync.FlushDbAsync(CancellationToken cancellationToken)
             => NativeAsync.FlushDbAsync(cancellationToken);
+
+        async ValueTask<List<string>> IRedisClientAsync.GetValuesAsync(List<string> keys, CancellationToken cancellationToken)
+        {
+            if (keys == null) throw new ArgumentNullException(nameof(keys));
+            if (keys.Count == 0) return new List<string>();
+
+            return ParseGetValuesResult(await NativeAsync.MGetAsync(keys.ToArray(), cancellationToken).ConfigureAwait(false));
+        }
+
+        async ValueTask<List<T>> IRedisClientAsync.GetValuesAsync<T>(List<string> keys, CancellationToken cancellationToken)
+        {
+            if (keys == null) throw new ArgumentNullException(nameof(keys));
+            if (keys.Count == 0) return new List<T>();
+
+            return ParseGetValuesResult<T>(await NativeAsync.MGetAsync(keys.ToArray(), cancellationToken).ConfigureAwait(false));
+        }
+
+       async ValueTask<Dictionary<string, string>> IRedisClientAsync.GetValuesMapAsync(List<string> keys, CancellationToken cancellationToken)
+        {
+            if (keys == null) throw new ArgumentNullException(nameof(keys));
+            if (keys.Count == 0) return new Dictionary<string, string>();
+
+            var keysArray = keys.ToArray();
+            var resultBytesArray = await NativeAsync.MGetAsync(keysArray, cancellationToken).ConfigureAwait(false);
+
+            return ParseGetValuesMapResult(keysArray, resultBytesArray);
+        }
+
+        async ValueTask<Dictionary<string, T>> IRedisClientAsync.GetValuesMapAsync<T>(List<string> keys, CancellationToken cancellationToken)
+        {
+            if (keys == null) throw new ArgumentNullException(nameof(keys));
+            if (keys.Count == 0) return new Dictionary<string, T>();
+
+            var keysArray = keys.ToArray();
+            var resultBytesArray = await NativeAsync.MGetAsync(keysArray, cancellationToken).ConfigureAwait(false);
+
+            return ParseGetValuesMapResult<T>(keysArray, resultBytesArray);
+        }
+
+        async ValueTask<IAsyncDisposable> IRedisClientAsync.AcquireLockAsync(string key, TimeSpan? timeOut, CancellationToken cancellationToken)
+            => await RedisLock.CreateAsync(this, key, timeOut, cancellationToken).ConfigureAwait(false);
+
+        ValueTask IRedisClientAsync.SetValueAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken)
+        {
+            var bytesValue = value?.ToUtf8Bytes();
+
+            if (AssertServerVersionNumber() >= 2610)
+            {
+                PickTime(expireIn, out var seconds, out var milliseconds);
+                return NativeAsync.SetAsync(key, bytesValue, expirySeconds: seconds,
+                    expiryMilliseconds: milliseconds, cancellationToken: cancellationToken);
+            }
+            else
+            {
+                return NativeAsync.SetExAsync(key, (int)expireIn.TotalSeconds, bytesValue, cancellationToken);
+            }
+        }
+
+        static void PickTime(TimeSpan? value, out long expirySeconds, out long expiryMilliseconds)
+        {
+            expirySeconds = expiryMilliseconds = 0;
+            if (value.HasValue)
+            {
+                var expireIn = value.GetValueOrDefault();
+                if (expireIn.Milliseconds > 0)
+                {
+                    expiryMilliseconds = (long)expireIn.TotalMilliseconds;
+                }
+                else
+                {
+                    expirySeconds = (long)expireIn.TotalSeconds;
+                }
+            }
+        }
+        ValueTask<bool> IRedisClientAsync.SetValueIfNotExistsAsync(string key, string value, TimeSpan? expireIn, CancellationToken cancellationToken)
+        {
+            var bytesValue = value?.ToUtf8Bytes();
+            PickTime(expireIn, out var seconds, out var milliseconds);
+            return NativeAsync.SetAsync(key, bytesValue, false, seconds, milliseconds, cancellationToken);
+        }
+
+        ValueTask<bool> IRedisClientAsync.SetValueIfExistsAsync(string key, string value, TimeSpan? expireIn, CancellationToken cancellationToken)
+        {
+            var bytesValue = value?.ToUtf8Bytes();
+            PickTime(expireIn, out var seconds, out var milliseconds);
+            return NativeAsync.SetAsync(key, bytesValue, true, seconds, milliseconds, cancellationToken);
+        }
+
+        ValueTask IRedisClientAsync.WatchAsync(string[] keys, CancellationToken cancellationToken)
+            => NativeAsync.WatchAsync(keys, cancellationToken);
+
+        ValueTask IRedisClientAsync.UnWatchAsync(CancellationToken cancellationToken)
+            => NativeAsync.UnWatchAsync(cancellationToken);
     }
 }
  

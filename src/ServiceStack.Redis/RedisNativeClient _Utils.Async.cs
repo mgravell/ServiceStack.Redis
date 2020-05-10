@@ -30,6 +30,9 @@ namespace ServiceStack.Redis
                 PipelineAsync != null ? PipelineAsync.CompleteLongQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<long>>>)null);
         }
 
+        protected ValueTask<string> SendExpectStringAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+            => FromUtf8Bytes(SendExpectDataAsync(cancellationToken, cmdWithBinaryArgs));
+
         private ValueTask SendExpectSuccessAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
             //Turn Action into Func Hack
@@ -145,6 +148,9 @@ namespace ServiceStack.Redis
 
             while (true)
             {
+                // this is deliberately *before* the try, so we never retry
+                // if we've been cancelled
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
                     if (TryConnectIfNeeded()) // TODO: asyncify

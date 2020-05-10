@@ -24,6 +24,7 @@ namespace ServiceStack.Redis
         - Db is get only; addition of SelectAsync
         - LastSave is now a method
         - shutdown now takes nosave arg
+        - expose the optional args on Set
          */
 
         ////Redis utility operations
@@ -68,12 +69,13 @@ namespace ServiceStack.Redis
         //ValueTask ClientPauseAsync(int timeOutMs, CancellationToken cancellationToken = default);
 
         ////Common key-value Redis operations
-        //ValueTask<byte[][]> KeysAsync(string pattern, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> KeysAsync(string pattern, CancellationToken cancellationToken = default);
         ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> ExistsAsync(string key, CancellationToken cancellationToken = default);
         //ValueTask<long> StrLenAsync(string key, CancellationToken cancellationToken = default);
-        ValueTask SetAsync(string key, byte[] value, CancellationToken cancellationToken = default);
-        //ValueTask SetExAsync(string key, int expireInSeconds, byte[] value, CancellationToken cancellationToken = default);
+        ValueTask<bool> SetAsync(string key, byte[] value, bool exists, long expirySeconds = 0, long expiryMilliseconds = 0, CancellationToken cancellationToken = default);
+        ValueTask SetAsync(string key, byte[] value, long expirySeconds = 0, long expiryMilliseconds = 0, CancellationToken cancellationToken = default);
+        ValueTask SetExAsync(string key, int expireInSeconds, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<bool> PersistAsync(string key, CancellationToken cancellationToken = default);
         //ValueTask PSetExAsync(string key, long expireInMs, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<long> SetNXAsync(string key, byte[] value, CancellationToken cancellationToken = default);
@@ -84,7 +86,7 @@ namespace ServiceStack.Redis
         ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default);
         //ValueTask<byte[]> GetSetAsync(string key, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> MGetAsync(params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
-        //ValueTask<byte[][]> MGetAsync(params string[] keys, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> MGetAsync(string[] keys, CancellationToken cancellationToken = default);
         ValueTask<long> DelAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> DelAsync(string[] keys, CancellationToken cancellationToken = default);
         ValueTask<long> IncrAsync(string key, CancellationToken cancellationToken = default);
@@ -225,8 +227,8 @@ namespace ServiceStack.Redis
         //    bool withCoords = false, bool withDist = false, bool withHash = false, int? count = null, bool? asc = null, CancellationToken cancellationToken = default);
 
         ////Redis Pub/Sub operations
-        //ValueTask WatchAsync(params string[] keys, CancellationToken cancellationToken = default);
-        //ValueTask UnWatchAsync(CancellationToken cancellationToken = default);
+        ValueTask WatchAsync(string[] keys, CancellationToken cancellationToken = default);
+        ValueTask UnWatchAsync(CancellationToken cancellationToken = default);
         //ValueTask<long> PublishAsync(string toChannel, byte[] message, CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> SubscribeAsync(params string[] toChannels, CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> UnSubscribeAsync(params string[] toChannels, CancellationToken cancellationToken = default);

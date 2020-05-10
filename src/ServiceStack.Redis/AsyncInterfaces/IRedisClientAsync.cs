@@ -32,6 +32,8 @@ namespace ServiceStack.Redis
         - sync API is Save (foreground) and SaveAsync (background); renamed here to ForegroundSaveAsync and BackgroundSaveAsync
           to avoid overload problems and accidental swaps from bg to fg when migrating to async API
         - RewriteAppendOnlyFileAsync becomes BackgroundRewriteAppendOnlyFileAsync for consistency with the above
+        - AcquireLockAsync - timeout made an optional arg rather than an overload
+        - SetValueIf[Not]ExistsAsync - flatten overloads via optional expiry
         */
         //Basic Redis Connection operations
         long Db { get; }
@@ -91,19 +93,17 @@ namespace ServiceStack.Redis
         //ValueTask SetValuesAsync(Dictionary<string, string> map, CancellationToken cancellationToken = default);
 
         ValueTask SetValueAsync(string key, string value, CancellationToken cancellationToken = default);
-        //ValueTask SetValueAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
-        //ValueTask<bool> SetValueIfNotExistsAsync(string key, string value, CancellationToken cancellationToken = default);
-        //ValueTask<bool> SetValueIfNotExistsAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
-        //ValueTask<bool> SetValueIfExistsAsync(string key, string value, CancellationToken cancellationToken = default);
-        //ValueTask<bool> SetValueIfExistsAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
+        ValueTask SetValueAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
+        ValueTask<bool> SetValueIfNotExistsAsync(string key, string value, TimeSpan? expireIn = default, CancellationToken cancellationToken = default);
+        ValueTask<bool> SetValueIfExistsAsync(string key, string value, TimeSpan? expireIn = default, CancellationToken cancellationToken = default);
 
         ValueTask<string> GetValueAsync(string key, CancellationToken cancellationToken = default);
         //ValueTask<string> GetAndSetValueAsync(string key, string value, CancellationToken cancellationToken = default);
 
-        //List<string> GetValuesAsync(List<string> keys, CancellationToken cancellationToken = default);
-        //List<T> GetValues<T>Async(List<string> keys, CancellationToken cancellationToken = default);
-        //Dictionary<string, string> GetValuesMapAsync(List<string> keys, CancellationToken cancellationToken = default);
-        //Dictionary<string, T> GetValuesMap<T>Async(List<string> keys, CancellationToken cancellationToken = default);
+        ValueTask<List<string>> GetValuesAsync(List<string> keys, CancellationToken cancellationToken = default);
+        ValueTask<List<T>> GetValuesAsync<T>(List<string> keys, CancellationToken cancellationToken = default);
+        ValueTask<Dictionary<string, string>> GetValuesMapAsync(List<string> keys, CancellationToken cancellationToken = default);
+        ValueTask<Dictionary<string, T>> GetValuesMapAsync<T>(List<string> keys, CancellationToken cancellationToken = default);
         //ValueTask<long> AppendToValueAsync(string key, string value, CancellationToken cancellationToken = default);
         ValueTask RenameKeyAsync(string fromName, string toName, CancellationToken cancellationToken = default);
 
@@ -172,13 +172,12 @@ namespace ServiceStack.Redis
         ValueTask<IRedisTransactionAsync> CreateTransactionAsync(CancellationToken cancellationToken = default);
         ValueTask<IRedisPipelineAsync> CreatePipelineAsync(CancellationToken cancellationToken = default);
 
-        //IDisposable AcquireLockAsync(string key, CancellationToken cancellationToken = default);
-        //IDisposable AcquireLockAsync(string key, TimeSpan timeOut, CancellationToken cancellationToken = default);
+        ValueTask<IAsyncDisposable> AcquireLockAsync(string key, TimeSpan? timeOut = default, CancellationToken cancellationToken = default);
 
         //#region Redis pubsub
 
-        //ValueTask WatchAsync(params string[] keys, CancellationToken cancellationToken = default);
-        //ValueTask UnWatchAsync(CancellationToken cancellationToken = default);
+        ValueTask WatchAsync(string[] keys, CancellationToken cancellationToken = default);
+        ValueTask UnWatchAsync(CancellationToken cancellationToken = default);
         //IRedisSubscription CreateSubscriptionAsync(CancellationToken cancellationToken = default);
         //ValueTask<long> PublishMessageAsync(string toChannel, string message, CancellationToken cancellationToken = default);
 

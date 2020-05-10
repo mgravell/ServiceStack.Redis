@@ -1,9 +1,11 @@
 using NUnit.Framework;
 using ServiceStack.Redis.Support.Locking;
+using ServiceStack.Redis.Support.Queue.Implementation;
 using ServiceStack.Text;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -309,18 +311,20 @@ namespace ServiceStack.Redis.Tests
             await RedisAsync.ShutdownAsync();
         }
 
-        /*
         [Test]
         public async Task Can_get_Keys_with_pattern()
         {
-            5.Times(i => Redis.SetValue("k1:" + i, "val"));
-            5.Times(i => Redis.SetValue("k2:" + i, "val"));
+            for (int i = 0; i < 5; i++)
+            {
+                await RedisAsync.SetValueAsync("k1:" + i, "val");
+                await RedisAsync.SetValueAsync("k2:" + i, "val");
+            }
 
-            var keys = Redis.Keys("k1:*");
+            var keys = await NativeAsync.KeysAsync("k1:*");
             Assert.That(keys.Length, Is.EqualTo(5));
 
-            var scanKeys = Redis.ScanAllKeys("k1:*").ToArray();
-            Assert.That(scanKeys.Length, Is.EqualTo(5));
+            var scanKeys = await RedisAsync.SearchKeysAsync("k1:*");
+            Assert.That(scanKeys.Count, Is.EqualTo(5));
         }
 
         [Test]
@@ -330,10 +334,11 @@ namespace ServiceStack.Redis.Tests
 
             10.Times(i => keysMap.Add("key" + i, "val" + i));
 
-            Redis.SetAll(keysMap);
+            await RedisAsync.SetAllAsync(keysMap);
 
-            var map = Redis.GetAll<string>(keysMap.Keys);
-            var mapKeys = Redis.GetValues(keysMap.Keys.ToList<string>());
+            var keys = keysMap.Keys.ToList();
+            var map = await RedisAsync.GetValuesMapAsync(keys);
+            var mapKeys = await RedisAsync.GetValuesAsync(keys);
 
             foreach (var entry in keysMap)
             {
@@ -347,9 +352,9 @@ namespace ServiceStack.Redis.Tests
         {
             var val = "{\"AuthorId\":0,\"Created\":\"\\/Date(1345961754013)\\/\",\"Name\":\"test\",\"Base64\":\"BQELAAEBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAViA/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP8BWAFYgP8BWAFYAViA/wFYAVgBWID/AVgBWAFYgP8BWAFYAViA/4D/gP+A/4D/AVgBWID/gP8BWID/gP8BWID/gP+A/wFYgP+A/4D/gP8BWID/gP+A/4D/gP+A/wFYAViA/4D/AViA/4D/AVgBWAFYgP8BWAFYAViA/4D/AViA/4D/gP+A/4D/gP8BWAFYgP+A/wFYgP+A/wFYgP+A/4D/gP+A/wFYgP+A/wFYgP+A/4D/gP+A/4D/AVgBWID/gP8BWID/gP8BWAFYAViA/wFYAVgBWID/gP8BWID/gP+A/4D/gP+A/wFYAViA/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP8BWAFYgP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/AVgBWID/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/wFYAViA/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP8BWAFYgP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/AVgBWID/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/4D/gP+A/wFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAFYAVgBWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"}";
 
-            Redis.SetValue("UserLevel/1", val);
+            await RedisAsync.SetValueAsync("UserLevel/1", val);
 
-            var vals = Redis.GetValues(new List<string>(new[] { "UserLevel/1" }));
+            var vals = await RedisAsync.GetValuesAsync(new List<string>(new[] { "UserLevel/1" }));
 
             Assert.That(vals.Count, Is.EqualTo(1));
             Assert.That(vals[0], Is.EqualTo(val));
@@ -360,28 +365,32 @@ namespace ServiceStack.Redis.Tests
         {
             var key = PrefixedKey("AcquireLockKey");
             var lockKey = PrefixedKey("Can_AcquireLock");
-            Redis.IncrementValue(key); //1
+            await RedisAsync.IncrementValueAsync(key); //1
 
-            var asyncResults = 5.TimesAsync(i =>
-                IncrementKeyInsideLock(key, lockKey, i, new RedisClient(TestConfig.SingleHost) { NamespacePrefix = Redis.NamespacePrefix }));
+            Task[] tasks = new Task[5];
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                var snapsot = i;
+                tasks[snapsot] = Task.Run(
+                    () => IncrementKeyInsideLock(key, lockKey, snapsot, new RedisClient(TestConfig.SingleHost) { NamespacePrefix = RedisRaw.NamespacePrefix })
+                );
+            }
+            await Task.WhenAll(tasks);
 
-            asyncResults.WaitAll(TimeSpan.FromSeconds(5));
-
-            var val = Redis.Get<int>(key);
-
+            var val = int.Parse(await RedisAsync.GetValueAsync(key), CultureInfo.InvariantCulture);
             Assert.That(val, Is.EqualTo(1 + 5));
         }
 
-        private void IncrementKeyInsideLock(String key, String lockKey, int clientNo, IRedisClient client)
+        private async Task IncrementKeyInsideLock(String key, String lockKey, int clientNo, IRedisClientAsync client)
         {
-            using (client.AcquireLock(lockKey))
+            await using (await client.AcquireLockAsync(lockKey))
             {
                 Debug.WriteLine(String.Format("client {0} acquired lock", clientNo));
-                var val = client.Get<int>(key);
+                var val = int.Parse(await client.GetValueAsync(key), CultureInfo.InvariantCulture);
 
                 await Task.Delay(200);
 
-                client.Set(key, val + 1);
+                await client.SetValueAsync(key, (val + 1).ToString(CultureInfo.InvariantCulture));
                 Debug.WriteLine(String.Format("client {0} released lock", clientNo));
             }
         }
@@ -391,24 +400,24 @@ namespace ServiceStack.Redis.Tests
         {
             var key = PrefixedKey("AcquireLockKeyTimeOut");
             var lockKey = PrefixedKey("Can_AcquireLock_TimeOut");
-            Redis.IncrementValue(key); //1
-            var acquiredLock = Redis.AcquireLock(lockKey);
+            await RedisAsync.IncrementValueAsync(key); //1
+            await using var acquiredLock = await RedisAsync.AcquireLockAsync(lockKey);
             var waitFor = TimeSpan.FromMilliseconds(1000);
             var now = DateTime.Now;
 
             try
             {
-                using (var client = new RedisClient(TestConfig.SingleHost))
+                using (IRedisClientAsync client = new RedisClient(TestConfig.SingleHost))
                 {
-                    using (client.AcquireLock(lockKey, waitFor))
+                    await using (await client.AcquireLockAsync(lockKey, waitFor))
                     {
-                        Redis.IncrementValue(key); //2
+                        await client.IncrementValueAsync(key); //2
                     }
                 }
             }
             catch (TimeoutException)
             {
-                var val = Redis.Get<int>(key);
+                var val = int.Parse(await RedisAsync.GetValueAsync(key), CultureInfo.InvariantCulture);
                 Assert.That(val, Is.EqualTo(1));
 
                 var timeTaken = DateTime.Now - now;
@@ -419,6 +428,7 @@ namespace ServiceStack.Redis.Tests
             Assert.Fail("should have Timed out");
         }
 
+        /*
         [Test]
         public async Task Can_Append()
         {

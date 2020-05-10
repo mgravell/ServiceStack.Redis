@@ -436,9 +436,11 @@ namespace ServiceStack.Redis
             if (keys == null) throw new ArgumentNullException(nameof(keys));
             if (keys.Count == 0) return new List<string>();
 
-            var resultBytesArray = MGet(keys.ToArray());
-
-            var results = new List<string>();
+            return ParseGetValuesResult(MGet(keys.ToArray()));
+        }
+        private static List<string> ParseGetValuesResult(byte[][] resultBytesArray)
+        {
+            var results = new List<string>(resultBytesArray.Length);
             foreach (var resultBytes in resultBytesArray)
             {
                 if (resultBytes == null) continue;
@@ -455,9 +457,12 @@ namespace ServiceStack.Redis
             if (keys == null) throw new ArgumentNullException(nameof(keys));
             if (keys.Count == 0) return new List<T>();
 
-            var resultBytesArray = MGet(keys.ToArray());
+            return ParseGetValuesResult<T>(MGet(keys.ToArray()));
+        }
 
-            var results = new List<T>();
+        private static List<T> ParseGetValuesResult<T>(byte[][] resultBytesArray)
+        {
+            var results = new List<T>(resultBytesArray.Length);
             foreach (var resultBytes in resultBytesArray)
             {
                 if (resultBytes == null) continue;
@@ -478,6 +483,11 @@ namespace ServiceStack.Redis
             var keysArray = keys.ToArray();
             var resultBytesArray = MGet(keysArray);
 
+            return ParseGetValuesMapResult(keysArray, resultBytesArray);
+        }
+
+        private static Dictionary<string, string> ParseGetValuesMapResult(string[] keysArray, byte[][] resultBytesArray)
+        {
             var results = new Dictionary<string, string>();
             for (var i = 0; i < resultBytesArray.Length; i++)
             {
@@ -506,6 +516,11 @@ namespace ServiceStack.Redis
             var keysArray = keys.ToArray();
             var resultBytesArray = MGet(keysArray);
 
+            return ParseGetValuesMapResult<T>(keysArray, resultBytesArray);
+        }
+
+        private static Dictionary<string, T> ParseGetValuesMapResult<T>(string[] keysArray, byte[][] resultBytesArray)
+        {
             var results = new Dictionary<string, T>();
             for (var i = 0; i < resultBytesArray.Length; i++)
             {

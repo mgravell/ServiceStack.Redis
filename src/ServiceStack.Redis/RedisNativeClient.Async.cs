@@ -30,7 +30,7 @@ namespace ServiceStack.Redis
             return SendExpectLongAsync(cancellationToken, Commands.Exists, key.ToUtf8Bytes());
         }
 
-        ValueTask IRedisNativeClientAsync.SetAsync(string key, byte[] value, CancellationToken cancellationToken)
+        ValueTask<bool> IRedisNativeClientAsync.SetAsync(string key, byte[] value, bool exists, long expirySeconds, long expiryMilliseconds, CancellationToken cancellationToken)
         {
             if (key == null)
                 throw new ArgumentNullException("key");
@@ -39,7 +39,47 @@ namespace ServiceStack.Redis
             if (value.Length > OneGb)
                 throw new ArgumentException("value exceeds 1G", "value");
 
-            return SendExpectSuccessAsync(cancellationToken, Commands.Set, key.ToUtf8Bytes(), value);
+            var entryExists = exists ? Commands.Xx : Commands.Nx;
+            byte[][] args;
+            if (expiryMilliseconds != 0)
+            {
+                args = new[] { Commands.Set, key.ToUtf8Bytes(), value, Commands.Px, expiryMilliseconds.ToUtf8Bytes(), entryExists };
+            }
+            else if (expirySeconds != 0)
+            {
+                args = new[] { Commands.Set, key.ToUtf8Bytes(), value, Commands.Ex, expirySeconds.ToUtf8Bytes(), entryExists };
+            }
+            else
+            {
+                args = new[] { Commands.Set, key.ToUtf8Bytes(), value, entryExists };
+            }
+
+            return IsString(SendExpectStringAsync(cancellationToken, args), OK);
+        }
+        ValueTask IRedisNativeClientAsync.SetAsync(string key, byte[] value, long expirySeconds, long expiryMilliseconds, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+            value = value ?? TypeConstants.EmptyByteArray;
+
+            if (value.Length > OneGb)
+                throw new ArgumentException("value exceeds 1G", "value");
+
+            byte[][] args;
+            if (expiryMilliseconds != 0)
+            {
+                args = new[] { Commands.Set, key.ToUtf8Bytes(), value, Commands.Px, expiryMilliseconds.ToUtf8Bytes() };
+            }
+            else if (expirySeconds != 0)
+            {
+                args = new[] { Commands.Set, key.ToUtf8Bytes(), value, Commands.Ex, expirySeconds.ToUtf8Bytes() };
+            }
+            else
+            {
+                args = new[] { Commands.Set, key.ToUtf8Bytes(), value };
+            }
+            
+            return SendExpectSuccessAsync(cancellationToken, args);
         }
 
         ValueTask<byte[]> IRedisNativeClientAsync.GetAsync(string key, CancellationToken cancellationToken)
@@ -219,9 +259,9 @@ namespace ServiceStack.Redis
         }
 
         ValueTask<bool> IRedisNativeClientAsync.PingAsync(CancellationToken cancellationToken)
-            => IsCode(SendExpectCodeAsync(cancellationToken, Commands.Ping), "PONG");
+            => IsString(SendExpectCodeAsync(cancellationToken, Commands.Ping), "PONG");
 
-        private static ValueTask<bool> IsCode(ValueTask<string> pending, string expected)
+        private static ValueTask<bool> IsString(ValueTask<string> pending, string expected)
         {
             return pending.IsCompletedSuccessfully ? new ValueTask<bool>(pending.Result == expected)
                 : Awaited(pending, expected);
@@ -279,5 +319,52 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisNativeClientAsync.SlaveOfNoOneAsync(CancellationToken cancellationToken)
             => SendExpectSuccessAsync(cancellationToken, Commands.SlaveOf, Commands.No, Commands.One);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.KeysAsync(string pattern, CancellationToken cancellationToken)
+        {
+            if (pattern == null)
+                throw new ArgumentNullException("pattern");
+
+            return SendExpectMultiDataAsync(cancellationToken, Commands.Keys, pattern.ToUtf8Bytes());
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.MGetAsync(string[] keys, CancellationToken cancellationToken)
+        {
+            if (keys == null)
+                throw new ArgumentNullException("keys");
+            if (keys.Length == 0)
+                throw new ArgumentException("keys");
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.MGet, keys);
+
+            return SendExpectMultiDataAsync(cancellationToken, cmdWithArgs);
+        }
+
+        ValueTask IRedisNativeClientAsync.SetExAsync(string key, int expireInSeconds, byte[] value, CancellationToken cancellationToken)
+        {
+            if (key == null)
+                throw new ArgumentNullException("key");
+            value = value ?? TypeConstants.EmptyByteArray;
+
+            if (value.Length > OneGb)
+                throw new ArgumentException("value exceeds 1G", "value");
+
+            return SendExpectSuccessAsync(cancellationToken, Commands.SetEx, key.ToUtf8Bytes(), expireInSeconds.ToUtf8Bytes(), value);
+        }
+
+        ValueTask IRedisNativeClientAsync.WatchAsync(string[] keys, CancellationToken cancellationToken)
+        {
+            if (keys == null)
+                throw new ArgumentNullException("keys");
+            if (keys.Length == 0)
+                throw new ArgumentException("keys");
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.Watch, keys);
+
+            return DiscardResult(SendExpectCodeAsync(cancellationToken, cmdWithArgs));
+        }
+
+        ValueTask IRedisNativeClientAsync.UnWatchAsync(CancellationToken cancellationToken)
+            => DiscardResult(SendExpectCodeAsync(cancellationToken, Commands.UnWatch));
     }
 }
