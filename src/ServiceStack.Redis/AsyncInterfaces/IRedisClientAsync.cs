@@ -3,7 +3,7 @@
 // ServiceStack.Redis: ECMA CLI Binding to the Redis key-value storage system
 //
 // Authors:
-//   Demis Bellot (demis.bellot@gmail.com)
+//   Demis Bellot Async(demis.bellot@gmail.com)
 //
 // Copyright 2017 ServiceStack, Inc. All Rights Reserved.
 //
@@ -33,7 +33,7 @@ namespace ServiceStack.Redis
         //Basic Redis Connection operations
         long Db { get; }
         ValueTask ChangeDbAsync(long db, CancellationToken cancellationToken = default);
-        // ValueTask<long> DbSize(CancellationToken cancellationToken = default);
+        // ValueTask<long> DbSizeAsync(CancellationToken cancellationToken = default);
 
         //Dictionary<string, string> Info { get; }
         ValueTask<DateTime> GetServerTimeAsync(CancellationToken cancellationToken = default);
@@ -47,118 +47,118 @@ namespace ServiceStack.Redis
         string Password { get; set; }
         bool HadExceptions { get; }
 
-        //bool Ping();
-        //string Echo(string text);
+        ValueTask<bool> PingAsync(CancellationToken cancellationToken = default);
+        ValueTask<string> EchoAsync(string text, CancellationToken cancellationToken = default);
 
-        //RedisText Custom(params object[] cmdWithArgs);
+        //RedisText CustomAsync(params object[] cmdWithArgs, CancellationToken cancellationToken = default);
 
-        //void Save();
-        //void SaveAsync();
-        //void Shutdown();
-        //void ShutdownNoSave();
-        //void RewriteAppendOnlyFileAsync();
-        //void FlushDb();
+        //ValueTask SaveAsync(CancellationToken cancellationToken = default);
+        //ValueTask SaveAsync(CancellationToken cancellationToken = default);
+        //ValueTask ShutdownAsync(CancellationToken cancellationToken = default);
+        //ValueTask ShutdownNoSaveAsync(CancellationToken cancellationToken = default);
+        //ValueTask RewriteAppendOnlyFileAsync(CancellationToken cancellationToken = default);
+        //ValueTask FlushDbAsync(CancellationToken cancellationToken = default);
 
-        //RedisServerRole GetServerRole();
-        //RedisText GetServerRoleInfo();
-        //string GetConfig(string item);
-        //void SetConfig(string item, string value);
-        //void SaveConfig();
-        //void ResetInfoStats();
+        //RedisServerRole GetServerRoleAsync(CancellationToken cancellationToken = default);
+        //RedisText GetServerRoleInfoAsync(CancellationToken cancellationToken = default);
+        //ValueTask<string> GetConfigAsync(string item, CancellationToken cancellationToken = default);
+        //ValueTask SetConfigAsync(string item, string value, CancellationToken cancellationToken = default);
+        //ValueTask SaveConfigAsync(CancellationToken cancellationToken = default);
+        //ValueTask ResetInfoStatsAsync(CancellationToken cancellationToken = default);
 
-        //string GetClient();
-        //void SetClient(string name);
-        //void KillClient(string address);
-        //long KillClients(string fromAddress = null, string withId = null, RedisClientType? ofType = null, bool? skipMe = null);
-        //List<Dictionary<string, string>> GetClientsInfo();
-        //void PauseAllClients(TimeSpan duration);
+        //ValueTask<string> GetClientAsync(CancellationToken cancellationToken = default);
+        //ValueTask SetClientAsync(string name, CancellationToken cancellationToken = default);
+        //ValueTask KillClientAsync(string address, CancellationToken cancellationToken = default);
+        //ValueTask<long> KillClientsAsync(string fromAddress = null, string withId = null, RedisClientType? ofType = null, bool? skipMe = null, CancellationToken cancellationToken = default);
+        //List<Dictionary<string, string>> GetClientsInfoAsync(CancellationToken cancellationToken = default);
+        //ValueTask PauseAllClientsAsync(TimeSpan duration, CancellationToken cancellationToken = default);
 
         ////Basic Redis Connection Info
-        //string this[string key] { get; set; }
+        //ValueTask<string> this[string key] { get; set; }
 
-        //List<string> GetAllKeys();
+        //List<string> GetAllKeysAsync(CancellationToken cancellationToken = default);
 
         ////Fetch fully qualified key for specific Type and Id
-        //string UrnKey<T>(T value);
-        //string UrnKey<T>(object id);
-        //string UrnKey(Type type, object id);
+        //ValueTask<string> UrnKey<T>Async(T value, CancellationToken cancellationToken = default);
+        //ValueTask<string> UrnKey<T>Async(object id, CancellationToken cancellationToken = default);
+        //ValueTask<string> UrnKeyAsync(Type type, object id, CancellationToken cancellationToken = default);
 
-        //void SetAll(IEnumerable<string> keys, IEnumerable<string> values);
+        //ValueTask SetAllAsync(IEnumerable<string> keys, IEnumerable<string> values, CancellationToken cancellationToken = default);
         ValueTask SetAllAsync(Dictionary<string, string> map, CancellationToken cancellationToken = default);
-        //void SetValues(Dictionary<string, string> map);
+        //ValueTask SetValuesAsync(Dictionary<string, string> map, CancellationToken cancellationToken = default);
 
         ValueTask SetValueAsync(string key, string value, CancellationToken cancellationToken = default);
-        //void SetValue(string key, string value, TimeSpan expireIn);
-        //bool SetValueIfNotExists(string key, string value);
-        //bool SetValueIfNotExists(string key, string value, TimeSpan expireIn);
-        //bool SetValueIfExists(string key, string value);
-        //bool SetValueIfExists(string key, string value, TimeSpan expireIn);
+        //ValueTask SetValueAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
+        //ValueTask<bool> SetValueIfNotExistsAsync(string key, string value, CancellationToken cancellationToken = default);
+        //ValueTask<bool> SetValueIfNotExistsAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
+        //ValueTask<bool> SetValueIfExistsAsync(string key, string value, CancellationToken cancellationToken = default);
+        //ValueTask<bool> SetValueIfExistsAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
 
         ValueTask<string> GetValueAsync(string key, CancellationToken cancellationToken = default);
-        //string GetAndSetValue(string key, string value);
+        //ValueTask<string> GetAndSetValueAsync(string key, string value, CancellationToken cancellationToken = default);
 
-        //List<string> GetValues(List<string> keys);
-        //List<T> GetValues<T>(List<string> keys);
-        //Dictionary<string, string> GetValuesMap(List<string> keys);
-        //Dictionary<string, T> GetValuesMap<T>(List<string> keys);
-        //long AppendToValue(string key, string value);
+        //List<string> GetValuesAsync(List<string> keys, CancellationToken cancellationToken = default);
+        //List<T> GetValues<T>Async(List<string> keys, CancellationToken cancellationToken = default);
+        //Dictionary<string, string> GetValuesMapAsync(List<string> keys, CancellationToken cancellationToken = default);
+        //Dictionary<string, T> GetValuesMap<T>Async(List<string> keys, CancellationToken cancellationToken = default);
+        //ValueTask<long> AppendToValueAsync(string key, string value, CancellationToken cancellationToken = default);
         ValueTask RenameKeyAsync(string fromName, string toName, CancellationToken cancellationToken = default);
 
         ////store POCOs as hash
-        //T GetFromHash<T>(object id);
-        //void StoreAsHash<T>(T entity);
+        //T GetFromHash<T>Async(object id, CancellationToken cancellationToken = default);
+        //ValueTask StoreAsHash<T>Async(T entity, CancellationToken cancellationToken = default);
 
-        //object StoreObject(object entity);
+        //object StoreObjectAsync(object entity, CancellationToken cancellationToken = default);
 
         ValueTask<bool> ContainsKeyAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<bool> RemoveEntryAsync(string[] keys, CancellationToken cancellationToken = default);
         ValueTask<bool> RemoveEntryAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> IncrementValueAsync(string key, CancellationToken cancellationToken = default);
-        //long IncrementValueBy(string key, int count);
-        //long IncrementValueBy(string key, long count);
-        //double IncrementValueBy(string key, double count);
-        //long DecrementValue(string key);
-        //long DecrementValueBy(string key, int count);
+        //ValueTask<long> IncrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
+        //ValueTask<long> IncrementValueByAsync(string key, long count, CancellationToken cancellationToken = default);
+        //double IncrementValueByAsync(string key, double count, CancellationToken cancellationToken = default);
+        //ValueTask<long> DecrementValueAsync(string key, CancellationToken cancellationToken = default);
+        //ValueTask<long> DecrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
         ValueTask<List<string>> SearchKeysAsync(string pattern, CancellationToken cancellationToken = default);
 
-        //string Type(string key);
+        //ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<RedisKeyType> GetEntryTypeAsync(string key, CancellationToken cancellationToken = default);
-        //long GetStringCount(string key);
+        //ValueTask<long> GetStringCountAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<string> GetRandomKeyAsync(CancellationToken cancellationToken = default);
         ValueTask<bool> ExpireEntryInAsync(string key, TimeSpan expireIn, CancellationToken cancellationToken = default);
         ValueTask<bool> ExpireEntryAtAsync(string key, DateTime expireAt, CancellationToken cancellationToken = default);
         ValueTask<TimeSpan?> GetTimeToLiveAsync(string key, CancellationToken cancellationToken = default);
-        //List<string> GetSortedEntryValues(string key, int startingFrom, int endingAt);
+        //List<string> GetSortedEntryValuesAsync(string key, int startingFrom, int endingAt, CancellationToken cancellationToken = default);
 
         ////Store entities without registering entity ids
-        //void WriteAll<TEntity>(IEnumerable<TEntity> entities);
+        //ValueTask WriteAll<TEntity>Async(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
 
         ////Scan APIs
         IAsyncEnumerable<string> ScanAllKeysAsync(string pattern = null, int pageSize = 1000, CancellationToken cancellationToken = default);
-        //IEnumerable<string> ScanAllSetItems(string setId, string pattern = null, int pageSize = 1000);
-        //IEnumerable<KeyValuePair<string, double>> ScanAllSortedSetItems(string setId, string pattern = null, int pageSize = 1000);
-        //IEnumerable<KeyValuePair<string, string>> ScanAllHashEntries(string hashId, string pattern = null, int pageSize = 1000);
+        //IEnumerable<string> ScanAllSetItemsAsync(string setId, string pattern = null, int pageSize = 1000, CancellationToken cancellationToken = default);
+        //IEnumerable<KeyValuePair<string, double>> ScanAllSortedSetItemsAsync(string setId, string pattern = null, int pageSize = 1000, CancellationToken cancellationToken = default);
+        //IEnumerable<KeyValuePair<string, string>> ScanAllHashEntriesAsync(string hashId, string pattern = null, int pageSize = 1000, CancellationToken cancellationToken = default);
 
         ////Hyperlog APIs
-        //bool AddToHyperLog(string key, params string[] elements);
-        //long CountHyperLog(string key);
-        //void MergeHyperLogs(string toKey, params string[] fromKeys);
+        //ValueTask<bool> AddToHyperLogAsync(string key, params string[] elements, CancellationToken cancellationToken = default);
+        //ValueTask<long> CountHyperLogAsync(string key, CancellationToken cancellationToken = default);
+        //ValueTask MergeHyperLogsAsync(string toKey, params string[] fromKeys, CancellationToken cancellationToken = default);
 
         ////GEO APIs
-        //long AddGeoMember(string key, double longitude, double latitude, string member);
-        //long AddGeoMembers(string key, params RedisGeo[] geoPoints);
-        //double CalculateDistanceBetweenGeoMembers(string key, string fromMember, string toMember, string unit = null);
-        //string[] GetGeohashes(string key, params string[] members);
-        //List<RedisGeo> GetGeoCoordinates(string key, params string[] members);
-        //string[] FindGeoMembersInRadius(string key, double longitude, double latitude, double radius, string unit);
-        //List<RedisGeoResult> FindGeoResultsInRadius(string key, double longitude, double latitude, double radius, string unit, int? count = null, bool? sortByNearest = null);
-        //string[] FindGeoMembersInRadius(string key, string member, double radius, string unit);
-        //List<RedisGeoResult> FindGeoResultsInRadius(string key, string member, double radius, string unit, int? count = null, bool? sortByNearest = null);
+        //ValueTask<long> AddGeoMemberAsync(string key, double longitude, double latitude, string member, CancellationToken cancellationToken = default);
+        //ValueTask<long> AddGeoMembersAsync(string key, params RedisGeo[] geoPoints, CancellationToken cancellationToken = default);
+        //double CalculateDistanceBetweenGeoMembersAsync(string key, string fromMember, string toMember, string unit = null, CancellationToken cancellationToken = default);
+        //string[] GetGeohashesAsync(string key, params string[] members, CancellationToken cancellationToken = default);
+        //List<RedisGeo> GetGeoCoordinatesAsync(string key, params string[] members, CancellationToken cancellationToken = default);
+        //string[] FindGeoMembersInRadiusAsync(string key, double longitude, double latitude, double radius, string unit, CancellationToken cancellationToken = default);
+        //List<RedisGeoResult> FindGeoResultsInRadiusAsync(string key, double longitude, double latitude, double radius, string unit, int? count = null, bool? sortByNearest = null, CancellationToken cancellationToken = default);
+        //string[] FindGeoMembersInRadiusAsync(string key, string member, double radius, string unit, CancellationToken cancellationToken = default);
+        //List<RedisGeoResult> FindGeoResultsInRadiusAsync(string key, string member, double radius, string unit, int? count = null, bool? sortByNearest = null, CancellationToken cancellationToken = default);
 
-        ///// <summary>
-        ///// Returns a high-level typed client API
-        ///// </summary>
-        ///// <typeparam name="T"></typeparam>
+        /// <summary>
+        /// Returns a high-level typed client API
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         IRedisTypedClientAsync<T> As<T>();
 
         //IHasNamed<IRedisList> Lists { get; set; }
@@ -169,77 +169,77 @@ namespace ServiceStack.Redis
         ValueTask<IRedisTransactionAsync> CreateTransactionAsync(CancellationToken cancellationToken = default);
         ValueTask<IRedisPipelineAsync> CreatePipelineAsync(CancellationToken cancellationToken = default);
 
-        //IDisposable AcquireLock(string key);
-        //IDisposable AcquireLock(string key, TimeSpan timeOut);
+        //IDisposable AcquireLockAsync(string key, CancellationToken cancellationToken = default);
+        //IDisposable AcquireLockAsync(string key, TimeSpan timeOut, CancellationToken cancellationToken = default);
 
         //#region Redis pubsub
 
-        //void Watch(params string[] keys);
-        //void UnWatch();
-        //IRedisSubscription CreateSubscription();
-        //long PublishMessage(string toChannel, string message);
+        //ValueTask WatchAsync(params string[] keys, CancellationToken cancellationToken = default);
+        //ValueTask UnWatchAsync(CancellationToken cancellationToken = default);
+        //IRedisSubscription CreateSubscriptionAsync(CancellationToken cancellationToken = default);
+        //ValueTask<long> PublishMessageAsync(string toChannel, string message, CancellationToken cancellationToken = default);
 
         //#endregion
 
 
         //#region Set operations
 
-        //HashSet<string> GetAllItemsFromSet(string setId);
+        //HashSet<string> GetAllItemsFromSetAsync(string setId, CancellationToken cancellationToken = default);
         ValueTask AddItemToSetAsync(string setId, string item, CancellationToken cancellationToken = default);
-        //void AddRangeToSet(string setId, List<string> items);
-        //void RemoveItemFromSet(string setId, string item);
-        //string PopItemFromSet(string setId);
-        //List<string> PopItemsFromSet(string setId, int count);
-        //void MoveBetweenSets(string fromSetId, string toSetId, string item);
-        //long GetSetCount(string setId);
-        //bool SetContainsItem(string setId, string item);
-        //HashSet<string> GetIntersectFromSets(params string[] setIds);
-        //void StoreIntersectFromSets(string intoSetId, params string[] setIds);
-        //HashSet<string> GetUnionFromSets(params string[] setIds);
-        //void StoreUnionFromSets(string intoSetId, params string[] setIds);
-        //HashSet<string> GetDifferencesFromSet(string fromSetId, params string[] withSetIds);
-        //void StoreDifferencesFromSet(string intoSetId, string fromSetId, params string[] withSetIds);
-        //string GetRandomItemFromSet(string setId);
+        //ValueTask AddRangeToSetAsync(string setId, List<string> items, CancellationToken cancellationToken = default);
+        //ValueTask RemoveItemFromSetAsync(string setId, string item, CancellationToken cancellationToken = default);
+        //ValueTask<string> PopItemFromSetAsync(string setId, CancellationToken cancellationToken = default);
+        //List<string> PopItemsFromSetAsync(string setId, int count, CancellationToken cancellationToken = default);
+        //ValueTask MoveBetweenSetsAsync(string fromSetId, string toSetId, string item, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetSetCountAsync(string setId, CancellationToken cancellationToken = default);
+        //ValueTask<bool> SetContainsItemAsync(string setId, string item, CancellationToken cancellationToken = default);
+        //HashSet<string> GetIntersectFromSetsAsync(params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask StoreIntersectFromSetsAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
+        //HashSet<string> GetUnionFromSetsAsync(params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask StoreUnionFromSetsAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
+        //HashSet<string> GetDifferencesFromSetAsync(string fromSetId, params string[] withSetIds, CancellationToken cancellationToken = default);
+        //ValueTask StoreDifferencesFromSetAsync(string intoSetId, string fromSetId, params string[] withSetIds, CancellationToken cancellationToken = default);
+        //ValueTask<string> GetRandomItemFromSetAsync(string setId, CancellationToken cancellationToken = default);
 
         //#endregion
 
 
         //#region List operations
 
-        //List<string> GetAllItemsFromList(string listId);
-        //List<string> GetRangeFromList(string listId, int startingFrom, int endingAt);
-        //List<string> GetRangeFromSortedList(string listId, int startingFrom, int endingAt);
-        //List<string> GetSortedItemsFromList(string listId, SortOptions sortOptions);
+        //List<string> GetAllItemsFromListAsync(string listId, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromListAsync(string listId, int startingFrom, int endingAt, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedListAsync(string listId, int startingFrom, int endingAt, CancellationToken cancellationToken = default);
+        //List<string> GetSortedItemsFromListAsync(string listId, SortOptions sortOptions, CancellationToken cancellationToken = default);
         ValueTask AddItemToListAsync(string listId, string value, CancellationToken cancellationToken = default);
-        //void AddRangeToList(string listId, List<string> values);
-        //void PrependItemToList(string listId, string value);
-        //void PrependRangeToList(string listId, List<string> values);
+        //ValueTask AddRangeToListAsync(string listId, List<string> values, CancellationToken cancellationToken = default);
+        //ValueTask PrependItemToListAsync(string listId, string value, CancellationToken cancellationToken = default);
+        //ValueTask PrependRangeToListAsync(string listId, List<string> values, CancellationToken cancellationToken = default);
 
-        //void RemoveAllFromList(string listId);
-        //string RemoveStartFromList(string listId);
-        //string BlockingRemoveStartFromList(string listId, TimeSpan? timeOut);
-        //ItemRef BlockingRemoveStartFromLists(string[] listIds, TimeSpan? timeOut);
-        //string RemoveEndFromList(string listId);
-        //void TrimList(string listId, int keepStartingFrom, int keepEndingAt);
-        //long RemoveItemFromList(string listId, string value);
-        //long RemoveItemFromList(string listId, string value, int noOfMatches);
-        //long GetListCount(string listId);
-        //string GetItemFromList(string listId, int listIndex);
-        //void SetItemInList(string listId, int listIndex, string value);
+        //ValueTask RemoveAllFromListAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask<string> RemoveStartFromListAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask<string> BlockingRemoveStartFromListAsync(string listId, TimeSpan? timeOut, CancellationToken cancellationToken = default);
+        //ItemRef BlockingRemoveStartFromListsAsync(string[] listIds, TimeSpan? timeOut, CancellationToken cancellationToken = default);
+        //ValueTask<string> RemoveEndFromListAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask TrimListAsync(string listId, int keepStartingFrom, int keepEndingAt, CancellationToken cancellationToken = default);
+        //ValueTask<long> RemoveItemFromListAsync(string listId, string value, CancellationToken cancellationToken = default);
+        //ValueTask<long> RemoveItemFromListAsync(string listId, string value, int noOfMatches, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetListCountAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask<string> GetItemFromListAsync(string listId, int listIndex, CancellationToken cancellationToken = default);
+        //ValueTask SetItemInListAsync(string listId, int listIndex, string value, CancellationToken cancellationToken = default);
 
         ////Queue operations
-        //void EnqueueItemOnList(string listId, string value);
-        //string DequeueItemFromList(string listId);
-        //string BlockingDequeueItemFromList(string listId, TimeSpan? timeOut);
-        //ItemRef BlockingDequeueItemFromLists(string[] listIds, TimeSpan? timeOut);
+        //ValueTask EnqueueItemOnListAsync(string listId, string value, CancellationToken cancellationToken = default);
+        //ValueTask<string> DequeueItemFromListAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask<string> BlockingDequeueItemFromListAsync(string listId, TimeSpan? timeOut, CancellationToken cancellationToken = default);
+        //ItemRef BlockingDequeueItemFromListsAsync(string[] listIds, TimeSpan? timeOut, CancellationToken cancellationToken = default);
 
         ////Stack operations
-        //void PushItemToList(string listId, string value);
-        //string PopItemFromList(string listId);
-        //string BlockingPopItemFromList(string listId, TimeSpan? timeOut);
-        //ItemRef BlockingPopItemFromLists(string[] listIds, TimeSpan? timeOut);
-        //string PopAndPushItemBetweenLists(string fromListId, string toListId);
-        //string BlockingPopAndPushItemBetweenLists(string fromListId, string toListId, TimeSpan? timeOut);
+        //ValueTask PushItemToListAsync(string listId, string value, CancellationToken cancellationToken = default);
+        //ValueTask<string> PopItemFromListAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask<string> BlockingPopItemFromListAsync(string listId, TimeSpan? timeOut, CancellationToken cancellationToken = default);
+        //ItemRef BlockingPopItemFromListsAsync(string[] listIds, TimeSpan? timeOut, CancellationToken cancellationToken = default);
+        //ValueTask<string> PopAndPushItemBetweenListsAsync(string fromListId, string toListId, CancellationToken cancellationToken = default);
+        //ValueTask<string> BlockingPopAndPushItemBetweenListsAsync(string fromListId, string toListId, TimeSpan? timeOut, CancellationToken cancellationToken = default);
 
         //#endregion
 
@@ -248,117 +248,117 @@ namespace ServiceStack.Redis
 
         ValueTask<bool> AddItemToSortedSetAsync(string setId, string value, CancellationToken cancellationToken = default);
         ValueTask<bool> AddItemToSortedSetAsync(string setId, string value, double score, CancellationToken cancellationToken = default);
-        //bool AddRangeToSortedSet(string setId, List<string> values, double score);
-        //bool AddRangeToSortedSet(string setId, List<string> values, long score);
-        //bool RemoveItemFromSortedSet(string setId, string value);
-        //long RemoveItemsFromSortedSet(string setId, List<string> values);
-        //string PopItemWithLowestScoreFromSortedSet(string setId);
-        //string PopItemWithHighestScoreFromSortedSet(string setId);
-        //bool SortedSetContainsItem(string setId, string value);
-        //double IncrementItemInSortedSet(string setId, string value, double incrementBy);
-        //double IncrementItemInSortedSet(string setId, string value, long incrementBy);
-        //long GetItemIndexInSortedSet(string setId, string value);
-        //long GetItemIndexInSortedSetDesc(string setId, string value);
-        //List<string> GetAllItemsFromSortedSet(string setId);
-        //List<string> GetAllItemsFromSortedSetDesc(string setId);
-        //List<string> GetRangeFromSortedSet(string setId, int fromRank, int toRank);
-        //List<string> GetRangeFromSortedSetDesc(string setId, int fromRank, int toRank);
-        //IDictionary<string, double> GetAllWithScoresFromSortedSet(string setId);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSet(string setId, int fromRank, int toRank);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetDesc(string setId, int fromRank, int toRank);
-        //List<string> GetRangeFromSortedSetByLowestScore(string setId, string fromStringScore, string toStringScore);
-        //List<string> GetRangeFromSortedSetByLowestScore(string setId, string fromStringScore, string toStringScore, int? skip, int? take);
-        //List<string> GetRangeFromSortedSetByLowestScore(string setId, double fromScore, double toScore);
-        //List<string> GetRangeFromSortedSetByLowestScore(string setId, long fromScore, long toScore);
-        //List<string> GetRangeFromSortedSetByLowestScore(string setId, double fromScore, double toScore, int? skip, int? take);
-        //List<string> GetRangeFromSortedSetByLowestScore(string setId, long fromScore, long toScore, int? skip, int? take);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScore(string setId, string fromStringScore, string toStringScore);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScore(string setId, string fromStringScore, string toStringScore, int? skip, int? take);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScore(string setId, double fromScore, double toScore);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScore(string setId, long fromScore, long toScore);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScore(string setId, double fromScore, double toScore, int? skip, int? take);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScore(string setId, long fromScore, long toScore, int? skip, int? take);
-        //List<string> GetRangeFromSortedSetByHighestScore(string setId, string fromStringScore, string toStringScore);
-        //List<string> GetRangeFromSortedSetByHighestScore(string setId, string fromStringScore, string toStringScore, int? skip, int? take);
-        //List<string> GetRangeFromSortedSetByHighestScore(string setId, double fromScore, double toScore);
-        //List<string> GetRangeFromSortedSetByHighestScore(string setId, long fromScore, long toScore);
-        //List<string> GetRangeFromSortedSetByHighestScore(string setId, double fromScore, double toScore, int? skip, int? take);
-        //List<string> GetRangeFromSortedSetByHighestScore(string setId, long fromScore, long toScore, int? skip, int? take);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScore(string setId, string fromStringScore, string toStringScore);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScore(string setId, string fromStringScore, string toStringScore, int? skip, int? take);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScore(string setId, double fromScore, double toScore);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScore(string setId, long fromScore, long toScore);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScore(string setId, double fromScore, double toScore, int? skip, int? take);
-        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScore(string setId, long fromScore, long toScore, int? skip, int? take);
-        //long RemoveRangeFromSortedSet(string setId, int minRank, int maxRank);
-        //long RemoveRangeFromSortedSetByScore(string setId, double fromScore, double toScore);
-        //long RemoveRangeFromSortedSetByScore(string setId, long fromScore, long toScore);
-        //long GetSortedSetCount(string setId);
-        //long GetSortedSetCount(string setId, string fromStringScore, string toStringScore);
-        //long GetSortedSetCount(string setId, long fromScore, long toScore);
-        //long GetSortedSetCount(string setId, double fromScore, double toScore);
-        //double GetItemScoreInSortedSet(string setId, string value);
-        //long StoreIntersectFromSortedSets(string intoSetId, params string[] setIds);
-        //long StoreIntersectFromSortedSets(string intoSetId, string[] setIds, string[] args);
-        //long StoreUnionFromSortedSets(string intoSetId, params string[] setIds);
-        //long StoreUnionFromSortedSets(string intoSetId, string[] setIds, string[] args);
-        //List<string> SearchSortedSet(string setId, string start = null, string end = null, int? skip = null, int? take = null);
-        //long SearchSortedSetCount(string setId, string start = null, string end = null);
-        //long RemoveRangeFromSortedSetBySearch(string setId, string start = null, string end = null);
+        //ValueTask<bool> AddRangeToSortedSetAsync(string setId, List<string> values, double score, CancellationToken cancellationToken = default);
+        //ValueTask<bool> AddRangeToSortedSetAsync(string setId, List<string> values, long score, CancellationToken cancellationToken = default);
+        //ValueTask<bool> RemoveItemFromSortedSetAsync(string setId, string value, CancellationToken cancellationToken = default);
+        //ValueTask<long> RemoveItemsFromSortedSetAsync(string setId, List<string> values, CancellationToken cancellationToken = default);
+        //ValueTask<string> PopItemWithLowestScoreFromSortedSetAsync(string setId, CancellationToken cancellationToken = default);
+        //ValueTask<string> PopItemWithHighestScoreFromSortedSetAsync(string setId, CancellationToken cancellationToken = default);
+        //ValueTask<bool> SortedSetContainsItemAsync(string setId, string value, CancellationToken cancellationToken = default);
+        //double IncrementItemInSortedSetAsync(string setId, string value, double incrementBy, CancellationToken cancellationToken = default);
+        //double IncrementItemInSortedSetAsync(string setId, string value, long incrementBy, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetItemIndexInSortedSetAsync(string setId, string value, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetItemIndexInSortedSetDescAsync(string setId, string value, CancellationToken cancellationToken = default);
+        //List<string> GetAllItemsFromSortedSetAsync(string setId, CancellationToken cancellationToken = default);
+        //List<string> GetAllItemsFromSortedSetDescAsync(string setId, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetAsync(string setId, int fromRank, int toRank, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetDescAsync(string setId, int fromRank, int toRank, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetAllWithScoresFromSortedSetAsync(string setId, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetAsync(string setId, int fromRank, int toRank, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetDescAsync(string setId, int fromRank, int toRank, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByLowestScoreAsync(string setId, string fromStringScore, string toStringScore, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByLowestScoreAsync(string setId, string fromStringScore, string toStringScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByLowestScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByLowestScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByLowestScoreAsync(string setId, double fromScore, double toScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByLowestScoreAsync(string setId, long fromScore, long toScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScoreAsync(string setId, string fromStringScore, string toStringScore, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScoreAsync(string setId, string fromStringScore, string toStringScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScoreAsync(string setId, double fromScore, double toScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByLowestScoreAsync(string setId, long fromScore, long toScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByHighestScoreAsync(string setId, string fromStringScore, string toStringScore, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByHighestScoreAsync(string setId, string fromStringScore, string toStringScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByHighestScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByHighestScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByHighestScoreAsync(string setId, double fromScore, double toScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //List<string> GetRangeFromSortedSetByHighestScoreAsync(string setId, long fromScore, long toScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScoreAsync(string setId, string fromStringScore, string toStringScore, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScoreAsync(string setId, string fromStringScore, string toStringScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScoreAsync(string setId, double fromScore, double toScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //IDictionary<string, double> GetRangeWithScoresFromSortedSetByHighestScoreAsync(string setId, long fromScore, long toScore, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<long> RemoveRangeFromSortedSetAsync(string setId, int minRank, int maxRank, CancellationToken cancellationToken = default);
+        //ValueTask<long> RemoveRangeFromSortedSetByScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
+        //ValueTask<long> RemoveRangeFromSortedSetByScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetSortedSetCountAsync(string setId, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetSortedSetCountAsync(string setId, string fromStringScore, string toStringScore, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetSortedSetCountAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetSortedSetCountAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
+        //double GetItemScoreInSortedSetAsync(string setId, string value, CancellationToken cancellationToken = default);
+        //ValueTask<long> StoreIntersectFromSortedSetsAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask<long> StoreIntersectFromSortedSetsAsync(string intoSetId, string[] setIds, string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<long> StoreUnionFromSortedSetsAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask<long> StoreUnionFromSortedSetsAsync(string intoSetId, string[] setIds, string[] args, CancellationToken cancellationToken = default);
+        //List<string> SearchSortedSetAsync(string setId, string start = null, string end = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
+        //ValueTask<long> SearchSortedSetCountAsync(string setId, string start = null, string end = null, CancellationToken cancellationToken = default);
+        //ValueTask<long> RemoveRangeFromSortedSetBySearchAsync(string setId, string start = null, string end = null, CancellationToken cancellationToken = default);
 
         //#endregion
 
 
         //#region Hash operations
 
-        //bool HashContainsEntry(string hashId, string key);
+        //ValueTask<bool> HashContainsEntryAsync(string hashId, string key, CancellationToken cancellationToken = default);
         ValueTask<bool> SetEntryInHashAsync(string hashId, string key, string value, CancellationToken cancellationToken = default);
-        //bool SetEntryInHashIfNotExists(string hashId, string key, string value);
-        //void SetRangeInHash(string hashId, IEnumerable<KeyValuePair<string, string>> keyValuePairs);
-        //long IncrementValueInHash(string hashId, string key, int incrementBy);
-        //double IncrementValueInHash(string hashId, string key, double incrementBy);
-        //string GetValueFromHash(string hashId, string key);
-        //List<string> GetValuesFromHash(string hashId, params string[] keys);
-        //bool RemoveEntryFromHash(string hashId, string key);
-        //long GetHashCount(string hashId);
-        //List<string> GetHashKeys(string hashId);
-        //List<string> GetHashValues(string hashId);
-        //Dictionary<string, string> GetAllEntriesFromHash(string hashId);
+        //ValueTask<bool> SetEntryInHashIfNotExistsAsync(string hashId, string key, string value, CancellationToken cancellationToken = default);
+        //ValueTask SetRangeInHashAsync(string hashId, IEnumerable<KeyValuePair<string, string>> keyValuePairs, CancellationToken cancellationToken = default);
+        //ValueTask<long> IncrementValueInHashAsync(string hashId, string key, int incrementBy, CancellationToken cancellationToken = default);
+        //double IncrementValueInHashAsync(string hashId, string key, double incrementBy, CancellationToken cancellationToken = default);
+        //ValueTask<string> GetValueFromHashAsync(string hashId, string key, CancellationToken cancellationToken = default);
+        //List<string> GetValuesFromHashAsync(string hashId, params string[] keys, CancellationToken cancellationToken = default);
+        //ValueTask<bool> RemoveEntryFromHashAsync(string hashId, string key, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetHashCountAsync(string hashId, CancellationToken cancellationToken = default);
+        //List<string> GetHashKeysAsync(string hashId, CancellationToken cancellationToken = default);
+        //List<string> GetHashValuesAsync(string hashId, CancellationToken cancellationToken = default);
+        //Dictionary<string, string> GetAllEntriesFromHashAsync(string hashId, CancellationToken cancellationToken = default);
 
         //#endregion
 
 
         //#region Eval/Lua operations
 
-        //T ExecCachedLua<T>(string scriptBody, Func<string, T> scriptSha1);
+        //T ExecCachedLua<T>Async(string scriptBody, Func<string, T> scriptSha1, CancellationToken cancellationToken = default);
 
-        //RedisText ExecLua(string body, params string[] args);
-        //RedisText ExecLua(string luaBody, string[] keys, string[] args);
-        //RedisText ExecLuaSha(string sha1, params string[] args);
-        //RedisText ExecLuaSha(string sha1, string[] keys, string[] args);
+        //RedisText ExecLuaAsync(string body, params string[] args, CancellationToken cancellationToken = default);
+        //RedisText ExecLuaAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
+        //RedisText ExecLuaShaAsync(string sha1, params string[] args, CancellationToken cancellationToken = default);
+        //RedisText ExecLuaShaAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken = default);
 
-        //string ExecLuaAsString(string luaBody, params string[] args);
-        //string ExecLuaAsString(string luaBody, string[] keys, string[] args);
-        //string ExecLuaShaAsString(string sha1, params string[] args);
-        //string ExecLuaShaAsString(string sha1, string[] keys, string[] args);
+        //ValueTask<string> ExecLuaAsStringAsync(string luaBody, params string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<string> ExecLuaAsStringAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<string> ExecLuaShaAsStringAsync(string sha1, params string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<string> ExecLuaShaAsStringAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken = default);
 
-        //long ExecLuaAsInt(string luaBody, params string[] args);
-        //long ExecLuaAsInt(string luaBody, string[] keys, string[] args);
-        //long ExecLuaShaAsInt(string sha1, params string[] args);
-        //long ExecLuaShaAsInt(string sha1, string[] keys, string[] args);
+        //ValueTask<long> ExecLuaAsIntAsync(string luaBody, params string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<long> ExecLuaAsIntAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<long> ExecLuaShaAsIntAsync(string sha1, params string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<long> ExecLuaShaAsIntAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken = default);
 
-        //List<string> ExecLuaAsList(string luaBody, params string[] args);
-        //List<string> ExecLuaAsList(string luaBody, string[] keys, string[] args);
-        //List<string> ExecLuaShaAsList(string sha1, params string[] args);
-        //List<string> ExecLuaShaAsList(string sha1, string[] keys, string[] args);
+        //List<string> ExecLuaAsListAsync(string luaBody, params string[] args, CancellationToken cancellationToken = default);
+        //List<string> ExecLuaAsListAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
+        //List<string> ExecLuaShaAsListAsync(string sha1, params string[] args, CancellationToken cancellationToken = default);
+        //List<string> ExecLuaShaAsListAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken = default);
 
-        //string CalculateSha1(string luaBody);
+        //ValueTask<string> CalculateSha1Async(string luaBody, CancellationToken cancellationToken = default);
 
-        //bool HasLuaScript(string sha1Ref);
-        //Dictionary<string, bool> WhichLuaScriptsExists(params string[] sha1Refs);
-        //void RemoveAllLuaScripts();
-        //void KillRunningLuaScript();
-        //string LoadLuaScript(string body);
+        //ValueTask<bool> HasLuaScriptAsync(string sha1Ref, CancellationToken cancellationToken = default);
+        //Dictionary<string, bool> WhichLuaScriptsExistsAsync(params string[] sha1Refs, CancellationToken cancellationToken = default);
+        //ValueTask RemoveAllLuaScriptsAsync(CancellationToken cancellationToken = default);
+        //ValueTask KillRunningLuaScriptAsync(CancellationToken cancellationToken = default);
+        //ValueTask<string> LoadLuaScriptAsync(string body, CancellationToken cancellationToken = default);
 
         //#endregion
     }

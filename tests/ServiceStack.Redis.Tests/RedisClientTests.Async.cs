@@ -214,11 +214,11 @@ namespace ServiceStack.Redis.Tests
             ttl = await RedisAsync.GetTimeToLiveAsync("key");
             Assert.That(ttl.Value.TotalSeconds, Is.LessThanOrEqualTo(9));
         }
-        /*
+        
         [Test]
         public async Task Can_GetServerTime()
         {
-            var now = Redis.GetServerTime();
+            var now = await RedisAsync.GetServerTimeAsync();
 
             now.Kind.PrintDump();
             now.ToString("D").Print();
@@ -234,15 +234,16 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_Ping()
         {
-            Assert.That(Redis.Ping(), Is.True);
+            Assert.That(await RedisAsync.PingAsync(), Is.True);
         }
 
         [Test]
         public async Task Can_Echo()
         {
-            Assert.That(Redis.Echo("Hello"), Is.EqualTo("Hello"));
+            Assert.That(await RedisAsync.EchoAsync("Hello"), Is.EqualTo("Hello"));
         }
 
+        /*
         [Test]
         public async Task Can_SlaveOfNoOne()
         {

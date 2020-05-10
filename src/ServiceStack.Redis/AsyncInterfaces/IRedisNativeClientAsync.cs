@@ -38,8 +38,8 @@ namespace ServiceStack.Redis
         //ValueTask QuitAsync(CancellationToken cancellationToken = default);
         //ValueTask FlushDbAsync(CancellationToken cancellationToken = default);
         //ValueTask FlushAllAsync(CancellationToken cancellationToken = default);
-        //ValueTask<bool> PingAsync(CancellationToken cancellationToken = default);
-        //ValueTask<string> EchoAsync(string text, CancellationToken cancellationToken = default);
+        ValueTask<bool> PingAsync(CancellationToken cancellationToken = default);
+        ValueTask<string> EchoAsync(string text, CancellationToken cancellationToken = default);
         //ValueTask SlaveOfAsync(string hostname, int port, CancellationToken cancellationToken = default);
         //ValueTask SlaveOfNoOneAsync(CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> ConfigGetAsync(string pattern, CancellationToken cancellationToken = default);

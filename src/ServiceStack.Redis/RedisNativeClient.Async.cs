@@ -216,5 +216,29 @@ namespace ServiceStack.Redis
 
             return SendExpectLongAsync(cancellationToken, Commands.PTtl, key.ToUtf8Bytes());
         }
+
+        ValueTask<bool> IRedisNativeClientAsync.PingAsync(CancellationToken cancellationToken)
+            => IsCode(SendExpectCodeAsync(cancellationToken, Commands.Ping), "PONG");
+
+        private static ValueTask<bool> IsCode(ValueTask<string> pending, string expected)
+        {
+            return pending.IsCompletedSuccessfully ? new ValueTask<bool>(pending.Result == expected)
+                : Awaited(pending, expected);
+
+            static async ValueTask<bool> Awaited(ValueTask<string> pending, string expected)
+                => await pending.ConfigureAwait(false) == expected;
+        }
+
+        ValueTask<string> IRedisNativeClientAsync.EchoAsync(string text, CancellationToken cancellationToken)
+            => FromUtf8Bytes(SendExpectDataAsync(cancellationToken, Commands.Echo, text.ToUtf8Bytes()));
+
+        private static ValueTask<string> FromUtf8Bytes(ValueTask<byte[]> pending)
+        {
+            return pending.IsCompletedSuccessfully ? new ValueTask<string>(pending.Result.FromUtf8Bytes())
+                : Awaited(pending);
+
+            static async ValueTask<string> Awaited(ValueTask<byte[]> pending)
+                => (await pending.ConfigureAwait(false)).FromUtf8Bytes();
+        }
     }
 }

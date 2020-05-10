@@ -172,6 +172,12 @@ namespace ServiceStack.Redis
 
             return TimeSpan.FromSeconds(ttlSecs);
         }
+
+        ValueTask<bool> IRedisClientAsync.PingAsync(CancellationToken cancellationToken)
+            => NativeAsync.PingAsync(cancellationToken);
+
+        ValueTask<string> IRedisClientAsync.EchoAsync(string text, CancellationToken cancellationToken)
+            => NativeAsync.EchoAsync(text, cancellationToken);
     }
 }
  
