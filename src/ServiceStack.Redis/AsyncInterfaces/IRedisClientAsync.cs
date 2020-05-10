@@ -25,8 +25,14 @@ namespace ServiceStack.Redis
     public interface IRedisClientAsync
         : IEntityStoreAsync, ICacheClientExtendedAsync, IRemoveByPatternAsync
     {
+        /* non-obvious changes from IRedisClient:
+        - Db is read-only; added ChangeDbAsync for setting
+        - added unary version of RemoveEntryAsync - because of losing "params", usage was awkward otherwise
+        - added GetBytesAsync - mostly for tet equivalence, but could lose this if desired
+        */
         //Basic Redis Connection operations
-        long Db { get; set; }
+        long Db { get; }
+        ValueTask ChangeDbAsync(long db, CancellationToken cancellationToken = default);
         // ValueTask<long> DbSize(CancellationToken cancellationToken = default);
 
         //Dictionary<string, string> Info { get; }
@@ -89,6 +95,7 @@ namespace ServiceStack.Redis
         //bool SetValueIfExists(string key, string value, TimeSpan expireIn);
 
         ValueTask<string> GetValueAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<byte[]> GetBytesAsync(string key, CancellationToken cancellationToken = default);
         //string GetAndSetValue(string key, string value);
 
         //List<string> GetValues(List<string> keys);
@@ -105,7 +112,8 @@ namespace ServiceStack.Redis
         //object StoreObject(object entity);
 
         ValueTask<bool> ContainsKeyAsync(string key, CancellationToken cancellationToken = default);
-        //bool RemoveEntry(params string[] args);
+        ValueTask<bool> RemoveEntryAsync(string[] keys, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveEntryAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> IncrementValueAsync(string key, CancellationToken cancellationToken = default);
         //long IncrementValueBy(string key, int count);
         //long IncrementValueBy(string key, long count);

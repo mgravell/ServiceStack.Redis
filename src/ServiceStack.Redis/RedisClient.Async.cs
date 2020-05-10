@@ -50,11 +50,11 @@ namespace ServiceStack.Redis
             return new ValueTask<IRedisTransactionAsync>(new RedisTransaction(this, true)); // note that the MULTI here will be held and flushed async
         }
 
-        internal ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default)
-            => NativeAsync.GetAsync(key, cancellationToken);
-
-        internal ValueTask<bool> RemoveAsync(string key, CancellationToken cancellationToken = default)
+        ValueTask<bool> IRedisClientAsync.RemoveEntryAsync(string key, CancellationToken cancellationToken)
             => IsSuccess(NativeAsync.DelAsync(key, cancellationToken));
+
+        ValueTask<bool> IRedisClientAsync.RemoveEntryAsync(string[] keys, CancellationToken cancellationToken)
+            => keys.Length == 0 ? default : IsSuccess(NativeAsync.DelAsync(keys, cancellationToken));
 
         internal async ValueTask<bool> SetAsync<T>(string key, T value, CancellationToken cancellationToken = default)
         {
@@ -62,7 +62,7 @@ namespace ServiceStack.Redis
             return true;
         }
 
-        internal async ValueTask Exec(Func<IRedisClientAsync, ValueTask> action)
+        private async ValueTask Exec(Func<IRedisClientAsync, ValueTask> action)
         {
             using (JsConfig.With(new Text.Config { ExcludeTypeInfo = false }))
             {
@@ -147,6 +147,12 @@ namespace ServiceStack.Redis
 
         ValueTask<string> IRedisClientAsync.GetRandomKeyAsync(CancellationToken cancellationToken)
             => NativeAsync.RandomKeyAsync(cancellationToken);
+
+        ValueTask IRedisClientAsync.ChangeDbAsync(long db, CancellationToken cancellationToken)
+            => NativeAsync.SelectAsync(db, cancellationToken);
+
+        ValueTask<byte[]> IRedisClientAsync.GetBytesAsync(string key, CancellationToken cancellationToken)
+            => NativeAsync.GetAsync(key, cancellationToken);
     }
 }
  

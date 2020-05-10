@@ -3,7 +3,7 @@
 // ServiceStack.Redis: ECMA CLI Binding to the Redis key-value storage system
 //
 // Authors:
-//   Demis Bellot (demis.bellot@gmail.com)
+//   Demis Bellot Async(demis.bellot@gmail.com)
 //
 // Copyright 2017 ServiceStack, Inc. All Rights Reserved.
 //
@@ -19,229 +19,236 @@ namespace ServiceStack.Redis
 {
     public interface IRedisNativeClientAsync : IDisposable
     {
+        /*
+         non-obvious changes:
+        - Db is get only; addition of SelectAsync
+         */ 
+
         ////Redis utility operations
-        //Dictionary<string, string> Info { get; }
-        //long Db { get; set; }
-        //long DbSize { get; }
-        //DateTime LastSave { get; }
-        //void Save();
-        //void BgSave();
-        //void Shutdown();
-        //void BgRewriteAof();
-        //void Quit();
-        //void FlushDb();
-        //void FlushAll();
-        //bool Ping();
-        //string Echo(string text);
-        //void SlaveOf(string hostname, int port);
-        //void SlaveOfNoOne();
-        //byte[][] ConfigGet(string pattern);
-        //void ConfigSet(string item, byte[] value);
-        //void ConfigResetStat();
-        //void ConfigRewrite();
+        //ValueTask<Dictionary<string, string>> InfoAsync(CancellationToken cancellationToken = default);
+        long Db { get; }
+        ValueTask SelectAsync(long db, CancellationToken cancellationToken = default);
+
+        //ValueTask<long> DbSizeAsync(CancellationToken cancellationToken = default);
+        //ValueTask<DateTime> LastSave { get; }
+        //ValueTask SaveAsync(CancellationToken cancellationToken = default);
+        //ValueTask BgSaveAsync(CancellationToken cancellationToken = default);
+        //ValueTask ShutdownAsync(CancellationToken cancellationToken = default);
+        //ValueTask BgRewriteAofAsync(CancellationToken cancellationToken = default);
+        //ValueTask QuitAsync(CancellationToken cancellationToken = default);
+        //ValueTask FlushDbAsync(CancellationToken cancellationToken = default);
+        //ValueTask FlushAllAsync(CancellationToken cancellationToken = default);
+        //ValueTask<bool> PingAsync(CancellationToken cancellationToken = default);
+        //ValueTask<string> EchoAsync(string text, CancellationToken cancellationToken = default);
+        //ValueTask SlaveOfAsync(string hostname, int port, CancellationToken cancellationToken = default);
+        //ValueTask SlaveOfNoOneAsync(CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ConfigGetAsync(string pattern, CancellationToken cancellationToken = default);
+        //ValueTask ConfigSetAsync(string item, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask ConfigResetStatAsync(CancellationToken cancellationToken = default);
+        //ValueTask ConfigRewriteAsync(CancellationToken cancellationToken = default);
         ValueTask<byte[][]> TimeAsync(CancellationToken cancellationToken = default);
-        //void DebugSegfault();
-        //byte[] Dump(string key);
-        //byte[] Restore(string key, long expireMs, byte[] dumpValue);
-        //void Migrate(string host, int port, string key, int destinationDb, long timeoutMs);
-        //bool Move(string key, int db);
-        //long ObjectIdleTime(string key);
-        //RedisText Role();
+        //ValueTask DebugSegfaultAsync(CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> DumpAsync(string key, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> RestoreAsync(string key, long expireMs, byte[] dumpValue, CancellationToken cancellationToken = default);
+        //ValueTask MigrateAsync(string host, int port, string key, int destinationDb, long timeoutMs, CancellationToken cancellationToken = default);
+        //ValueTask<bool> MoveAsync(string key, int db, CancellationToken cancellationToken = default);
+        //ValueTask<long> ObjectIdleTimeAsync(string key, CancellationToken cancellationToken = default);
+        //RedisText RoleAsync(CancellationToken cancellationToken = default);
 
-        //RedisData RawCommand(params object[] cmdWithArgs);
-        //RedisData RawCommand(params byte[][] cmdWithBinaryArgs);
+        //ValueTask<RedisData> RawCommandAsync(params object[] cmdWithArgs, CancellationToken cancellationToken = default);
+        //ValueTask<RedisData> RawCommandAsync(params byte[][] cmdWithBinaryArgs, CancellationToken cancellationToken = default);
 
-        //string ClientGetName();
-        //void ClientSetName(string client);
-        //void ClientKill(string host);
-        //long ClientKill(string addr = null, string id = null, string type = null, string skipMe = null);
-        //byte[] ClientList();
-        //void ClientPause(int timeOutMs);
+        //ValueTask<string> ClientGetNameAsync(CancellationToken cancellationToken = default);
+        //ValueTask ClientSetNameAsync(string client, CancellationToken cancellationToken = default);
+        //ValueTask ClientKillAsync(string host, CancellationToken cancellationToken = default);
+        //ValueTask<long> ClientKillAsync(string addr = null, string id = null, string type = null, string skipMe = null, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> ClientListAsync(CancellationToken cancellationToken = default);
+        //ValueTask ClientPauseAsync(int timeOutMs, CancellationToken cancellationToken = default);
 
         ////Common key-value Redis operations
-        //byte[][] Keys(string pattern);
+        //ValueTask<byte[][]> KeysAsync(string pattern, CancellationToken cancellationToken = default);
         ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> ExistsAsync(string key, CancellationToken cancellationToken = default);
-        //long StrLen(string key);
+        //ValueTask<long> StrLenAsync(string key, CancellationToken cancellationToken = default);
         ValueTask SetAsync(string key, byte[] value, CancellationToken cancellationToken = default);
-        //void SetEx(string key, int expireInSeconds, byte[] value);
-        //bool Persist(string key);
-        //void PSetEx(string key, long expireInMs, byte[] value);
-        //long SetNX(string key, byte[] value);
+        //ValueTask SetExAsync(string key, int expireInSeconds, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<bool> PersistAsync(string key, CancellationToken cancellationToken = default);
+        //ValueTask PSetExAsync(string key, long expireInMs, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> SetNXAsync(string key, byte[] value, CancellationToken cancellationToken = default);
         ValueTask MSetAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken = default);
-        //void MSet(string[] keys, byte[][] values);
-        //bool MSetNx(byte[][] keys, byte[][] values);
-        //bool MSetNx(string[] keys, byte[][] values);
+        //ValueTask MSetAsync(string[] keys, byte[][] values, CancellationToken cancellationToken = default);
+        //ValueTask<bool> MSetNxAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken = default);
+        //ValueTask<bool> MSetNxAsync(string[] keys, byte[][] values, CancellationToken cancellationToken = default);
         ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default);
-        //byte[] GetSet(string key, byte[] value);
-        //byte[][] MGet(params byte[][] keysAndArgs);
-        //byte[][] MGet(params string[] keys);
+        //ValueTask<byte[]> GetSetAsync(string key, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> MGetAsync(params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> MGetAsync(params string[] keys, CancellationToken cancellationToken = default);
         ValueTask<long> DelAsync(string key, CancellationToken cancellationToken = default);
-        //long Del(params string[] keys);
+        ValueTask<long> DelAsync(string[] keys, CancellationToken cancellationToken = default);
         ValueTask<long> IncrAsync(string key, CancellationToken cancellationToken = default);
-        //long IncrBy(string key, int incrBy);
-        //double IncrByFloat(string key, double incrBy);
-        //long Decr(string key);
-        //long DecrBy(string key, int decrBy);
-        //long Append(string key, byte[] value);
-        //byte[] GetRange(string key, int fromIndex, int toIndex);
-        //long SetRange(string key, int offset, byte[] value);
-        //long GetBit(string key, int offset);
-        //long SetBit(string key, int offset, int value);
+        //ValueTask<long> IncrByAsync(string key, int incrBy, CancellationToken cancellationToken = default);
+        //ValueTask<double>  IncrByFloatAsync(string key, double incrBy, CancellationToken cancellationToken = default);
+        //ValueTask<long> DecrAsync(string key, CancellationToken cancellationToken = default);
+        //ValueTask<long> DecrByAsync(string key, int decrBy, CancellationToken cancellationToken = default);
+        //ValueTask<long> AppendAsync(string key, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> GetRangeAsync(string key, int fromIndex, int toIndex, CancellationToken cancellationToken = default);
+        //ValueTask<long> SetRangeAsync(string key, int offset, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> GetBitAsync(string key, int offset, CancellationToken cancellationToken = default);
+        //ValueTask<long> SetBitAsync(string key, int offset, int value, CancellationToken cancellationToken = default);
 
         ValueTask<string> RandomKeyAsync(CancellationToken cancellationToken = default);
         ValueTask RenameAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);
         ValueTask<bool> RenameNxAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);
-        //bool Expire(string key, int seconds);
-        //bool PExpire(string key, long ttlMs);
-        //bool ExpireAt(string key, long unixTime);
-        //bool PExpireAt(string key, long unixTimeMs);
-        //long Ttl(string key);
-        //long PTtl(string key);
+        //ValueTask<bool> ExpireAsync(string key, int seconds, CancellationToken cancellationToken = default);
+        //ValueTask<bool> PExpireAsync(string key, long ttlMs, CancellationToken cancellationToken = default);
+        //ValueTask<bool> ExpireAtAsync(string key, long unixTime, CancellationToken cancellationToken = default);
+        //ValueTask<bool> PExpireAtAsync(string key, long unixTimeMs, CancellationToken cancellationToken = default);
+        //ValueTask<long> TtlAsync(string key, CancellationToken cancellationToken = default);
+        //ValueTask<long> PTtlAsync(string key, CancellationToken cancellationToken = default);
 
         ////Scan APIs
         ValueTask<ScanResult> ScanAsync(ulong cursor, int count = 10, string match = null, CancellationToken cancellationToken = default);
-        //ScanResult SScan(string setId, ulong cursor, int count = 10, string match = null);
-        //ScanResult ZScan(string setId, ulong cursor, int count = 10, string match = null);
-        //ScanResult HScan(string hashId, ulong cursor, int count = 10, string match = null);
+        //ScanResult SScanAsync(string setId, ulong cursor, int count = 10, string match = null, CancellationToken cancellationToken = default);
+        //ScanResult ZScanAsync(string setId, ulong cursor, int count = 10, string match = null, CancellationToken cancellationToken = default);
+        //ScanResult HScanAsync(string hashId, ulong cursor, int count = 10, string match = null, CancellationToken cancellationToken = default);
 
         ////Hyperlog
-        //bool PfAdd(string key, params byte[][] elements);
-        //long PfCount(string key);
-        //void PfMerge(string toKeyId, params string[] fromKeys);
+        //ValueTask<bool> PfAddAsync(string key, params byte[][] elements, CancellationToken cancellationToken = default);
+        //ValueTask<long> PfCountAsync(string key, CancellationToken cancellationToken = default);
+        //ValueTask PfMergeAsync(string toKeyId, params string[] fromKeys, CancellationToken cancellationToken = default);
 
-        ////Redis Sort operation (works on lists, sets or hashes)
-        //byte[][] Sort(string listOrSetId, SortOptions sortOptions);
+        ////Redis Sort operation Async(works on lists, sets or hashes)
+        //ValueTask<byte[][]> SortAsync(string listOrSetId, SortOptions sortOptions, CancellationToken cancellationToken = default);
 
         ////Redis List operations
-        //byte[][] LRange(string listId, int startingFrom, int endingAt);
+        //ValueTask<byte[][]> LRangeAsync(string listId, int startingFrom, int endingAt, CancellationToken cancellationToken = default);
         ValueTask<long> RPushAsync(string listId, byte[] value, CancellationToken cancellationToken = default);
-        //long RPushX(string listId, byte[] value);
-        //long LPush(string listId, byte[] value);
-        //long LPushX(string listId, byte[] value);
-        //void LTrim(string listId, int keepStartingFrom, int keepEndingAt);
-        //long LRem(string listId, int removeNoOfMatches, byte[] value);
-        //long LLen(string listId);
-        //byte[] LIndex(string listId, int listIndex);
-        //void LInsert(string listId, bool insertBefore, byte[] pivot, byte[] value);
-        //void LSet(string listId, int listIndex, byte[] value);
-        //byte[] LPop(string listId);
-        //byte[] RPop(string listId);
-        //byte[][] BLPop(string listId, int timeOutSecs);
-        //byte[][] BLPop(string[] listIds, int timeOutSecs);
-        //byte[] BLPopValue(string listId, int timeOutSecs);
-        //byte[][] BLPopValue(string[] listIds, int timeOutSecs);
-        //byte[][] BRPop(string listId, int timeOutSecs);
-        //byte[][] BRPop(string[] listIds, int timeOutSecs);
-        //byte[] RPopLPush(string fromListId, string toListId);
-        //byte[] BRPopValue(string listId, int timeOutSecs);
-        //byte[][] BRPopValue(string[] listIds, int timeOutSecs);
-        //byte[] BRPopLPush(string fromListId, string toListId, int timeOutSecs);
+        //ValueTask<long> RPushXAsync(string listId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> LPushAsync(string listId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> LPushXAsync(string listId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask LTrimAsync(string listId, int keepStartingFrom, int keepEndingAt, CancellationToken cancellationToken = default);
+        //ValueTask<long> LRemAsync(string listId, int removeNoOfMatches, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> LLenAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> LIndexAsync(string listId, int listIndex, CancellationToken cancellationToken = default);
+        //ValueTask LInsertAsync(string listId, bool insertBefore, byte[] pivot, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask LSetAsync(string listId, int listIndex, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> LPopAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> RPopAsync(string listId, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> BLPopAsync(string listId, int timeOutSecs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> BLPopAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> BLPopValueAsync(string listId, int timeOutSecs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> BLPopValueAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> BRPopAsync(string listId, int timeOutSecs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> BRPopAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> RPopLPushAsync(string fromListId, string toListId, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> BRPopValueAsync(string listId, int timeOutSecs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> BRPopValueAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> BRPopLPushAsync(string fromListId, string toListId, int timeOutSecs, CancellationToken cancellationToken = default);
 
         ////Redis Set operations
-        //byte[][] SMembers(string setId);
-        ValueTask<long> SAddAsync(string setId, byte[] value, CancellationToken cancellation = default);
-        //long SAdd(string setId, byte[][] value);
-        //long SRem(string setId, byte[] value);
-        //byte[] SPop(string setId);
-        //byte[][] SPop(string setId, int count);
-        //void SMove(string fromSetId, string toSetId, byte[] value);
-        //long SCard(string setId);
-        //long SIsMember(string setId, byte[] value);
-        //byte[][] SInter(params string[] setIds);
-        //void SInterStore(string intoSetId, params string[] setIds);
-        //byte[][] SUnion(params string[] setIds);
-        //void SUnionStore(string intoSetId, params string[] setIds);
-        //byte[][] SDiff(string fromSetId, params string[] withSetIds);
-        //void SDiffStore(string intoSetId, string fromSetId, params string[] withSetIds);
-        //byte[] SRandMember(string setId);
+        //ValueTask<byte[][]> SMembersAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<long> SAddAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> SAddAsync(string setId, byte[][] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> SRemAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> SPopAsync(string setId, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> SPopAsync(string setId, int count, CancellationToken cancellationToken = default);
+        //ValueTask SMoveAsync(string fromSetId, string toSetId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> SCardAsync(string setId, CancellationToken cancellationToken = default);
+        //ValueTask<long> SIsMemberAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> SInterAsync(params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask SInterStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> SUnionAsync(params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask SUnionStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> SDiffAsync(string fromSetId, params string[] withSetIds, CancellationToken cancellationToken = default);
+        //ValueTask SDiffStoreAsync(string intoSetId, string fromSetId, params string[] withSetIds, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> SRandMemberAsync(string setId, CancellationToken cancellationToken = default);
 
 
         ////Redis Sorted Set operations
-        ValueTask<long> ZAddAsync(string setId, double score, byte[] value, CancellationToken cancellation = default);
-        ValueTask<long> ZAddAsync(string setId, long score, byte[] value, CancellationToken cancellation = default);
-        //long ZRem(string setId, byte[] value);
-        //long ZRem(string setId, byte[][] values);
-        //double ZIncrBy(string setId, double incrBy, byte[] value);
-        //double ZIncrBy(string setId, long incrBy, byte[] value);
-        //long ZRank(string setId, byte[] value);
-        //long ZRevRank(string setId, byte[] value);
-        //byte[][] ZRange(string setId, int min, int max);
-        //byte[][] ZRangeWithScores(string setId, int min, int max);
-        //byte[][] ZRevRange(string setId, int min, int max);
-        //byte[][] ZRevRangeWithScores(string setId, int min, int max);
-        //byte[][] ZRangeByScore(string setId, double min, double max, int? skip, int? take);
-        //byte[][] ZRangeByScore(string setId, long min, long max, int? skip, int? take);
-        //byte[][] ZRangeByScoreWithScores(string setId, double min, double max, int? skip, int? take);
-        //byte[][] ZRangeByScoreWithScores(string setId, long min, long max, int? skip, int? take);
-        //byte[][] ZRevRangeByScore(string setId, double min, double max, int? skip, int? take);
-        //byte[][] ZRevRangeByScore(string setId, long min, long max, int? skip, int? take);
-        //byte[][] ZRevRangeByScoreWithScores(string setId, double min, double max, int? skip, int? take);
-        //byte[][] ZRevRangeByScoreWithScores(string setId, long min, long max, int? skip, int? take);
-        //long ZRemRangeByRank(string setId, int min, int max);
-        //long ZRemRangeByScore(string setId, double fromScore, double toScore);
-        //long ZRemRangeByScore(string setId, long fromScore, long toScore);
-        //long ZCard(string setId);
-        //double ZScore(string setId, byte[] value);
-        //long ZUnionStore(string intoSetId, params string[] setIds);
-        //long ZInterStore(string intoSetId, params string[] setIds);
-        //byte[][] ZRangeByLex(string setId, string min, string max, int? skip = null, int? take = null);
-        //long ZLexCount(string setId, string min, string max);
-        //long ZRemRangeByLex(string setId, string min, string max);
+        ValueTask<long> ZAddAsync(string setId, double score, byte[] value, CancellationToken cancellationToken = default);
+        ValueTask<long> ZAddAsync(string setId, long score, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZRemAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZRemAsync(string setId, byte[][] values, CancellationToken cancellationToken = default);
+        //ValueTask<double>  ZIncrByAsync(string setId, double incrBy, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<double>  ZIncrByAsync(string setId, long incrBy, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZRankAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZRevRankAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRangeAsync(string setId, int min, int max, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRangeWithScoresAsync(string setId, int min, int max, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRevRangeAsync(string setId, int min, int max, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRevRangeWithScoresAsync(string setId, int min, int max, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRangeByScoreAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRangeByScoreAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRangeByScoreWithScoresAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRangeByScoreWithScoresAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRevRangeByScoreAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRevRangeByScoreAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRevRangeByScoreWithScoresAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRevRangeByScoreWithScoresAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZRemRangeByRankAsync(string setId, int min, int max, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZRemRangeByScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZRemRangeByScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZCardAsync(string setId, CancellationToken cancellationToken = default);
+        //ValueTask<double>  ZScoreAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZUnionStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZInterStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ZRangeByLexAsync(string setId, string min, string max, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZLexCountAsync(string setId, string min, string max, CancellationToken cancellationToken = default);
+        //ValueTask<long> ZRemRangeByLexAsync(string setId, string min, string max, CancellationToken cancellationToken = default);
 
         ////Redis Hash operations
         ValueTask<long> HSetAsync(string hashId, byte[] key, byte[] value, CancellationToken cancellationToken = default);
-        //void HMSet(string hashId, byte[][] keys, byte[][] values);
-        //long HSetNX(string hashId, byte[] key, byte[] value);
-        //long HIncrby(string hashId, byte[] key, int incrementBy);
-        //double HIncrbyFloat(string hashId, byte[] key, double incrementBy);
-        //byte[] HGet(string hashId, byte[] key);
-        //byte[][] HMGet(string hashId, params byte[][] keysAndArgs);
-        //long HDel(string hashId, byte[] key);
-        //long HExists(string hashId, byte[] key);
-        //long HLen(string hashId);
-        //byte[][] HKeys(string hashId);
-        //byte[][] HVals(string hashId);
-        //byte[][] HGetAll(string hashId);
+        //ValueTask HMSetAsync(string hashId, byte[][] keys, byte[][] values, CancellationToken cancellationToken = default);
+        //ValueTask<long> HSetNXAsync(string hashId, byte[] key, byte[] value, CancellationToken cancellationToken = default);
+        //ValueTask<long> HIncrbyAsync(string hashId, byte[] key, int incrementBy, CancellationToken cancellationToken = default);
+        //ValueTask<double>  HIncrbyFloatAsync(string hashId, byte[] key, double incrementBy, CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> HGetAsync(string hashId, byte[] key, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> HMGetAsync(string hashId, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        //ValueTask<long> HDelAsync(string hashId, byte[] key, CancellationToken cancellationToken = default);
+        //ValueTask<long> HExistsAsync(string hashId, byte[] key, CancellationToken cancellationToken = default);
+        //ValueTask<long> HLenAsync(string hashId, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> HKeysAsync(string hashId, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> HValsAsync(string hashId, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> HGetAllAsync(string hashId, CancellationToken cancellationToken = default);
 
         ////Redis GEO operations
-        //long GeoAdd(string key, double longitude, double latitude, string member);
-        //long GeoAdd(string key, params RedisGeo[] geoPoints);
-        //double GeoDist(string key, string fromMember, string toMember, string unit = null);
-        //string[] GeoHash(string key, params string[] members);
-        //List<RedisGeo> GeoPos(string key, params string[] members);
-        //List<RedisGeoResult> GeoRadius(string key, double longitude, double latitude, double radius, string unit,
-        //    bool withCoords = false, bool withDist = false, bool withHash = false, int? count = null, bool? asc = null);
-        //List<RedisGeoResult> GeoRadiusByMember(string key, string member, double radius, string unit,
-        //    bool withCoords = false, bool withDist = false, bool withHash = false, int? count = null, bool? asc = null);
+        //ValueTask<long> GeoAddAsync(string key, double longitude, double latitude, string member, CancellationToken cancellationToken = default);
+        //ValueTask<long> GeoAddAsync(string key, params RedisGeo[] geoPoints, CancellationToken cancellationToken = default);
+        //ValueTask<double>  GeoDistAsync(string key, string fromMember, string toMember, string unit = null, CancellationToken cancellationToken = default);
+        //ValueTask<string[]> GeoHashAsync(string key, params string[] members, CancellationToken cancellationToken = default);
+        //ValueTask<List<RedisGeo>> GeoPosAsync(string key, params string[] members, CancellationToken cancellationToken = default);
+        //ValueTask<List<RedisGeoResult>> GeoRadiusAsync(string key, double longitude, double latitude, double radius, string unit,
+        //    bool withCoords = false, bool withDist = false, bool withHash = false, int? count = null, bool? asc = null, CancellationToken cancellationToken = default);
+        //ValueTask<List<RedisGeoResult>> GeoRadiusByMemberAsync(string key, string member, double radius, string unit,
+        //    bool withCoords = false, bool withDist = false, bool withHash = false, int? count = null, bool? asc = null, CancellationToken cancellationToken = default);
 
         ////Redis Pub/Sub operations
-        //void Watch(params string[] keys);
-        //void UnWatch();
-        //long Publish(string toChannel, byte[] message);
-        //byte[][] Subscribe(params string[] toChannels);
-        //byte[][] UnSubscribe(params string[] toChannels);
-        //byte[][] PSubscribe(params string[] toChannelsMatchingPatterns);
-        //byte[][] PUnSubscribe(params string[] toChannelsMatchingPatterns);
-        //byte[][] ReceiveMessages();
-        //IRedisSubscription CreateSubscription();
+        //ValueTask WatchAsync(params string[] keys, CancellationToken cancellationToken = default);
+        //ValueTask UnWatchAsync(CancellationToken cancellationToken = default);
+        //ValueTask<long> PublishAsync(string toChannel, byte[] message, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> SubscribeAsync(params string[] toChannels, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> UnSubscribeAsync(params string[] toChannels, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> PSubscribeAsync(params string[] toChannelsMatchingPatterns, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> PUnSubscribeAsync(params string[] toChannelsMatchingPatterns, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ReceiveMessagesAsync(CancellationToken cancellationToken = default);
+        //IRedisSubscription CreateSubscriptionAsync(CancellationToken cancellationToken = default);
 
         ////Redis LUA support
-        //RedisData EvalCommand(string luaBody, int numberKeysInArgs, params byte[][] keys);
-        //RedisData EvalShaCommand(string sha1, int numberKeysInArgs, params byte[][] keys);
+        //ValueTask<RedisData> EvalCommandAsync(string luaBody, int numberKeysInArgs, params byte[][] keys, CancellationToken cancellationToken = default);
+        //ValueTask<RedisData> EvalShaCommandAsync(string sha1, int numberKeysInArgs, params byte[][] keys, CancellationToken cancellationToken = default);
 
-        //byte[][] Eval(string luaBody, int numberOfKeys, params byte[][] keysAndArgs);
-        //byte[][] EvalSha(string sha1, int numberOfKeys, params byte[][] keysAndArgs);
+        //ValueTask<byte[][]> EvalAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> EvalShaAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
 
-        //long EvalInt(string luaBody, int numberOfKeys, params byte[][] keysAndArgs);
-        //long EvalShaInt(string sha1, int numberOfKeys, params byte[][] keysAndArgs);
-        //string EvalStr(string luaBody, int numberOfKeys, params byte[][] keysAndArgs);
-        //string EvalShaStr(string sha1, int numberOfKeys, params byte[][] keysAndArgs);
+        //ValueTask<long> EvalIntAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        //ValueTask<long> EvalShaIntAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        //ValueTask<string> EvalStrAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        //ValueTask<string> EvalShaStrAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
 
-        //string CalculateSha1(string luaBody);
-        //byte[][] ScriptExists(params byte[][] sha1Refs);
-        //void ScriptFlush();
-        //void ScriptKill();
-        //byte[] ScriptLoad(string body);
+        //ValueTask<string> CalculateSha1Async(string luaBody, CancellationToken cancellationToken = default);
+        //ValueTask<byte[][]> ScriptExistsAsync(params byte[][] sha1Refs, CancellationToken cancellationToken = default);
+        //ValueTask ScriptFlushAsync(CancellationToken cancellationToken = default);
+        //ValueTask ScriptKillAsync(CancellationToken cancellationToken = default);
+        //ValueTask<byte[]> ScriptLoadAsync(string body, CancellationToken cancellationToken = default);
     }
 }

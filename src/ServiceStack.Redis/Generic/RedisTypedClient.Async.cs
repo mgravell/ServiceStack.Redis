@@ -19,8 +19,9 @@ namespace ServiceStack.Redis.Generic
     partial class RedisTypedClient<T>
         : IRedisTypedClientAsync<T>
     {
+        IRedisClientAsync AsyncClient => client;
         async ValueTask<T> IRedisTypedClientAsync<T>.GetValueAsync(string key, CancellationToken cancellationToken)
-            => DeserializeValue(await client.GetAsync(key, cancellationToken).ConfigureAwait(false));
+            => DeserializeValue(await AsyncClient.GetBytesAsync(key, cancellationToken).ConfigureAwait(false));
 
         async ValueTask IRedisTypedClientAsync<T>.SetValueAsync(string key, T entity, CancellationToken cancellationToken)
         {

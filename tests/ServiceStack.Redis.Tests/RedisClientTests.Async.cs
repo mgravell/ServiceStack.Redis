@@ -26,9 +26,9 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_Set_and_Get_string()
         {
             await RedisAsync.SetValueAsync("key", Value);
-            var valueBytes = await RedisRaw.GetAsync("key");
+            var valueBytes = await RedisAsync.GetBytesAsync("key");
             var valueString = GetString(valueBytes);
-            await RedisRaw.RemoveAsync("key");
+            await RedisAsync.RemoveEntryAsync("key");
 
             Assert.That(valueString, Is.EqualTo(Value));
         }
@@ -37,9 +37,9 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_Set_and_Get_key_with_space()
         {
             await RedisAsync.SetValueAsync("key with space", Value);
-            var valueBytes = await RedisRaw.GetAsync("key with space");
+            var valueBytes = await RedisAsync.GetBytesAsync("key with space");
             var valueString = GetString(valueBytes);
-            await RedisRaw.RemoveAsync("key with space");
+            await RedisAsync.RemoveEntryAsync("key with space");
 
             Assert.That(valueString, Is.EqualTo(Value));
         }
@@ -50,7 +50,7 @@ namespace ServiceStack.Redis.Tests
             const string key = "key with spaces";
 
             await RedisAsync.SetValueAsync(key, Value);
-            var valueBytes = await RedisRaw.GetAsync(key);
+            var valueBytes = await RedisAsync.GetBytesAsync(key);
             var valueString = GetString(valueBytes);
 
             Assert.That(valueString, Is.EqualTo(Value));
@@ -78,9 +78,9 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task GetKeys_returns_matching_collection()
         {
-            await RedisRaw.SetAsync("ss-tests:a1", "One");
-            await RedisRaw.SetAsync("ss-tests:a2", "One");
-            await RedisRaw.SetAsync("ss-tests:b3", "One");
+            await RedisAsync.SetValueAsync("ss-tests:a1", "One");
+            await RedisAsync.SetValueAsync("ss-tests:a2", "One");
+            await RedisAsync.SetValueAsync("ss-tests:b3", "One");
             var matchingKeys = await RedisAsync.SearchKeysAsync("ss-tests:a*");
 
             Assert.That(matchingKeys.Count, Is.EqualTo(2));
@@ -118,7 +118,7 @@ namespace ServiceStack.Redis.Tests
 
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
 
-            await RedisRaw.DelAsync("key");
+            await RedisAsync.RemoveEntryAsync("key");
 
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
 
@@ -130,7 +130,7 @@ namespace ServiceStack.Redis.Tests
 
             10.TimesAsync(async i => Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.True));
 
-            await RedisRaw.DelAsync(keysMap.Keys.ToArray());
+            await RedisAsync.RemoveEntryAsync(keysMap.Keys.ToArray());
 
             10.TimesAsync(async i => Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.False));
         }
@@ -138,7 +138,7 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_get_RandomKey()
         {
-            RedisAsync.Db = 15;
+            await RedisAsync.ChangeDbAsync(15);
             var keysMap = new Dictionary<string, string>();
 
             10.Times(i => keysMap.Add(RedisRaw.NamespacePrefix + "key" + i, "val" + i));
