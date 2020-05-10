@@ -29,6 +29,9 @@ namespace ServiceStack.Redis
         - Db is read-only; added ChangeDbAsync for setting
         - added unary version of RemoveEntryAsync - because of losing "params", usage was awkward otherwise
         - added GetTimeToLiveAsync - not available on the interface
+        - sync API is Save (foreground) and SaveAsync (background); renamed here to ForegroundSaveAsync and BackgroundSaveAsync
+          to avoid overload problems and accidental swaps from bg to fg when migrating to async API
+        - RewriteAppendOnlyFileAsync becomes BackgroundRewriteAppendOnlyFileAsync for consistency with the above
         */
         //Basic Redis Connection operations
         long Db { get; }
@@ -52,12 +55,12 @@ namespace ServiceStack.Redis
 
         //RedisText CustomAsync(params object[] cmdWithArgs, CancellationToken cancellationToken = default);
 
-        //ValueTask SaveAsync(CancellationToken cancellationToken = default);
-        //ValueTask SaveAsync(CancellationToken cancellationToken = default);
-        //ValueTask ShutdownAsync(CancellationToken cancellationToken = default);
-        //ValueTask ShutdownNoSaveAsync(CancellationToken cancellationToken = default);
-        //ValueTask RewriteAppendOnlyFileAsync(CancellationToken cancellationToken = default);
-        //ValueTask FlushDbAsync(CancellationToken cancellationToken = default);
+        ValueTask ForegroundSaveAsync(CancellationToken cancellationToken = default);
+        ValueTask BackgroundSaveAsync(CancellationToken cancellationToken = default);
+        ValueTask ShutdownAsync(CancellationToken cancellationToken = default);
+        ValueTask ShutdownNoSaveAsync(CancellationToken cancellationToken = default);
+        ValueTask BackgroundRewriteAppendOnlyFileAsync(CancellationToken cancellationToken = default);
+        ValueTask FlushDbAsync(CancellationToken cancellationToken = default);
 
         //RedisServerRole GetServerRoleAsync(CancellationToken cancellationToken = default);
         //RedisText GetServerRoleInfoAsync(CancellationToken cancellationToken = default);

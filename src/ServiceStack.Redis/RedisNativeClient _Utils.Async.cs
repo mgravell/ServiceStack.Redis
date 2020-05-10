@@ -21,6 +21,9 @@ namespace ServiceStack.Redis
             ?? TypeConstants.EmptyByteArrayArray;
         }
 
+        protected ValueTask SendWithoutReadAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+            => DiscardResult(SendReceiveAsync<long>(cmdWithBinaryArgs, null, cancellationToken, null, sendWithoutRead: true));
+
         private ValueTask<long> SendExpectLongAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
             return SendReceiveAsync(cmdWithBinaryArgs, ReadLongAsync, cancellationToken,

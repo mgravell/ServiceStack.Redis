@@ -22,26 +22,28 @@ namespace ServiceStack.Redis
         /*
          non-obvious changes:
         - Db is get only; addition of SelectAsync
-         */ 
+        - LastSave is now a method
+        - shutdown now takes nosave arg
+         */
 
         ////Redis utility operations
         //ValueTask<Dictionary<string, string>> InfoAsync(CancellationToken cancellationToken = default);
         long Db { get; }
         ValueTask SelectAsync(long db, CancellationToken cancellationToken = default);
 
-        //ValueTask<long> DbSizeAsync(CancellationToken cancellationToken = default);
-        //ValueTask<DateTime> LastSave { get; }
-        //ValueTask SaveAsync(CancellationToken cancellationToken = default);
-        //ValueTask BgSaveAsync(CancellationToken cancellationToken = default);
-        //ValueTask ShutdownAsync(CancellationToken cancellationToken = default);
-        //ValueTask BgRewriteAofAsync(CancellationToken cancellationToken = default);
-        //ValueTask QuitAsync(CancellationToken cancellationToken = default);
-        //ValueTask FlushDbAsync(CancellationToken cancellationToken = default);
-        //ValueTask FlushAllAsync(CancellationToken cancellationToken = default);
+        ValueTask<long> DbSizeAsync(CancellationToken cancellationToken = default);
+        ValueTask<DateTime> LastSaveAsync(CancellationToken cancellationToken = default);
+        ValueTask SaveAsync(CancellationToken cancellationToken = default);
+        ValueTask BgSaveAsync(CancellationToken cancellationToken = default);
+        ValueTask ShutdownAsync(bool noSave = false, CancellationToken cancellationToken = default);
+        ValueTask BgRewriteAofAsync(CancellationToken cancellationToken = default);
+        ValueTask QuitAsync(CancellationToken cancellationToken = default);
+        ValueTask FlushDbAsync(CancellationToken cancellationToken = default);
+        ValueTask FlushAllAsync(CancellationToken cancellationToken = default);
         ValueTask<bool> PingAsync(CancellationToken cancellationToken = default);
         ValueTask<string> EchoAsync(string text, CancellationToken cancellationToken = default);
-        //ValueTask SlaveOfAsync(string hostname, int port, CancellationToken cancellationToken = default);
-        //ValueTask SlaveOfNoOneAsync(CancellationToken cancellationToken = default);
+        ValueTask SlaveOfAsync(string hostname, int port, CancellationToken cancellationToken = default);
+        ValueTask SlaveOfNoOneAsync(CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> ConfigGetAsync(string pattern, CancellationToken cancellationToken = default);
         //ValueTask ConfigSetAsync(string item, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask ConfigResetStatAsync(CancellationToken cancellationToken = default);

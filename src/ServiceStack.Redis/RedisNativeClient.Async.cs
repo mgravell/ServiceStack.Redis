@@ -1,4 +1,5 @@
 ﻿using ServiceStack.Redis.Pipeline;
+using ServiceStack.Text;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -240,5 +241,43 @@ namespace ServiceStack.Redis
             static async ValueTask<string> Awaited(ValueTask<byte[]> pending)
                 => (await pending.ConfigureAwait(false)).FromUtf8Bytes();
         }
+
+        ValueTask<long> IRedisNativeClientAsync.DbSizeAsync(CancellationToken cancellationToken)
+            => SendExpectLongAsync(cancellationToken, Commands.DbSize);
+        
+        async ValueTask<DateTime> IRedisNativeClientAsync.LastSaveAsync(CancellationToken cancellationToken)
+        {
+            var t = await SendExpectLongAsync(cancellationToken, Commands.LastSave).ConfigureAwait(false);
+            return t.FromUnixTime();
+        }
+
+        ValueTask IRedisNativeClientAsync.SaveAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.Save);
+
+        ValueTask IRedisNativeClientAsync.BgSaveAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.BgSave);
+
+        ValueTask IRedisNativeClientAsync.ShutdownAsync(bool noSave, CancellationToken cancellationToken)
+            => noSave
+            ? SendWithoutReadAsync(cancellationToken, Commands.Shutdown, Commands.NoSave)
+            : SendWithoutReadAsync(cancellationToken, Commands.Shutdown);
+
+        ValueTask IRedisNativeClientAsync.BgRewriteAofAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.BgRewriteAof);
+
+        ValueTask IRedisNativeClientAsync.QuitAsync(CancellationToken cancellationToken)
+            => SendWithoutReadAsync(cancellationToken, Commands.Quit);
+
+        ValueTask IRedisNativeClientAsync.FlushDbAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.FlushDb);
+
+        ValueTask IRedisNativeClientAsync.FlushAllAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.FlushAll);
+
+        ValueTask IRedisNativeClientAsync.SlaveOfAsync(string hostname, int port, CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.SlaveOf, hostname.ToUtf8Bytes(), port.ToUtf8Bytes());
+
+        ValueTask IRedisNativeClientAsync.SlaveOfNoOneAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.SlaveOf, Commands.No, Commands.One);
     }
 }

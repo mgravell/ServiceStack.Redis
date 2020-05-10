@@ -243,11 +243,11 @@ namespace ServiceStack.Redis.Tests
             Assert.That(await RedisAsync.EchoAsync("Hello"), Is.EqualTo("Hello"));
         }
 
-        /*
+        
         [Test]
         public async Task Can_SlaveOfNoOne()
         {
-            Redis.SlaveOfNoOne();
+            await NativeAsync.SlaveOfNoOneAsync();
         }
 
         [Test]
@@ -255,7 +255,7 @@ namespace ServiceStack.Redis.Tests
         {
             try
             {
-                Redis.Save();
+                await RedisAsync.ForegroundSaveAsync();
             }
             catch (RedisResponseException e)
             {
@@ -274,7 +274,7 @@ namespace ServiceStack.Redis.Tests
         {
             try
             {
-                Redis.BgSave();
+                await RedisAsync.BackgroundSaveAsync();
             }
             catch (RedisResponseException e)
             {
@@ -291,24 +291,25 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_Quit()
         {
-            Redis.Quit();
-            Redis.NamespacePrefix = null;
+            await NativeAsync.QuitAsync();
+            RedisRaw.NamespacePrefix = null;
             CleanMask = null;
         }
 
         [Test]
         public async Task Can_BgRewriteAof()
         {
-            Redis.BgRewriteAof();
+            await RedisAsync.BackgroundRewriteAppendOnlyFileAsync();
         }
 
         [Test]
         [Ignore("Works too well and shutdown the server")]
         public async Task Can_Shutdown()
         {
-            Redis.Shutdown();
+            await RedisAsync.ShutdownAsync();
         }
 
+        /*
         [Test]
         public async Task Can_get_Keys_with_pattern()
         {

@@ -178,6 +178,24 @@ namespace ServiceStack.Redis
 
         ValueTask<string> IRedisClientAsync.EchoAsync(string text, CancellationToken cancellationToken)
             => NativeAsync.EchoAsync(text, cancellationToken);
+
+        ValueTask IRedisClientAsync.ForegroundSaveAsync(CancellationToken cancellationToken)
+            => NativeAsync.SaveAsync(cancellationToken);
+
+        ValueTask IRedisClientAsync.BackgroundSaveAsync(CancellationToken cancellationToken)
+            => NativeAsync.BgSaveAsync(cancellationToken);
+
+        ValueTask IRedisClientAsync.ShutdownAsync(CancellationToken cancellationToken)
+            => NativeAsync.ShutdownAsync(false, cancellationToken);
+
+        ValueTask IRedisClientAsync.ShutdownNoSaveAsync(CancellationToken cancellationToken)
+            => NativeAsync.ShutdownAsync(true, cancellationToken);
+
+        ValueTask IRedisClientAsync.BackgroundRewriteAppendOnlyFileAsync(CancellationToken cancellationToken)
+            => NativeAsync.BgRewriteAofAsync(cancellationToken);
+
+        ValueTask IRedisClientAsync.FlushDbAsync(CancellationToken cancellationToken)
+            => NativeAsync.FlushDbAsync(cancellationToken);
     }
 }
  
