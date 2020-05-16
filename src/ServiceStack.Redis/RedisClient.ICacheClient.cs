@@ -202,30 +202,38 @@ namespace ServiceStack.Redis
 
         public void SetAll<T>(IDictionary<string, T> values)
         {
-            Exec(r =>
+            if (values.Count != 0)
             {
-                var keys = values.Keys.ToArray();
-                var valBytes = new byte[values.Count][];
-                var isBytes = typeof(T) == typeof(byte[]);
-
-                var i = 0;
-                foreach (var value in values.Values)
+                Exec(r =>
                 {
-                    if (!isBytes)
-                    {
-                        var t = JsonSerializer.SerializeToString(value);
-                        if (t != null)
-                            valBytes[i] = t.ToUtf8Bytes();
-                        else
-                            valBytes[i] = new byte[] { };
-                    }
-                    else
-                        valBytes[i] = (byte[])(object)value ?? new byte[] { };
-                    i++;
-                }
+                    // need to do this inside Exec for the JSON config bits
+                    GetSetAllBytesTyped<T>(values, out var keys, out var valBytes);
+                    r.MSet(keys, valBytes);
+                });
+            }
+        }
 
-                r.MSet(keys, valBytes);
-            });
+        private static void GetSetAllBytesTyped<T>(IDictionary<string, T> values, out string[] keys, out byte[][] valBytes)
+        {
+            keys = values.Keys.ToArray();
+            valBytes = new byte[values.Count][];
+            var isBytes = typeof(T) == typeof(byte[]);
+
+            var i = 0;
+            foreach (var value in values.Values)
+            {
+                if (!isBytes)
+                {
+                    var t = JsonSerializer.SerializeToString(value);
+                    if (t != null)
+                        valBytes[i] = t.ToUtf8Bytes();
+                    else
+                        valBytes[i] = new byte[] { };
+                }
+                else
+                    valBytes[i] = (byte[])(object)value ?? new byte[] { };
+                i++;
+            }
         }
     }
 

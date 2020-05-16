@@ -7,6 +7,8 @@ namespace ServiceStack.Redis.Support.Locking
 {
     partial class DistributedLock : IDistributedLockAsync
     {
+        public IDistributedLockAsync AsAsync() => this;
+
         async ValueTask<LockState> IDistributedLockAsync.LockAsync(string key, int acquisitionTimeout, int lockTimeout, IRedisClientAsync client, CancellationToken cancellationToken)
         {
             long lockExpire = 0;

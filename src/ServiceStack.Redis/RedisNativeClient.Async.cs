@@ -193,6 +193,10 @@ namespace ServiceStack.Redis
             return SendExpectSuccessAsync(cancellationToken, keysAndValues);
         }
 
+
+        ValueTask IRedisNativeClientAsync.MSetAsync(string[] keys, byte[][] values, CancellationToken cancellationToken)
+            => ((IRedisNativeClientAsync)this).MSetAsync(keys.ToMultiByteArray(), values, cancellationToken);
+
         ValueTask IRedisNativeClientAsync.SelectAsync(long db, CancellationToken cancellationToken)
         {
             this.db = db;

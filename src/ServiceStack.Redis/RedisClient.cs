@@ -197,24 +197,33 @@ namespace ServiceStack.Redis
 
         public void SetAll(IEnumerable<string> keys, IEnumerable<string> values)
         {
-            if (keys == null || values == null) return;
+            if (GetSetAllBytes(keys, values, out var keyBytes, out var valBytes))
+            {
+                base.MSet(keyBytes, valBytes);
+            }
+        }
+
+        bool GetSetAllBytes(IEnumerable<string> keys, IEnumerable<string> values, out byte[][] keyBytes, out byte[][] valBytes)
+        {
+            keyBytes = valBytes = default;
+            if (keys == null || values == null) return false;
             var keyArray = keys.ToArray();
             var valueArray = values.ToArray();
 
             if (keyArray.Length != valueArray.Length)
                 throw new Exception("Key length != Value Length. {0}/{1}".Fmt(keyArray.Length, valueArray.Length));
 
-            if (keyArray.Length == 0) return;
+            if (keyArray.Length == 0) return false;
 
-            var keyBytes = new byte[keyArray.Length][];
-            var valBytes = new byte[keyArray.Length][];
+            keyBytes = new byte[keyArray.Length][];
+            valBytes = new byte[keyArray.Length][];
             for (int i = 0; i < keyArray.Length; i++)
             {
                 keyBytes[i] = keyArray[i].ToUtf8Bytes();
                 valBytes[i] = valueArray[i].ToUtf8Bytes();
             }
 
-            base.MSet(keyBytes, valBytes);
+            return true;
         }
 
         public void SetAll(Dictionary<string, string> map)
@@ -225,7 +234,7 @@ namespace ServiceStack.Redis
             }
         }
 
-        private static bool GetSetAllBytes(Dictionary<string, string> map, out byte[][] keyBytes, out byte[][] valBytes)
+        private static bool GetSetAllBytes(IDictionary<string, string> map, out byte[][] keyBytes, out byte[][] valBytes)
         {
             if (map == null || map.Count == 0)
             {

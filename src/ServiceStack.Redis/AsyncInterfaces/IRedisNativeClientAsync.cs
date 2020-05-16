@@ -80,7 +80,7 @@ namespace ServiceStack.Redis
         ValueTask PSetExAsync(string key, long expireInMs, byte[] value, CancellationToken cancellationToken = default);
         ValueTask<long> SetNXAsync(string key, byte[] value, CancellationToken cancellationToken = default);
         ValueTask MSetAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken = default);
-        //ValueTask MSetAsync(string[] keys, byte[][] values, CancellationToken cancellationToken = default);
+        ValueTask MSetAsync(string[] keys, byte[][] values, CancellationToken cancellationToken = default);
         //ValueTask<bool> MSetNxAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken = default);
         //ValueTask<bool> MSetNxAsync(string[] keys, byte[][] values, CancellationToken cancellationToken = default);
         ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default);

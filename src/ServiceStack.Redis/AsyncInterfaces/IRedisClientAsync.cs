@@ -34,6 +34,10 @@ namespace ServiceStack.Redis
         - RewriteAppendOnlyFileAsync becomes BackgroundRewriteAppendOnlyFileAsync for consistency with the above
         - AcquireLockAsync - timeout made an optional arg rather than an overload
         - SetValueIf[Not]ExistsAsync - flatten overloads via optional expiry
+        - addition of GetValueAsync<T> - works like Get<T> on RedisClient, but named like GetValue for parity
+        - addition of SetAllAsync<T>
+        - move all Dictionary<,> args to IDictionary<,>
+        - removed SetValuesAsync - dup re SetAllAsync
         */
         //Basic Redis Connection operations
         long Db { get; }
@@ -88,9 +92,9 @@ namespace ServiceStack.Redis
         //ValueTask<string> UrnKey<T>Async(object id, CancellationToken cancellationToken = default);
         //ValueTask<string> UrnKeyAsync(Type type, object id, CancellationToken cancellationToken = default);
 
-        //ValueTask SetAllAsync(IEnumerable<string> keys, IEnumerable<string> values, CancellationToken cancellationToken = default);
-        ValueTask SetAllAsync(Dictionary<string, string> map, CancellationToken cancellationToken = default);
-        //ValueTask SetValuesAsync(Dictionary<string, string> map, CancellationToken cancellationToken = default);
+        ValueTask SetAllAsync(IEnumerable<string> keys, IEnumerable<string> values, CancellationToken cancellationToken = default);
+        ValueTask SetAllAsync(IDictionary<string, string> map, CancellationToken cancellationToken = default);
+        ValueTask SetAllAsync<T>(IDictionary<string, T> values, CancellationToken cancellationToken = default);
 
         ValueTask SetValueAsync(string key, string value, CancellationToken cancellationToken = default);
         ValueTask SetValueAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
@@ -98,6 +102,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> SetValueIfExistsAsync(string key, string value, TimeSpan? expireIn = default, CancellationToken cancellationToken = default);
 
         ValueTask<string> GetValueAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<T> GetValueAsync<T>(string key, CancellationToken cancellationToken = default);
         //ValueTask<string> GetAndSetValueAsync(string key, string value, CancellationToken cancellationToken = default);
 
         ValueTask<List<string>> GetValuesAsync(List<string> keys, CancellationToken cancellationToken = default);

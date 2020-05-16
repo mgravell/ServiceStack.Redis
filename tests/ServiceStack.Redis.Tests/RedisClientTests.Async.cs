@@ -462,7 +462,7 @@ namespace ServiceStack.Redis.Tests
             var key = "lockkey";
             int lockTimeout = 2;
 
-            IDistributedLockAsync distributedLock = new DistributedLock();
+            var distributedLock = new DistributedLock().AsAsync();
 
             var state = await distributedLock.LockAsync(key, lockTimeout, lockTimeout, RedisAsync);
             Assert.AreEqual(state.Result, DistributedLock.LOCK_ACQUIRED);
@@ -509,20 +509,19 @@ namespace ServiceStack.Redis.Tests
 
             Assert.That(await RedisAsync.PopItemFromSetAsync(RedisRaw.NamespacePrefix + "ids:MyPoco"), Is.EqualTo("1"));
         }
-        /*
+
         [Test]
         public async Task Can_store_multiple_keys()
         {
             var keys = 5.Times(x => "key" + x);
             var vals = 5.Times(x => "val" + x);
 
-            using (var redis = RedisClient.New())
-            {
-                redis.SetAll(keys, vals);
+            using var redis = RedisClient.New();
+            var client = redis.AsAsync();
+            await client.SetAllAsync(keys, vals);
 
-                var all = redis.GetValues(keys);
-                Assert.AreEqual(vals, all);
-            }
+            var all = await client.GetValuesAsync(keys);
+            Assert.AreEqual(vals, all);
         }
 
         [Test]
@@ -533,13 +532,12 @@ namespace ServiceStack.Redis.Tests
             var map = new Dictionary<string, string>();
             keys.ForEach(x => map[x] = "val" + x);
 
-            using (var redis = RedisClient.New())
-            {
-                redis.SetAll(map);
+            using var redis = RedisClient.New();
+            var client = redis.AsAsync();
+            await client.SetAllAsync(map);
 
-                var all = redis.GetValuesMap(keys);
-                Assert.AreEqual(map, all);
-            }
+            var all = await client.GetValuesMapAsync(keys);
+            Assert.AreEqual(map, all);
         }
 
         [Test]
@@ -549,15 +547,13 @@ namespace ServiceStack.Redis.Tests
             map["key_a"] = "123";
             map["key_b"] = null;
 
-            using (var redis = RedisClient.New())
-            {
-                redis.SetAll(map);
+            using var redis = RedisClient.New();
+            var client = redis.AsAsync();
+            await client.SetAllAsync(map);
 
-                Assert.That(redis.Get<string>("key_a"), Is.EqualTo("123"));
-                Assert.That(redis.Get("key_b"), Is.EqualTo(""));
-            }
+            Assert.That(await client.GetValueAsync<string>("key_a"), Is.EqualTo("123"));
+            Assert.That(await client.GetValueAsync("key_b"), Is.EqualTo(""));
         }
-
 
         [Test]
         public async Task Can_store_Dictionary_as_bytes()
@@ -566,15 +562,15 @@ namespace ServiceStack.Redis.Tests
             map["key_a"] = "123".ToUtf8Bytes();
             map["key_b"] = null;
 
-            using (var redis = RedisClient.New())
-            {
-                redis.SetAll(map);
+            using var redis = RedisClient.New();
+            var client = redis.AsAsync();
+            await client.SetAllAsync(map);
 
-                Assert.That(redis.Get<string>("key_a"), Is.EqualTo("123"));
-                Assert.That(redis.Get("key_b"), Is.EqualTo(""));
-            }
+            Assert.That(await client.GetValueAsync<string>("key_a"), Is.EqualTo("123"));
+            Assert.That(await client.GetValueAsync("key_b"), Is.EqualTo(""));
         }
 
+        /*
         [Test]
         public async Task Should_reset_slowlog()
         {

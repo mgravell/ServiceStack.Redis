@@ -8,6 +8,7 @@ using ServiceStack.Data;
 using ServiceStack.FluentValidation.Validators;
 using ServiceStack.Redis.Generic;
 using ServiceStack.Redis.Pipeline;
+using ServiceStack.Redis.Support.Locking;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -40,6 +41,7 @@ namespace ServiceStack.Redis.Tests
         [TestCase(typeof(IRedisTransactionBase), typeof(IRedisTransactionBaseAsync))]
         [TestCase(typeof(IRedisTypedClient<>), typeof(IRedisTypedClientAsync<>))]
         [TestCase(typeof(IRemoveByPattern), typeof(IRemoveByPatternAsync))]
+        [TestCase(typeof(IDistributedLock), typeof(IDistributedLockAsync))]
         public void TestFullyImplemented(Type syncInterface, Type asyncInterface)
         {
             var syncTypes = AllTypes.Where(x => Implements(x, syncInterface)).ToArray();

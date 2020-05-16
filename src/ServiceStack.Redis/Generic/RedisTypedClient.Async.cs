@@ -19,6 +19,8 @@ namespace ServiceStack.Redis.Generic
     partial class RedisTypedClient<T>
         : IRedisTypedClientAsync<T>
     {
+        public IRedisTypedClientAsync<T> AsAsync() => this;
+
         IRedisClientAsync AsyncClient => client;
         IRedisNativeClientAsync AsyncNative => client;
 

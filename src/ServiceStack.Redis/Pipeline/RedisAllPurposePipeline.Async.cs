@@ -10,13 +10,13 @@ namespace ServiceStack.Redis
 
     public partial class RedisAllPurposePipeline : IRedisPipelineAsync
     {
-        private IRedisPipelineAsync AsyncPipeline => this;
+        public IRedisPipelineAsync AsAsync() => this;
 
         private protected virtual async ValueTask<bool> ReplayAsync(CancellationToken cancellationToken)
         {
             Init();
             Execute();
-            await AsyncPipeline.FlushAsync(cancellationToken).ConfigureAwait(false);
+            await AsAsync().FlushAsync(cancellationToken).ConfigureAwait(false);
             return true;
         }
         ValueTask<bool> IRedisPipelineSharedAsync.ReplayAsync(CancellationToken cancellationToken)

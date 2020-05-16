@@ -24,6 +24,8 @@ namespace ServiceStack.Redis
 {
     partial class RedisClient : IRedisClientAsync, IRemoveByPatternAsync
     {
+        public IRedisClientAsync AsAsync() => this;
+
         // the typed client implements this for us
         IRedisTypedClientAsync<T> IRedisClientAsync.As<T>() => (IRedisTypedClientAsync<T>)As<T>();
 
@@ -69,6 +71,14 @@ namespace ServiceStack.Redis
             }
         }
 
+        private async ValueTask<T> ExecAsync<T>(Func<IRedisClientAsync, ValueTask<T>> action)
+        {
+            using (JsConfig.With(new Text.Config { ExcludeTypeInfo = false }))
+            {
+                return await action(this);
+            }
+        }
+
         ValueTask IRedisClientAsync.SetValueAsync(string key, string value, CancellationToken cancellationToken)
         {
             var bytesValue = value?.ToUtf8Bytes();
@@ -77,6 +87,15 @@ namespace ServiceStack.Redis
 
         ValueTask<string> IRedisClientAsync.GetValueAsync(string key, CancellationToken cancellationToken)
             => FromUtf8Bytes(NativeAsync.GetAsync(key, cancellationToken));
+
+        ValueTask<T> IRedisClientAsync.GetValueAsync<T>(string key, CancellationToken cancellationToken)
+        {
+            return ExecAsync(async r =>
+                typeof(T) == typeof(byte[])
+                    ? (T)(object)(await ((IRedisNativeClientAsync)r).GetAsync(key, cancellationToken))
+                    : JsonSerializer.DeserializeFromString<T>(await r.GetValueAsync(key, cancellationToken).ConfigureAwait(false))
+            );
+        }
 
         async ValueTask<List<string>> IRedisClientAsync.SearchKeysAsync(string pattern, CancellationToken cancellationToken)
         {
@@ -131,8 +150,28 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisClientAsync.SetEntryInHashAsync(string hashId, string key, string value, CancellationToken cancellationToken)
             => IsSuccess(NativeAsync.HSetAsync(hashId, key.ToUtf8Bytes(), value.ToUtf8Bytes()));
 
-        ValueTask IRedisClientAsync.SetAllAsync(Dictionary<string, string> map, CancellationToken cancellationToken)
+        ValueTask IRedisClientAsync.SetAllAsync(IDictionary<string, string> map, CancellationToken cancellationToken)
             => GetSetAllBytes(map, out var keyBytes, out var valBytes) ? NativeAsync.MSetAsync(keyBytes, valBytes, cancellationToken) : default;
+
+        ValueTask IRedisClientAsync.SetAllAsync(IEnumerable<string> keys, IEnumerable<string> values, CancellationToken cancellationToken)
+            => GetSetAllBytes(keys, values, out var keyBytes, out var valBytes) ? NativeAsync.MSetAsync(keyBytes, valBytes, cancellationToken) : default;
+
+        ValueTask IRedisClientAsync.SetAllAsync<T>(IDictionary<string, T> values, CancellationToken cancellationToken)
+        {
+            if (values.Count != 0)
+            {
+                return ExecAsync(r =>
+                {
+                    // need to do this inside Exec for the JSON config bits
+                    GetSetAllBytesTyped<T>(values, out var keys, out var valBytes);
+                    return ((IRedisNativeClientAsync)r).MSetAsync(keys, valBytes, cancellationToken);
+                });
+            }
+            else
+            {
+                return default;
+            }
+        }
 
         ValueTask IRedisClientAsync.RenameKeyAsync(string fromName, string toName, CancellationToken cancellationToken)
             => NativeAsync.RenameAsync(fromName, toName, cancellationToken);
