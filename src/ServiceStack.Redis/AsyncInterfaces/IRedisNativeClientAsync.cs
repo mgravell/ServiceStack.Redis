@@ -25,6 +25,7 @@ namespace ServiceStack.Redis
         - LastSave is now a method
         - shutdown now takes nosave arg
         - expose the optional args on Set
+        - add SlowlogGet and SlowlogReset
          */
 
         ////Redis utility operations
@@ -254,5 +255,8 @@ namespace ServiceStack.Redis
         //ValueTask ScriptFlushAsync(CancellationToken cancellationToken = default);
         //ValueTask ScriptKillAsync(CancellationToken cancellationToken = default);
         //ValueTask<byte[]> ScriptLoadAsync(string body, CancellationToken cancellationToken = default);
+
+        ValueTask SlowlogResetAsync(CancellationToken cancellationToken = default);
+        ValueTask<object[]> SlowlogGetAsync(int? top = null, CancellationToken cancellationToken = default);
     }
 }

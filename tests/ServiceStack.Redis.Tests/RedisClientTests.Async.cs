@@ -570,30 +570,23 @@ namespace ServiceStack.Redis.Tests
             Assert.That(await client.GetValueAsync("key_b"), Is.EqualTo(""));
         }
 
-        /*
         [Test]
         public async Task Should_reset_slowlog()
         {
-            using (var redis = RedisClient.New())
-            {
-                redis.SlowlogReset();
-            }
+            await RedisAsync.SlowlogResetAsync();
         }
 
         [Test]
-        public async Task Can_get_showlog()
+        public async Task Can_get_slowlog()
         {
-            using (var redis = RedisClient.New())
-            {
-                var log = redis.GetSlowlog(10);
+            var log = await RedisAsync.SlowlogGetAsync(10);
 
-                foreach (var t in log)
-                {
-                    Console.WriteLine(t.Id);
-                    Console.WriteLine(t.Duration);
-                    Console.WriteLine(t.Timestamp);
-                    Console.WriteLine(string.Join(":", t.Arguments));
-                }
+            foreach (var t in log)
+            {
+                Console.WriteLine(t.Id);
+                Console.WriteLine(t.Duration);
+                Console.WriteLine(t.Timestamp);
+                Console.WriteLine(string.Join(":", t.Arguments));
             }
         }
 
@@ -601,23 +594,24 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_change_db_at_runtime()
         {
-            using (var redis = new RedisClient(TestConfig.SingleHost, TestConfig.RedisPort, db: 1))
+            using (var syncClient = new RedisClient(TestConfig.SingleHost, TestConfig.RedisPort, db: 1))
             {
+                var redis = syncClient.AsAsync();
                 var val = Environment.TickCount;
                 var key = "test" + val;
                 try
                 {
-                    redis.Set(key, val);
-                    redis.ChangeDb(2);
-                    Assert.That(redis.Get<int>(key), Is.EqualTo(0));
-                    redis.ChangeDb(1);
-                    Assert.That(redis.Get<int>(key), Is.EqualTo(val));
+                    await redis.SetValueAsync(key, val);
+                    await redis.ChangeDbAsync(2);
+                    Assert.That(await redis.GetValueAsync<int>(key), Is.EqualTo(0));
+                    await redis.ChangeDbAsync(1);
+                    Assert.That(await redis.GetValueAsync<int>(key), Is.EqualTo(val));
                     redis.Dispose();
                 }
                 finally
                 {
-                    redis.ChangeDb(1);
-                    redis.Del(key);
+                    await redis.ChangeDbAsync(1);
+                    await redis.RemoveEntryAsync(key);
                 }
             }
         }
@@ -625,55 +619,54 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_Set_Expire_Seconds()
         {
-            Redis.SetValue("key", "val", expireIn: TimeSpan.FromSeconds(1));
-            Assert.That(Redis.ContainsKey("key"), Is.True);
+            await RedisAsync.SetValueAsync("key", "val", expireIn: TimeSpan.FromSeconds(1));
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
             await Task.Delay(2000);
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
         }
 
         [Test]
         public async Task Can_Set_Expire_MilliSeconds()
         {
-            Redis.SetValue("key", "val", expireIn: TimeSpan.FromMilliseconds(1000));
-            Assert.That(Redis.ContainsKey("key"), Is.True);
+            await RedisAsync.SetValueAsync("key", "val", expireIn: TimeSpan.FromMilliseconds(1000));
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
             await Task.Delay(2000);
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
         }
 
         [Test]
         public async Task Can_Set_Expire_Seconds_if_exists()
         {
-            Assert.That(Redis.SetValueIfExists("key", "val", expireIn: TimeSpan.FromMilliseconds(1500)),
+            Assert.That(await RedisAsync.SetValueIfExistsAsync("key", "val", expireIn: TimeSpan.FromMilliseconds(1500)),
                 Is.False);
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
 
-            Redis.SetValue("key", "val");
-            Assert.That(Redis.SetValueIfExists("key", "val", expireIn: TimeSpan.FromMilliseconds(1000)),
+            await RedisAsync.SetValueAsync("key", "val");
+            Assert.That(await RedisAsync.SetValueIfExistsAsync("key", "val", expireIn: TimeSpan.FromMilliseconds(1000)),
                 Is.True);
-            Assert.That(Redis.ContainsKey("key"), Is.True);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
 
             await Task.Delay(2000);
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
         }
 
         [Test]
         public async Task Can_Set_Expire_Seconds_if_not_exists()
         {
-            Assert.That(Redis.SetValueIfNotExists("key", "val", expireIn: TimeSpan.FromMilliseconds(1000)),
+            Assert.That(await RedisAsync.SetValueIfNotExistsAsync("key", "val", expireIn: TimeSpan.FromMilliseconds(1000)),
                 Is.True);
-            Assert.That(Redis.ContainsKey("key"), Is.True);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
 
-            Assert.That(Redis.SetValueIfNotExists("key", "val", expireIn: TimeSpan.FromMilliseconds(1000)),
+            Assert.That(await RedisAsync.SetValueIfNotExistsAsync("key", "val", expireIn: TimeSpan.FromMilliseconds(1000)),
                 Is.False);
 
             await Task.Delay(2000);
-            Assert.That(Redis.ContainsKey("key"), Is.False);
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
 
-            Redis.Remove("key");
-            Redis.SetValueIfNotExists("key", "val", expireIn: TimeSpan.FromMilliseconds(1000));
-            Assert.That(Redis.ContainsKey("key"), Is.True);
+            await RedisAsync.RemoveEntryAsync("key");
+            await RedisAsync.SetValueIfNotExistsAsync("key", "val", expireIn: TimeSpan.FromMilliseconds(1000));
+            Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
         }
-        */
     }
 
 }

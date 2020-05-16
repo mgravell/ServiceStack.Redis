@@ -564,7 +564,7 @@ namespace ServiceStack.Redis.Tests
         }
 
         [Test]
-        public void Can_get_showlog()
+        public void Can_get_slowlog()
         {
             using (var redis = RedisClient.New())
             {

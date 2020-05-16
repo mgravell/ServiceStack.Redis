@@ -352,6 +352,18 @@ namespace ServiceStack.Redis
             var result = await NativeAsync.SPopAsync(setId, count, cancellationToken).ConfigureAwait(false);
             return result.ToStringList();
         }
+
+        ValueTask IRedisClientAsync.SlowlogResetAsync(CancellationToken cancellationToken)
+            => NativeAsync.SlowlogResetAsync(cancellationToken);
+
+        async ValueTask<SlowlogItem[]> IRedisClientAsync.SlowlogGetAsync(int? top, CancellationToken cancellationToken)
+        {
+            var data = await NativeAsync.SlowlogGetAsync(top, cancellationToken).ConfigureAwait(false);
+            return ParseSlowlog(data);
+        }
+
+        ValueTask IRedisClientAsync.SetValueAsync<T>(string key, T value, CancellationToken cancellationToken)
+            => ExecAsync(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), cancellationToken: cancellationToken));
     }
 }
  

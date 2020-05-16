@@ -35,9 +35,10 @@ namespace ServiceStack.Redis
         - AcquireLockAsync - timeout made an optional arg rather than an overload
         - SetValueIf[Not]ExistsAsync - flatten overloads via optional expiry
         - addition of GetValueAsync<T> - works like Get<T> on RedisClient, but named like GetValue for parity
-        - addition of SetAllAsync<T>
+        - addition of SetAllAsync<T>/SetValueAsync<T>
         - move all Dictionary<,> args to IDictionary<,>
         - removed SetValuesAsync - dup re SetAllAsync
+        - add SlowlogGet / Reset
         */
         //Basic Redis Connection operations
         long Db { get; }
@@ -97,6 +98,7 @@ namespace ServiceStack.Redis
         ValueTask SetAllAsync<T>(IDictionary<string, T> values, CancellationToken cancellationToken = default);
 
         ValueTask SetValueAsync(string key, string value, CancellationToken cancellationToken = default);
+        ValueTask SetValueAsync<T>(string key, T value, CancellationToken cancellationToken = default);
         ValueTask SetValueAsync(string key, string value, TimeSpan expireIn, CancellationToken cancellationToken = default);
         ValueTask<bool> SetValueIfNotExistsAsync(string key, string value, TimeSpan? expireIn = default, CancellationToken cancellationToken = default);
         ValueTask<bool> SetValueIfExistsAsync(string key, string value, TimeSpan? expireIn = default, CancellationToken cancellationToken = default);
@@ -368,5 +370,8 @@ namespace ServiceStack.Redis
         //ValueTask<string> LoadLuaScriptAsync(string body, CancellationToken cancellationToken = default);
 
         //#endregion
+
+        ValueTask SlowlogResetAsync(CancellationToken cancellationToken = default);
+        ValueTask<SlowlogItem[]> SlowlogGetAsync(int? top = null, CancellationToken cancellationToken = default);
     }
 }

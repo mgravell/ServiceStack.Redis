@@ -417,5 +417,16 @@ namespace ServiceStack.Redis
             AssertNotNull(setId, nameof(setId));
             return SendExpectMultiDataAsync(cancellationToken, Commands.SPop, setId.ToUtf8Bytes(), count.ToUtf8Bytes());
         }
+
+        ValueTask IRedisNativeClientAsync.SlowlogResetAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.Slowlog, "RESET".ToUtf8Bytes());
+
+        ValueTask<object[]> IRedisNativeClientAsync.SlowlogGetAsync(int? top, CancellationToken cancellationToken)
+        {
+            if (top.HasValue)
+                return SendExpectDeeplyNestedMultiDataAsync(cancellationToken, Commands.Slowlog, Commands.Get, top.Value.ToUtf8Bytes());
+            else
+                return SendExpectDeeplyNestedMultiDataAsync(cancellationToken, Commands.Slowlog, Commands.Get);
+        }
     }
 }
