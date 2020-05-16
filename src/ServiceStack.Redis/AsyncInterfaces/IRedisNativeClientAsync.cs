@@ -94,11 +94,11 @@ namespace ServiceStack.Redis
         //ValueTask<double>  IncrByFloatAsync(string key, double incrBy, CancellationToken cancellationToken = default);
         //ValueTask<long> DecrAsync(string key, CancellationToken cancellationToken = default);
         //ValueTask<long> DecrByAsync(string key, int decrBy, CancellationToken cancellationToken = default);
-        //ValueTask<long> AppendAsync(string key, byte[] value, CancellationToken cancellationToken = default);
-        //ValueTask<byte[]> GetRangeAsync(string key, int fromIndex, int toIndex, CancellationToken cancellationToken = default);
-        //ValueTask<long> SetRangeAsync(string key, int offset, byte[] value, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetBitAsync(string key, int offset, CancellationToken cancellationToken = default);
-        //ValueTask<long> SetBitAsync(string key, int offset, int value, CancellationToken cancellationToken = default);
+        ValueTask<long> AppendAsync(string key, byte[] value, CancellationToken cancellationToken = default);
+        ValueTask<byte[]> GetRangeAsync(string key, int fromIndex, int toIndex, CancellationToken cancellationToken = default);
+        ValueTask<long> SetRangeAsync(string key, int offset, byte[] value, CancellationToken cancellationToken = default);
+        ValueTask<long> GetBitAsync(string key, int offset, CancellationToken cancellationToken = default);
+        ValueTask<long> SetBitAsync(string key, int offset, int value, CancellationToken cancellationToken = default);
 
         ValueTask<string> RandomKeyAsync(CancellationToken cancellationToken = default);
         ValueTask RenameAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);

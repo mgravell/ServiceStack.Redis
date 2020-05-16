@@ -1,6 +1,7 @@
 ﻿using ServiceStack.Redis.Pipeline;
 using ServiceStack.Text;
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,29 +12,32 @@ namespace ServiceStack.Redis
     {
         internal IRedisPipelineSharedAsync PipelineAsync
             => (IRedisPipelineSharedAsync)pipeline;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void AssertNotNull(object obj, string name = "key")
+        {
+            if (obj is null) Throw(name);
+            static void Throw(string name) => throw new ArgumentNullException(name);
+        }
+
         ValueTask<byte[][]> IRedisNativeClientAsync.TimeAsync(CancellationToken cancellationToken)
             => SendExpectMultiDataAsync(cancellationToken, Commands.Time);
 
         ValueTask<long> IRedisNativeClientAsync.IncrAsync(string key, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
+            AssertNotNull(key);
             return SendExpectLongAsync(cancellationToken, Commands.Incr, key.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.ExistsAsync(string key, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
+            AssertNotNull(key);
             return SendExpectLongAsync(cancellationToken, Commands.Exists, key.ToUtf8Bytes());
         }
 
         ValueTask<bool> IRedisNativeClientAsync.SetAsync(string key, byte[] value, bool exists, long expirySeconds, long expiryMilliseconds, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
+            AssertNotNull(key);
             value = value ?? TypeConstants.EmptyByteArray;
 
             if (value.Length > OneGb)
@@ -58,8 +62,7 @@ namespace ServiceStack.Redis
         }
         ValueTask IRedisNativeClientAsync.SetAsync(string key, byte[] value, long expirySeconds, long expiryMilliseconds, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
+            AssertNotNull(key);
             value = value ?? TypeConstants.EmptyByteArray;
 
             if (value.Length > OneGb)
@@ -84,19 +87,14 @@ namespace ServiceStack.Redis
 
         ValueTask<byte[]> IRedisNativeClientAsync.GetAsync(string key, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
+            AssertNotNull(key);
             return SendExpectDataAsync(cancellationToken, Commands.Get, key.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.DelAsync(string key, CancellationToken cancellationToken)
         {
-            var bytes = key.ToUtf8Bytes();
-            if (bytes == null)
-                throw new ArgumentNullException("key");
-
-            return SendExpectLongAsync(cancellationToken, Commands.Del, bytes);
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.Del, key.ToUtf8Bytes());
         }
 
         ValueTask<ScanResult> IRedisNativeClientAsync.ScanAsync(ulong cursor, int count, string match, CancellationToken cancellationToken)
@@ -112,9 +110,7 @@ namespace ServiceStack.Redis
 
         ValueTask<string> IRedisNativeClientAsync.TypeAsync(string key, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
+            AssertNotNull(key);
             return SendExpectCodeAsync(cancellationToken, Commands.Type, key.ToUtf8Bytes());
         }
 
@@ -205,8 +201,7 @@ namespace ServiceStack.Redis
 
         ValueTask<long> IRedisNativeClientAsync.DelAsync(string[] keys, CancellationToken cancellationToken)
         {
-            if (keys == null)
-                throw new ArgumentNullException("keys");
+            AssertNotNull(keys, nameof(keys));
 
             var cmdWithArgs = MergeCommandWithArgs(Commands.Del, keys);
             return SendExpectLongAsync(cancellationToken, cmdWithArgs);
@@ -214,47 +209,37 @@ namespace ServiceStack.Redis
 
         ValueTask<bool> IRedisNativeClientAsync.ExpireAsync(string key, int seconds, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
+            AssertNotNull(key);
             return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.Expire, key.ToUtf8Bytes(), seconds.ToUtf8Bytes()));
         }
 
         ValueTask<bool> IRedisNativeClientAsync.PExpireAsync(string key, long ttlMs, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
+            AssertNotNull(key);
             return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.PExpire, key.ToUtf8Bytes(), ttlMs.ToUtf8Bytes()));
         }
 
         ValueTask<bool> IRedisNativeClientAsync.ExpireAtAsync(string key, long unixTime, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
+            AssertNotNull(key);
             return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.ExpireAt, key.ToUtf8Bytes(), unixTime.ToUtf8Bytes()));
         }
 
         ValueTask<bool> IRedisNativeClientAsync.PExpireAtAsync(string key, long unixTimeMs, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
+            AssertNotNull(key);
             return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.PExpireAt, key.ToUtf8Bytes(), unixTimeMs.ToUtf8Bytes()));
         }
 
         ValueTask<long> IRedisNativeClientAsync.TtlAsync(string key, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
+            AssertNotNull(key);
             return SendExpectLongAsync(cancellationToken, Commands.Ttl, key.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.PTtlAsync(string key, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-
+            AssertNotNull(key);
             return SendExpectLongAsync(cancellationToken, Commands.PTtl, key.ToUtf8Bytes());
         }
 
@@ -322,16 +307,13 @@ namespace ServiceStack.Redis
 
         ValueTask<byte[][]> IRedisNativeClientAsync.KeysAsync(string pattern, CancellationToken cancellationToken)
         {
-            if (pattern == null)
-                throw new ArgumentNullException("pattern");
-
+            AssertNotNull(pattern, nameof(pattern));
             return SendExpectMultiDataAsync(cancellationToken, Commands.Keys, pattern.ToUtf8Bytes());
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.MGetAsync(string[] keys, CancellationToken cancellationToken)
         {
-            if (keys == null)
-                throw new ArgumentNullException("keys");
+            AssertNotNull(keys, nameof(keys));
             if (keys.Length == 0)
                 throw new ArgumentException("keys");
 
@@ -342,9 +324,8 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisNativeClientAsync.SetExAsync(string key, int expireInSeconds, byte[] value, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException("key");
-            value = value ?? TypeConstants.EmptyByteArray;
+            AssertNotNull(key);
+            value ??= TypeConstants.EmptyByteArray;
 
             if (value.Length > OneGb)
                 throw new ArgumentException("value exceeds 1G", "value");
@@ -354,8 +335,7 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisNativeClientAsync.WatchAsync(string[] keys, CancellationToken cancellationToken)
         {
-            if (keys == null)
-                throw new ArgumentNullException("keys");
+            AssertNotNull(keys, nameof(keys));
             if (keys.Length == 0)
                 throw new ArgumentException("keys");
 
@@ -366,5 +346,37 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisNativeClientAsync.UnWatchAsync(CancellationToken cancellationToken)
             => DiscardResult(SendExpectCodeAsync(cancellationToken, Commands.UnWatch));
+
+        ValueTask<long> IRedisNativeClientAsync.AppendAsync(string key, byte[] value, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.Append, key.ToUtf8Bytes(), value);
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.GetRangeAsync(string key, int fromIndex, int toIndex, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectDataAsync(cancellationToken, Commands.GetRange, key.ToUtf8Bytes(), fromIndex.ToUtf8Bytes(), toIndex.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.SetRangeAsync(string key, int offset, byte[] value, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.SetRange, key.ToUtf8Bytes(), offset.ToUtf8Bytes(), value);
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.GetBitAsync(string key, int offset, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.GetBit, key.ToUtf8Bytes(), offset.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.SetBitAsync(string key, int offset, int value, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            if (value > 1 || value < 0)
+                throw new ArgumentOutOfRangeException(nameof(value), "value is out of range");
+            return SendExpectLongAsync(cancellationToken, Commands.SetBit, key.ToUtf8Bytes(), offset.ToUtf8Bytes(), value.ToUtf8Bytes());
+        }
     }
 }

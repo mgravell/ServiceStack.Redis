@@ -104,7 +104,7 @@ namespace ServiceStack.Redis
         ValueTask<List<T>> GetValuesAsync<T>(List<string> keys, CancellationToken cancellationToken = default);
         ValueTask<Dictionary<string, string>> GetValuesMapAsync(List<string> keys, CancellationToken cancellationToken = default);
         ValueTask<Dictionary<string, T>> GetValuesMapAsync<T>(List<string> keys, CancellationToken cancellationToken = default);
-        //ValueTask<long> AppendToValueAsync(string key, string value, CancellationToken cancellationToken = default);
+        ValueTask<long> AppendToValueAsync(string key, string value, CancellationToken cancellationToken = default);
         ValueTask RenameKeyAsync(string fromName, string toName, CancellationToken cancellationToken = default);
 
         ////store POCOs as hash

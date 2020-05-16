@@ -16,7 +16,6 @@ using ServiceStack.Redis.Pipeline;
 using ServiceStack.Text;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -289,6 +288,9 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisClientAsync.UnWatchAsync(CancellationToken cancellationToken)
             => NativeAsync.UnWatchAsync(cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.AppendToValueAsync(string key, string value, CancellationToken cancellationToken)
+            => NativeAsync.AppendAsync(key, value.ToUtf8Bytes(), cancellationToken);
     }
 }
  

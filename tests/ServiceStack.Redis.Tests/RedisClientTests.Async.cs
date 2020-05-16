@@ -428,17 +428,17 @@ namespace ServiceStack.Redis.Tests
             Assert.Fail("should have Timed out");
         }
 
-        /*
+        
         [Test]
         public async Task Can_Append()
         {
             const string expectedString = "Hello, " + "World!";
-            Redis.SetValue("key", "Hello, ");
-            var currentLength = Redis.AppendToValue("key", "World!");
+            await RedisAsync.SetValueAsync("key", "Hello, ");
+            var currentLength = await RedisAsync.AppendToValueAsync("key", "World!");
 
             Assert.That(currentLength, Is.EqualTo(expectedString.Length));
 
-            var val = Redis.GetValue("key");
+            var val = await RedisAsync.GetValueAsync("key");
             Assert.That(val, Is.EqualTo(expectedString));
         }
 
@@ -446,17 +446,17 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_GetRange()
         {
             const string helloWorld = "Hello, World!";
-            Redis.SetValue("key", helloWorld);
+            await RedisAsync.SetValueAsync("key", helloWorld);
 
             var fromIndex = "Hello, ".Length;
             var toIndex = "Hello, World".Length - 1;
 
             var expectedString = helloWorld.Substring(fromIndex, toIndex - fromIndex + 1);
-            var world = Redis.GetRange("key", fromIndex, toIndex);
+            var world = await NativeAsync.GetRangeAsync("key", fromIndex, toIndex);
 
             Assert.That(world.Length, Is.EqualTo(expectedString.Length));
         }
-
+        /*
         [Test]
         public async Task Can_create_distributed_lock()
         {
