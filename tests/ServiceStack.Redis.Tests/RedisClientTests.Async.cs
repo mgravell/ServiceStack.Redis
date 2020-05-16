@@ -428,7 +428,6 @@ namespace ServiceStack.Redis.Tests
             Assert.Fail("should have Timed out");
         }
 
-        
         [Test]
         public async Task Can_Append()
         {
@@ -456,38 +455,43 @@ namespace ServiceStack.Redis.Tests
 
             Assert.That(world.Length, Is.EqualTo(expectedString.Length));
         }
-        /*
+
         [Test]
         public async Task Can_create_distributed_lock()
         {
             var key = "lockkey";
             int lockTimeout = 2;
 
-            var distributedLock = new DistributedLock();
-            long lockExpire;
-            Assert.AreEqual(distributedLock.Lock(key, lockTimeout, lockTimeout, out lockExpire, Redis), DistributedLock.LOCK_ACQUIRED);
+            IDistributedLockAsync distributedLock = new DistributedLock();
+
+            var state = await distributedLock.LockAsync(key, lockTimeout, lockTimeout, RedisAsync);
+            Assert.AreEqual(state.Result, DistributedLock.LOCK_ACQUIRED);
 
             //can't re-lock
             distributedLock = new DistributedLock();
-            Assert.AreEqual(distributedLock.Lock(key, lockTimeout, lockTimeout, out lockExpire, Redis), DistributedLock.LOCK_NOT_ACQUIRED);
+            state = await distributedLock.LockAsync(key, lockTimeout, lockTimeout, RedisAsync);
+            Assert.AreEqual(state.Result, DistributedLock.LOCK_NOT_ACQUIRED);
 
             // re-acquire lock after timeout
             await Task.Delay(lockTimeout * 1000 + 1000);
             distributedLock = new DistributedLock();
-            Assert.AreEqual(distributedLock.Lock(key, lockTimeout, lockTimeout, out lockExpire, Redis), DistributedLock.LOCK_RECOVERED);
+            state = await distributedLock.LockAsync(key, lockTimeout, lockTimeout, RedisAsync);
 
+            (var result, var expire) = state; // test decomposition since we are here
+            Assert.AreEqual(result, DistributedLock.LOCK_RECOVERED);
 
-            Assert.IsTrue(distributedLock.Unlock(key, lockExpire, Redis));
+            Assert.IsTrue(await distributedLock.UnlockAsync(key, expire, RedisAsync));
 
             //can now lock
             distributedLock = new DistributedLock();
-            Assert.AreEqual(distributedLock.Lock(key, lockTimeout, lockTimeout, out lockExpire, Redis), DistributedLock.LOCK_ACQUIRED);
+            state = await distributedLock.LockAsync(key, lockTimeout, lockTimeout, RedisAsync);
+            Assert.AreEqual(state.Result, DistributedLock.LOCK_ACQUIRED);
 
 
             //cleanup
-            Assert.IsTrue(distributedLock.Unlock(key, lockExpire, Redis));
+            Assert.IsTrue(await distributedLock.UnlockAsync(key, state.Expiration, RedisAsync));
         }
-
+        /*
         public class MyPoco
         {
             public int Id { get; set; }

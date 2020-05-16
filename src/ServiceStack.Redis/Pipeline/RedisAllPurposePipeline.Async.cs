@@ -1,6 +1,7 @@
 using ServiceStack.Redis.Pipeline;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -142,42 +143,86 @@ namespace ServiceStack.Redis
 
         void IRedisQueueableOperationAsync.QueueCommand(Func<IRedisClientAsync, ValueTask<byte[]>> command, Action<byte[]> onSuccessCallback, Action<Exception> onErrorCallback)
         {
-            throw new NotImplementedException();
+            BeginQueuedCommand(new QueuedRedisCommand
+            {
+                OnSuccessBytesCallback = onSuccessCallback,
+                OnErrorCallback = onErrorCallback
+            }.WithAsyncReturnCommand(command));
+            AssertSync(command(RedisClient));
         }
 
         void IRedisQueueableOperationAsync.QueueCommand(Func<IRedisClientAsync, ValueTask<byte[][]>> command, Action<byte[][]> onSuccessCallback, Action<Exception> onErrorCallback)
         {
-            throw new NotImplementedException();
+            BeginQueuedCommand(new QueuedRedisCommand
+            {
+                OnSuccessMultiBytesCallback = onSuccessCallback,
+                OnErrorCallback = onErrorCallback
+            }.WithAsyncReturnCommand(command));
+            AssertSync(command(RedisClient));
         }
 
         void IRedisQueueableOperationAsync.QueueCommand(Func<IRedisClientAsync, ValueTask<string>> command, Action<string> onSuccessCallback, Action<Exception> onErrorCallback)
         {
-            throw new NotImplementedException();
+            BeginQueuedCommand(new QueuedRedisCommand
+            {
+                OnSuccessStringCallback = onSuccessCallback,
+                OnErrorCallback = onErrorCallback
+            }.WithAsyncReturnCommand(command));
+            AssertSync(command(RedisClient));
         }
 
         void IRedisQueueableOperationAsync.QueueCommand(Func<IRedisClientAsync, ValueTask<List<string>>> command, Action<List<string>> onSuccessCallback, Action<Exception> onErrorCallback)
         {
-            throw new NotImplementedException();
+            BeginQueuedCommand(new QueuedRedisCommand
+            {
+                OnSuccessMultiStringCallback = onSuccessCallback,
+                OnErrorCallback = onErrorCallback
+            }.WithAsyncReturnCommand(command));
+            AssertSync(command(RedisClient));
         }
 
         void IRedisQueueableOperationAsync.QueueCommand(Func<IRedisClientAsync, ValueTask<HashSet<string>>> command, Action<HashSet<string>> onSuccessCallback, Action<Exception> onErrorCallback)
         {
-            throw new NotImplementedException();
+            BeginQueuedCommand(new QueuedRedisCommand
+            {
+                OnSuccessMultiStringCallback = list => onSuccessCallback(list.ToHashSet()),
+                OnErrorCallback = onErrorCallback
+            }.WithAsyncReturnCommand(async r =>
+            {
+                var result = await command(r).ConfigureAwait(false);
+                return result.ToList();
+            }));
+            AssertSync(command(RedisClient));
         }
 
         void IRedisQueueableOperationAsync.QueueCommand(Func<IRedisClientAsync, ValueTask<Dictionary<string, string>>> command, Action<Dictionary<string, string>> onSuccessCallback, Action<Exception> onErrorCallback)
         {
-            throw new NotImplementedException();
+            BeginQueuedCommand(new QueuedRedisCommand
+            {
+                OnSuccessDictionaryStringCallback = onSuccessCallback,
+                OnErrorCallback = onErrorCallback
+            }.WithAsyncReturnCommand(command));
+            AssertSync(command(RedisClient));
         }
 
         void IRedisQueueableOperationAsync.QueueCommand(Func<IRedisClientAsync, ValueTask<RedisData>> command, Action<RedisData> onSuccessCallback, Action<Exception> onErrorCallback)
         {
-            throw new NotImplementedException();
+            BeginQueuedCommand(new QueuedRedisCommand
+            {
+                OnSuccessRedisDataCallback = onSuccessCallback,
+                OnErrorCallback = onErrorCallback
+            }.WithAsyncReturnCommand(command));
+            AssertSync(command(RedisClient));
         }
 
         void IRedisQueueableOperationAsync.QueueCommand(Func<IRedisClientAsync, ValueTask<RedisText>> command, Action<RedisText> onSuccessCallback, Action<Exception> onErrorCallback)
         {
-            throw new NotImplementedException();
+            BeginQueuedCommand(new QueuedRedisCommand
+            {
+                OnSuccessRedisTextCallback = onSuccessCallback,
+                OnErrorCallback = onErrorCallback
+            }.WithAsyncReturnCommand(command));
+            AssertSync(command(RedisClient));
         }
 
         void IRedisQueueCompletableOperationAsync.CompleteMultiBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[][]>> multiBytesReadCommand)

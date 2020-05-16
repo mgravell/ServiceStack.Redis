@@ -378,5 +378,28 @@ namespace ServiceStack.Redis
                 throw new ArgumentOutOfRangeException(nameof(value), "value is out of range");
             return SendExpectLongAsync(cancellationToken, Commands.SetBit, key.ToUtf8Bytes(), offset.ToUtf8Bytes(), value.ToUtf8Bytes());
         }
+
+        ValueTask<bool> IRedisNativeClientAsync.PersistAsync(string key, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.Persist, key.ToUtf8Bytes()));
+        }
+
+        ValueTask IRedisNativeClientAsync.PSetExAsync(string key, long expireInMs, byte[] value, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectSuccessAsync(cancellationToken, Commands.PSetEx, key.ToUtf8Bytes(), expireInMs.ToUtf8Bytes(), value);
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.SetNXAsync(string key, byte[] value, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            value ??= TypeConstants.EmptyByteArray;
+
+            if (value.Length > OneGb)
+                throw new ArgumentException("value exceeds 1G", "value");
+
+            return SendExpectLongAsync(cancellationToken, Commands.SetNx, key.ToUtf8Bytes(), value);
+        }
     }
 }

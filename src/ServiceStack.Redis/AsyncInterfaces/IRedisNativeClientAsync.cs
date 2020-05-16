@@ -76,9 +76,9 @@ namespace ServiceStack.Redis
         ValueTask<bool> SetAsync(string key, byte[] value, bool exists, long expirySeconds = 0, long expiryMilliseconds = 0, CancellationToken cancellationToken = default);
         ValueTask SetAsync(string key, byte[] value, long expirySeconds = 0, long expiryMilliseconds = 0, CancellationToken cancellationToken = default);
         ValueTask SetExAsync(string key, int expireInSeconds, byte[] value, CancellationToken cancellationToken = default);
-        //ValueTask<bool> PersistAsync(string key, CancellationToken cancellationToken = default);
-        //ValueTask PSetExAsync(string key, long expireInMs, byte[] value, CancellationToken cancellationToken = default);
-        //ValueTask<long> SetNXAsync(string key, byte[] value, CancellationToken cancellationToken = default);
+        ValueTask<bool> PersistAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask PSetExAsync(string key, long expireInMs, byte[] value, CancellationToken cancellationToken = default);
+        ValueTask<long> SetNXAsync(string key, byte[] value, CancellationToken cancellationToken = default);
         ValueTask MSetAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken = default);
         //ValueTask MSetAsync(string[] keys, byte[][] values, CancellationToken cancellationToken = default);
         //ValueTask<bool> MSetNxAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken = default);
