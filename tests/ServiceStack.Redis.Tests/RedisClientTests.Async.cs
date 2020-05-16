@@ -491,7 +491,7 @@ namespace ServiceStack.Redis.Tests
             //cleanup
             Assert.IsTrue(await distributedLock.UnlockAsync(key, state.Expiration, RedisAsync));
         }
-        /*
+
         public class MyPoco
         {
             public int Id { get; set; }
@@ -503,13 +503,13 @@ namespace ServiceStack.Redis.Tests
         {
             object poco = new MyPoco { Id = 1, Name = "Test" };
 
-            Redis.StoreObject(poco);
+            await RedisAsync.StoreObjectAsync(poco);
 
-            Assert.That(Redis.GetValue(Redis.NamespacePrefix + "urn:mypoco:1"), Is.EqualTo("{\"Id\":1,\"Name\":\"Test\"}"));
+            Assert.That(await RedisAsync.GetValueAsync(RedisRaw.NamespacePrefix + "urn:mypoco:1"), Is.EqualTo("{\"Id\":1,\"Name\":\"Test\"}"));
 
-            Assert.That(Redis.PopItemFromSet(Redis.NamespacePrefix + "ids:MyPoco"), Is.EqualTo("1"));
+            Assert.That(await RedisAsync.PopItemFromSetAsync(RedisRaw.NamespacePrefix + "ids:MyPoco"), Is.EqualTo("1"));
         }
-
+        /*
         [Test]
         public async Task Can_store_multiple_keys()
         {

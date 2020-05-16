@@ -258,7 +258,7 @@ namespace ServiceStack.Redis
         ValueTask<string> IRedisNativeClientAsync.EchoAsync(string text, CancellationToken cancellationToken)
             => FromUtf8Bytes(SendExpectDataAsync(cancellationToken, Commands.Echo, text.ToUtf8Bytes()));
 
-        private static ValueTask<string> FromUtf8Bytes(ValueTask<byte[]> pending)
+        private protected static ValueTask<string> FromUtf8Bytes(ValueTask<byte[]> pending)
         {
             return pending.IsCompletedSuccessfully ? new ValueTask<string>(pending.Result.FromUtf8Bytes())
                 : Awaited(pending);
@@ -400,6 +400,18 @@ namespace ServiceStack.Redis
                 throw new ArgumentException("value exceeds 1G", "value");
 
             return SendExpectLongAsync(cancellationToken, Commands.SetNx, key.ToUtf8Bytes(), value);
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.SPopAsync(string setId, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectDataAsync(cancellationToken, Commands.SPop, setId.ToUtf8Bytes());
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SPopAsync(string setId, int count, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectMultiDataAsync(cancellationToken, Commands.SPop, setId.ToUtf8Bytes(), count.ToUtf8Bytes());
         }
     }
 }

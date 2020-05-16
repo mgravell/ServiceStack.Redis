@@ -75,11 +75,8 @@ namespace ServiceStack.Redis
             return NativeAsync.SetAsync(key, bytesValue, cancellationToken: cancellationToken);
         }
 
-        async ValueTask<string> IRedisClientAsync.GetValueAsync(string key, CancellationToken cancellationToken)
-        {
-            var bytes = await NativeAsync.GetAsync(key, cancellationToken).ConfigureAwait(false);
-            return bytes?.FromUtf8Bytes();
-        }
+        ValueTask<string> IRedisClientAsync.GetValueAsync(string key, CancellationToken cancellationToken)
+            => FromUtf8Bytes(NativeAsync.GetAsync(key, cancellationToken));
 
         async ValueTask<List<string>> IRedisClientAsync.SearchKeysAsync(string pattern, CancellationToken cancellationToken)
         {
@@ -291,6 +288,31 @@ namespace ServiceStack.Redis
 
         ValueTask<long> IRedisClientAsync.AppendToValueAsync(string key, string value, CancellationToken cancellationToken)
             => NativeAsync.AppendAsync(key, value.ToUtf8Bytes(), cancellationToken);
+
+        async ValueTask<object> IRedisClientAsync.StoreObjectAsync(object entity, CancellationToken cancellationToken)
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+
+            var id = entity.GetObjectId();
+            var entityType = entity.GetType();
+            var urnKey = UrnKey(entityType, id);
+            var valueString = JsonSerializer.SerializeToString(entity);
+
+            await ((IRedisClientAsync)this).SetValueAsync(urnKey, valueString, cancellationToken).ConfigureAwait(false);
+
+            RegisterTypeId(GetTypeIdsSetKey(entityType), id.ToString());
+
+            return entity;
+        }
+
+        ValueTask<string> IRedisClientAsync.PopItemFromSetAsync(string setId, CancellationToken cancellationToken)
+            => FromUtf8Bytes(NativeAsync.SPopAsync(setId, cancellationToken));
+
+        async ValueTask<List<string>> IRedisClientAsync.PopItemsFromSetAsync(string setId, int count, CancellationToken cancellationToken)
+        {
+            var result = await NativeAsync.SPopAsync(setId, count, cancellationToken).ConfigureAwait(false);
+            return result.ToStringList();
+        }
     }
 }
  

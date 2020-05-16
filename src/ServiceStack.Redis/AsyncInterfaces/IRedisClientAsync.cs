@@ -111,7 +111,7 @@ namespace ServiceStack.Redis
         //T GetFromHash<T>Async(object id, CancellationToken cancellationToken = default);
         //ValueTask StoreAsHash<T>Async(T entity, CancellationToken cancellationToken = default);
 
-        //object StoreObjectAsync(object entity, CancellationToken cancellationToken = default);
+        ValueTask<object> StoreObjectAsync(object entity, CancellationToken cancellationToken = default);
 
         ValueTask<bool> ContainsKeyAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<bool> RemoveEntryAsync(string[] keys, CancellationToken cancellationToken = default);
@@ -190,8 +190,8 @@ namespace ServiceStack.Redis
         ValueTask AddItemToSetAsync(string setId, string item, CancellationToken cancellationToken = default);
         //ValueTask AddRangeToSetAsync(string setId, List<string> items, CancellationToken cancellationToken = default);
         //ValueTask RemoveItemFromSetAsync(string setId, string item, CancellationToken cancellationToken = default);
-        //ValueTask<string> PopItemFromSetAsync(string setId, CancellationToken cancellationToken = default);
-        //List<string> PopItemsFromSetAsync(string setId, int count, CancellationToken cancellationToken = default);
+        ValueTask<string> PopItemFromSetAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<List<string>> PopItemsFromSetAsync(string setId, int count, CancellationToken cancellationToken = default);
         //ValueTask MoveBetweenSetsAsync(string fromSetId, string toSetId, string item, CancellationToken cancellationToken = default);
         //ValueTask<long> GetSetCountAsync(string setId, CancellationToken cancellationToken = default);
         //ValueTask<bool> SetContainsItemAsync(string setId, string item, CancellationToken cancellationToken = default);

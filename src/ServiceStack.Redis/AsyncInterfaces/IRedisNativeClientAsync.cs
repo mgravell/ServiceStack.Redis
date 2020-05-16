@@ -154,8 +154,8 @@ namespace ServiceStack.Redis
         ValueTask<long> SAddAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<long> SAddAsync(string setId, byte[][] value, CancellationToken cancellationToken = default);
         //ValueTask<long> SRemAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
-        //ValueTask<byte[]> SPopAsync(string setId, CancellationToken cancellationToken = default);
-        //ValueTask<byte[][]> SPopAsync(string setId, int count, CancellationToken cancellationToken = default);
+        ValueTask<byte[]> SPopAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> SPopAsync(string setId, int count, CancellationToken cancellationToken = default);
         //ValueTask SMoveAsync(string fromSetId, string toSetId, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<long> SCardAsync(string setId, CancellationToken cancellationToken = default);
         //ValueTask<long> SIsMemberAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
