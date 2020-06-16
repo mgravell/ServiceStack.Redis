@@ -364,6 +364,12 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisClientAsync.SetValueAsync<T>(string key, T value, CancellationToken cancellationToken)
             => ExecAsync(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), cancellationToken: cancellationToken));
+
+        ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            Dispose();
+            return default;
+        }
     }
 }
  

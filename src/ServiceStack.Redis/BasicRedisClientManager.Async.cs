@@ -11,6 +11,7 @@
 //
 
 using ServiceStack.Caching;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,5 +38,11 @@ namespace ServiceStack.Redis
 
         private IRedisClientAsync ConfigureRedisClientAsync(IRedisClientAsync client)
             => client;
+
+        ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            Dispose();
+            return default;
+        }
     }
 }

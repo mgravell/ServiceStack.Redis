@@ -407,7 +407,7 @@ namespace ServiceStack.Redis.Tests
 
             try
             {
-                using (IRedisClientAsync client = new RedisClient(TestConfig.SingleHost))
+                await using (IRedisClientAsync client = new RedisClient(TestConfig.SingleHost))
                 {
                     await using (await client.AcquireLockAsync(lockKey, waitFor))
                     {
@@ -606,7 +606,7 @@ namespace ServiceStack.Redis.Tests
                     Assert.That(await redis.GetValueAsync<int>(key), Is.EqualTo(0));
                     await redis.ChangeDbAsync(1);
                     Assert.That(await redis.GetValueAsync<int>(key), Is.EqualTo(val));
-                    redis.Dispose();
+                    await redis.DisposeAsync();
                 }
                 finally
                 {
