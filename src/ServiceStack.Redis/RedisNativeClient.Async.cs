@@ -1,6 +1,7 @@
 ﻿using ServiceStack.Redis.Pipeline;
 using ServiceStack.Text;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -445,6 +446,37 @@ namespace ServiceStack.Redis
         {
             AssertNotNull(setId, nameof(setId));
             return SendExpectDoubleAsync(cancellationToken, Commands.ZScore, setId.ToUtf8Bytes(), value);
+        }
+
+        protected ValueTask<RedisData> RawCommandAsync(CancellationToken cancellationToken, params object[] cmdWithArgs)
+        {
+            var byteArgs = new List<byte[]>();
+
+            foreach (var arg in cmdWithArgs)
+            {
+                if (arg == null)
+                {
+                    byteArgs.Add(TypeConstants.EmptyByteArray);
+                    continue;
+                }
+
+                if (arg is byte[] bytes)
+                {
+                    byteArgs.Add(bytes);
+                }
+                else if (arg.GetType().IsUserType())
+                {
+                    var json = arg.ToJson();
+                    byteArgs.Add(json.ToUtf8Bytes());
+                }
+                else
+                {
+                    var str = arg.ToString();
+                    byteArgs.Add(str.ToUtf8Bytes());
+                }
+            }
+
+            return SendExpectComplexResponseAsync(cancellationToken, byteArgs.ToArray());
         }
     }
 }

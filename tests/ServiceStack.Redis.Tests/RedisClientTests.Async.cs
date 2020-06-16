@@ -517,7 +517,7 @@ namespace ServiceStack.Redis.Tests
             var vals = 5.Times(x => "val" + x);
 
             using var redis = RedisClient.New();
-            var client = redis.AsAsync();
+            var client = redis.AsAsyncClient();
             await client.SetAllAsync(keys, vals);
 
             var all = await client.GetValuesAsync(keys);
@@ -533,7 +533,7 @@ namespace ServiceStack.Redis.Tests
             keys.ForEach(x => map[x] = "val" + x);
 
             using var redis = RedisClient.New();
-            var client = redis.AsAsync();
+            var client = redis.AsAsyncClient();
             await client.SetAllAsync(map);
 
             var all = await client.GetValuesMapAsync(keys);
@@ -548,10 +548,11 @@ namespace ServiceStack.Redis.Tests
             map["key_b"] = null;
 
             using var redis = RedisClient.New();
-            var client = redis.AsAsync();
+            var client = redis.AsAsyncClient();
+            var cacheClient = redis.AsAsyncCacheClient();
             await client.SetAllAsync(map);
 
-            Assert.That(await client.GetValueAsync<string>("key_a"), Is.EqualTo("123"));
+            Assert.That(await cacheClient.GetAsync<string>("key_a"), Is.EqualTo("123"));
             Assert.That(await client.GetValueAsync("key_b"), Is.EqualTo(""));
         }
 
@@ -563,10 +564,10 @@ namespace ServiceStack.Redis.Tests
             map["key_b"] = null;
 
             using var redis = RedisClient.New();
-            var client = redis.AsAsync();
+            var client = redis.AsAsyncClient();
             await client.SetAllAsync(map);
 
-            Assert.That(await client.GetValueAsync<string>("key_a"), Is.EqualTo("123"));
+            Assert.That(await client.GetAsync<string>("key_a"), Is.EqualTo("123"));
             Assert.That(await client.GetValueAsync("key_b"), Is.EqualTo(""));
         }
 
@@ -596,22 +597,23 @@ namespace ServiceStack.Redis.Tests
         {
             using (var syncClient = new RedisClient(TestConfig.SingleHost, TestConfig.RedisPort, db: 1))
             {
-                var redis = syncClient.AsAsync();
+                var redis = syncClient.AsAsyncCacheClient();
+                var tmp = syncClient.AsAsyncClient();
                 var val = Environment.TickCount;
                 var key = "test" + val;
                 try
                 {
-                    await redis.SetValueAsync(key, val);
-                    await redis.ChangeDbAsync(2);
-                    Assert.That(await redis.GetValueAsync<int>(key), Is.EqualTo(0));
-                    await redis.ChangeDbAsync(1);
-                    Assert.That(await redis.GetValueAsync<int>(key), Is.EqualTo(val));
+                    await redis.SetAsync(key, val);
+                    await tmp.ChangeDbAsync(2);
+                    Assert.That(await redis.GetAsync<int>(key), Is.EqualTo(0));
+                    await tmp.ChangeDbAsync(1);
+                    Assert.That(await redis.GetAsync<int>(key), Is.EqualTo(val));
                     await redis.DisposeAsync();
                 }
                 finally
                 {
-                    await redis.ChangeDbAsync(1);
-                    await redis.RemoveEntryAsync(key);
+                    await tmp.ChangeDbAsync(1);
+                    await redis.RemoveAsync(key);
                 }
             }
         }

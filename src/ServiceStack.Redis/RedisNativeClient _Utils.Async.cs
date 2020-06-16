@@ -33,7 +33,7 @@ namespace ServiceStack.Redis
         private ValueTask<double> SendExpectDoubleAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
             return SendReceiveAsync(cmdWithBinaryArgs, ReadDoubleAsync, cancellationToken,
-                Pipeline != null ? PipelineAsync.CompleteDoubleQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<double>>>)null);
+                PipelineAsync != null ? PipelineAsync.CompleteDoubleQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<double>>>)null);
         }
         protected ValueTask<string> SendExpectStringAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
             => FromUtf8Bytes(SendExpectDataAsync(cancellationToken, cmdWithBinaryArgs));
@@ -42,7 +42,7 @@ namespace ServiceStack.Redis
         {
             //Turn Action into Func Hack
             Action<Func<CancellationToken, ValueTask<long>>> completePipelineFn = null;
-            if (Pipeline != null) completePipelineFn = f => { PipelineAsync.CompleteVoidQueuedCommandAsync(async ct => await f(ct).ConfigureAwait(false)); };
+            if (PipelineAsync != null) completePipelineFn = f => { PipelineAsync.CompleteVoidQueuedCommandAsync(async ct => await f(ct).ConfigureAwait(false)); };
 
             return DiscardResult(SendReceiveAsync(cmdWithBinaryArgs, ExpectSuccessFnAsync, cancellationToken, completePipelineFn));
         }
@@ -55,12 +55,12 @@ namespace ServiceStack.Redis
 
         private ValueTask<byte[]> SendExpectDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
-            return SendReceiveAsync(cmdWithBinaryArgs, ReadDataAsync, cancellationToken, Pipeline != null ? PipelineAsync.CompleteBytesQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<byte[]>>>)null);
+            return SendReceiveAsync(cmdWithBinaryArgs, ReadDataAsync, cancellationToken, PipelineAsync != null ? PipelineAsync.CompleteBytesQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<byte[]>>>)null);
         }
 
         private ValueTask<string> SendExpectCodeAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
-            return SendReceiveAsync(cmdWithBinaryArgs, ExpectCodeAsync, cancellationToken, Pipeline != null ? PipelineAsync.CompleteStringQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<string>>>)null);
+            return SendReceiveAsync(cmdWithBinaryArgs, ExpectCodeAsync, cancellationToken, PipelineAsync != null ? PipelineAsync.CompleteStringQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<string>>>)null);
         }
 
         private async ValueTask<ScanResult> SendExpectScanResultAsync(CancellationToken cancellationToken, byte[] cmd, params byte[][] args)
@@ -133,6 +133,53 @@ namespace ServiceStack.Redis
             throw CreateResponseError("Unknown reply on multi-request: " + c + s);
         }
 
+        protected ValueTask<RedisData> SendExpectComplexResponseAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        {
+            return SendReceiveAsync(cmdWithBinaryArgs, ReadComplexResponseAsync, cancellationToken,
+                PipelineAsync != null ? PipelineAsync.CompleteRedisDataQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<RedisData>>>)null);
+        }
+
+        private async ValueTask<RedisData> ReadComplexResponseAsync(CancellationToken cancellationToken)
+        {
+            int c = await SafeReadByteAsync(cancellationToken);
+            if (c == -1)
+                throw CreateNoMoreDataError();
+
+            var s = await ReadLineAsync(cancellationToken);
+            if (log.IsDebugEnabled)
+                Log("R: {0}", s);
+
+            switch (c)
+            {
+                case '$':
+                    return new RedisData
+                    {
+                        Data = await ParseSingleLineAsync(string.Concat(char.ToString((char)c), s), cancellationToken)
+                    };
+
+                case '-':
+                    throw CreateResponseError(s.StartsWith("ERR") ? s.Substring(4) : s);
+
+                case '*':
+                    if (int.TryParse(s, out var count))
+                    {
+                        var ret = new RedisData { Children = new List<RedisData>() };
+                        for (var i = 0; i < count; i++)
+                        {
+                            ret.Children.Add(await ReadComplexResponseAsync(cancellationToken));
+                        }
+
+                        return ret;
+                    }
+                    break;
+
+                default:
+                    return new RedisData { Data = s.ToUtf8Bytes() };
+            }
+
+            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+        }
+
         private async ValueTask<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
             Func<CancellationToken, ValueTask<T>> fn,
             CancellationToken cancellationToken,
@@ -170,7 +217,7 @@ namespace ServiceStack.Redis
                         didWriteToBuffer = true;
                     }
 
-                    if (Pipeline == null) //pipeline will handle flush if in pipeline
+                    if (PipelineAsync == null) //pipeline will handle flush if in pipeline
                     {
                         await FlushSendBufferAsync(cancellationToken).ConfigureAwait(false);
                     }

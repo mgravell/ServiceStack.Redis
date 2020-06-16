@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ServiceStack.Caching;
 using ServiceStack.Redis.Generic;
 
 namespace ServiceStack.Redis
@@ -44,6 +45,17 @@ namespace ServiceStack.Redis
 			static IRedisClientAsync Throw(IRedisClientsManager redisManager)
 				=> throw new NotSupportedException($"The client returned from '{redisManager?.GetType().FullName}' does not implement {nameof(IRedisClientAsync)}");
 		}
+
+		public static ValueTask<ICacheClientAsync> GetCacheClientAsync(this IRedisClientsManager redisManager, CancellationToken cancellationToken = default)
+		{
+			return redisManager is IRedisClientsManagerAsync asyncManager
+				? asyncManager.GetCacheClientAsync(cancellationToken)
+				: new ValueTask<ICacheClientAsync>(redisManager.GetCacheClient() as ICacheClientAsync ?? Throw(redisManager));
+
+			static ICacheClientAsync Throw(IRedisClientsManager redisManager)
+				=> throw new NotSupportedException($"The client returned from '{redisManager?.GetType().FullName}' does not implement {nameof(ICacheClientAsync)}");
+		}
+
 
 		public static async ValueTask ExecAsync(this IRedisClientsManager redisManager, Func<IRedisClientAsync, ValueTask> lambda)
 		{
