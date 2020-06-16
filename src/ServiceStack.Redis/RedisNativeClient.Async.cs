@@ -428,5 +428,23 @@ namespace ServiceStack.Redis
             else
                 return SendExpectDeeplyNestedMultiDataAsync(cancellationToken, Commands.Slowlog, Commands.Get);
         }
+
+        ValueTask<long> IRedisNativeClientAsync.ZCardAsync(string setId, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectLongAsync(cancellationToken, Commands.ZCard, setId.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZCountAsync(string setId, double min, double max, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectLongAsync(cancellationToken, Commands.ZCount, setId.ToUtf8Bytes(), min.ToUtf8Bytes(), max.ToUtf8Bytes());
+        }
+
+        ValueTask<double> IRedisNativeClientAsync.ZScoreAsync(string setId, byte[] value, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectDoubleAsync(cancellationToken, Commands.ZScore, setId.ToUtf8Bytes(), value);
+        }
     }
 }

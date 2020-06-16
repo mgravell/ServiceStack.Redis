@@ -276,5 +276,44 @@ namespace ServiceStack.Redis
             AddCurrentQueuedOperation();
         }
 
+        void IRedisQueueCompletableOperationAsync.CompleteDoubleQueuedCommandAsync(Func<CancellationToken, ValueTask<double>> doubleReadCommand)
+        {
+            //AssertCurrentOperation();
+            // this can happen when replaying pipeline/transaction
+            if (CurrentQueuedOperation == null) return;
+
+            CurrentQueuedOperation.WithAsyncReadCommand(doubleReadCommand);
+            AddCurrentQueuedOperation();
+        }
+
+        void IRedisQueueCompletableOperationAsync.CompleteIntQueuedCommandAsync(Func<CancellationToken, ValueTask<int>> intReadCommand)
+        {
+            //AssertCurrentOperation();
+            // this can happen when replaying pipeline/transaction
+            if (CurrentQueuedOperation == null) return;
+
+            CurrentQueuedOperation.WithAsyncReadCommand(intReadCommand);
+            AddCurrentQueuedOperation();
+        }
+
+        void IRedisQueueCompletableOperationAsync.CompleteMultiStringQueuedCommandAsync(Func<CancellationToken, ValueTask<List<string>>> multiStringReadCommand)
+        {
+            //AssertCurrentOperation();
+            // this can happen when replaying pipeline/transaction
+            if (CurrentQueuedOperation == null) return;
+
+            CurrentQueuedOperation.WithAsyncReadCommand(multiStringReadCommand);
+            AddCurrentQueuedOperation();
+        }
+
+        void IRedisQueueCompletableOperationAsync.CompleteRedisDataQueuedCommandAsync(Func<CancellationToken, ValueTask<RedisData>> redisDataReadCommand)
+        {
+            //AssertCurrentOperation();
+            // this can happen when replaying pipeline/transaction
+            if (CurrentQueuedOperation == null) return;
+
+            CurrentQueuedOperation.WithAsyncReadCommand(redisDataReadCommand);
+            AddCurrentQueuedOperation();
+        }
     }
 }

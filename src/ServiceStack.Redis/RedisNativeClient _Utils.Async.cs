@@ -30,6 +30,11 @@ namespace ServiceStack.Redis
                 PipelineAsync != null ? PipelineAsync.CompleteLongQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<long>>>)null);
         }
 
+        private ValueTask<double> SendExpectDoubleAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
+        {
+            return SendReceiveAsync(cmdWithBinaryArgs, ReadDoubleAsync, cancellationToken,
+                Pipeline != null ? PipelineAsync.CompleteDoubleQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<double>>>)null);
+        }
         protected ValueTask<string> SendExpectStringAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
             => FromUtf8Bytes(SendExpectDataAsync(cancellationToken, cmdWithBinaryArgs));
 
@@ -444,21 +449,21 @@ namespace ServiceStack.Redis
             if (c == -1)
                 throw CreateNoMoreDataError();
 
-            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
+            return ParseLong(c, await ReadLineAsync(cancellationToken).ConfigureAwait(false));
+        }
 
-            if (log.IsDebugEnabled)
-                Log("R: {0}", s);
+        public ValueTask<double> ReadDoubleAsync(CancellationToken cancellationToken)
+        {
+            var pending = ReadDataAsync(cancellationToken);
+            return pending.IsCompletedSuccessfully
+                ? new ValueTask<double>(PostProcess(pending.Result))
+                : Awaited(pending);
 
-            if (c == '-')
-                throw CreateResponseError(s.StartsWith("ERR") ? s.Substring(4) : s);
+            static async ValueTask<double> Awaited(ValueTask<byte[]> pending)
+                => PostProcess(await pending.ConfigureAwait(false));
 
-            if (c == ':' || c == '$')//really strange why ZRANK needs the '$' here
-            {
-                long i;
-                if (long.TryParse(s, out i))
-                    return i;
-            }
-            throw CreateResponseError("Unknown reply on integer response: " + c + s);
+            static double PostProcess(byte[] bytes)
+                => bytes == null ? double.NaN : ParseDouble(bytes);
         }
 
         internal ValueTask ExpectOkAsync(CancellationToken cancellationToken)

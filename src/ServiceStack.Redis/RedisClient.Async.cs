@@ -370,6 +370,25 @@ namespace ServiceStack.Redis
             Dispose();
             return default;
         }
+
+        ValueTask<long> IRedisClientAsync.GetSortedSetCountAsync(string setId, CancellationToken cancellationToken)
+            => NativeAsync.ZCardAsync(setId, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.GetSortedSetCountAsync(string setId, string fromStringScore, string toStringScore, CancellationToken cancellationToken)
+        {
+            var fromScore = GetLexicalScore(fromStringScore);
+            var toScore = GetLexicalScore(toStringScore);
+            return AsAsync().GetSortedSetCountAsync(setId, fromScore, toScore, cancellationToken);
+        }
+
+        ValueTask<long> IRedisClientAsync.GetSortedSetCountAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken)
+            => NativeAsync.ZCountAsync(setId, fromScore, toScore, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.GetSortedSetCountAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken)
+            => NativeAsync.ZCountAsync(setId, fromScore, toScore, cancellationToken);
+
+        ValueTask<double> IRedisClientAsync.GetItemScoreInSortedSetAsync(string setId, string value, CancellationToken cancellationToken)
+            => NativeAsync.ZScoreAsync(setId, value.ToUtf8Bytes(), cancellationToken);
     }
 }
  

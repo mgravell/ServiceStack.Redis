@@ -302,11 +302,11 @@ namespace ServiceStack.Redis
         //ValueTask<long> RemoveRangeFromSortedSetAsync(string setId, int minRank, int maxRank, CancellationToken cancellationToken = default);
         //ValueTask<long> RemoveRangeFromSortedSetByScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
         //ValueTask<long> RemoveRangeFromSortedSetByScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetSortedSetCountAsync(string setId, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetSortedSetCountAsync(string setId, string fromStringScore, string toStringScore, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetSortedSetCountAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetSortedSetCountAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
-        //double GetItemScoreInSortedSetAsync(string setId, string value, CancellationToken cancellationToken = default);
+        ValueTask<long> GetSortedSetCountAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<long> GetSortedSetCountAsync(string setId, string fromStringScore, string toStringScore, CancellationToken cancellationToken = default);
+        ValueTask<long> GetSortedSetCountAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
+        ValueTask<long> GetSortedSetCountAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
+        ValueTask<double> GetItemScoreInSortedSetAsync(string setId, string value, CancellationToken cancellationToken = default);
         //ValueTask<long> StoreIntersectFromSortedSetsAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
         //ValueTask<long> StoreIntersectFromSortedSetsAsync(string intoSetId, string[] setIds, string[] args, CancellationToken cancellationToken = default);
         //ValueTask<long> StoreUnionFromSortedSetsAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);

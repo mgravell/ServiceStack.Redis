@@ -26,6 +26,7 @@ namespace ServiceStack.Redis
         - shutdown now takes nosave arg
         - expose the optional args on Set
         - add SlowlogGet and SlowlogReset
+        - add ZCount
          */
 
         ////Redis utility operations
@@ -193,8 +194,9 @@ namespace ServiceStack.Redis
         //ValueTask<long> ZRemRangeByRankAsync(string setId, int min, int max, CancellationToken cancellationToken = default);
         //ValueTask<long> ZRemRangeByScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken = default);
         //ValueTask<long> ZRemRangeByScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken = default);
-        //ValueTask<long> ZCardAsync(string setId, CancellationToken cancellationToken = default);
-        //ValueTask<double>  ZScoreAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
+        ValueTask<long> ZCardAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<long> ZCountAsync(string setId, double min, double max, CancellationToken cancellationToken = default);
+        ValueTask<double>  ZScoreAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<long> ZUnionStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
         //ValueTask<long> ZInterStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> ZRangeByLexAsync(string setId, string min, string max, int? skip = null, int? take = null, CancellationToken cancellationToken = default);

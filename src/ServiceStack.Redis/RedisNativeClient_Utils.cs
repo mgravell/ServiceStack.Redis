@@ -910,8 +910,11 @@ namespace ServiceStack.Redis
             if (c == -1)
                 throw CreateNoMoreDataError();
 
-            var s = ReadLine();
+            return ParseLong(c, ReadLine());
+        }
 
+        private long ParseLong(int c, string s)
+        {
             if (log.IsDebugEnabled)
                 Log("R: {0}", s);
 

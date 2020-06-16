@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,13 +11,13 @@ namespace ServiceStack.Redis.Pipeline
     public interface IRedisQueueCompletableOperationAsync
     {
         void CompleteVoidQueuedCommandAsync(Func<CancellationToken, ValueTask> voidReadCommand);
-        //void CompleteIntQueuedCommand(Func<int> intReadCommand);
+        void CompleteIntQueuedCommandAsync(Func<CancellationToken, ValueTask<int>> intReadCommand);
         void CompleteLongQueuedCommandAsync(Func<CancellationToken, ValueTask<long>> longReadCommand);
         void CompleteBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[]>> bytesReadCommand);
         void CompleteMultiBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[][]>> multiBytesReadCommand);
         void CompleteStringQueuedCommandAsync(Func<CancellationToken, ValueTask<string>> stringReadCommand);
-        //void CompleteMultiStringQueuedCommand(Func<List<string>> multiStringReadCommand);
-        //void CompleteDoubleQueuedCommand(Func<double> doubleReadCommand);
-        //void CompleteRedisDataQueuedCommand(Func<RedisData> redisDataReadCommand);
+        void CompleteMultiStringQueuedCommandAsync(Func<CancellationToken, ValueTask<List<string>>> multiStringReadCommand);
+        void CompleteDoubleQueuedCommandAsync(Func<CancellationToken, ValueTask<double>> doubleReadCommand);
+        void CompleteRedisDataQueuedCommandAsync(Func<CancellationToken, ValueTask<RedisData>> redisDataReadCommand);
     }
 }
