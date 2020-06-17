@@ -31,6 +31,9 @@ namespace ServiceStack.Redis
         private ValueTask<ICacheClientAsync> GetReadOnlyCacheClientAsync(in CancellationToken _)
             => new ValueTask<ICacheClientAsync>(ConfigureRedisClientAsync(this.GetReadOnlyClientImpl()));
 
+        private IRedisClientAsync ConfigureRedisClientAsync(IRedisClientAsync client)
+            => client;
+
         ValueTask<ICacheClientAsync> IRedisClientsManagerAsync.GetCacheClientAsync(CancellationToken cancellationToken)
             => GetCacheClientAsync(cancellationToken);
 
@@ -42,9 +45,6 @@ namespace ServiceStack.Redis
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetReadOnlyClientAsync(CancellationToken cancellationToken)
             => new ValueTask<IRedisClientAsync>(GetReadOnlyClientImpl());
-
-        private IRedisClientAsync ConfigureRedisClientAsync(IRedisClientAsync client)
-            => client;
 
         ValueTask IAsyncDisposable.DisposeAsync()
         {

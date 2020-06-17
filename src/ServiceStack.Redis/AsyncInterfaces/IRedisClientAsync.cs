@@ -27,7 +27,6 @@ namespace ServiceStack.Redis
     {
         /* non-obvious changes from IRedisClient:
         - Db is read-only; added ChangeDbAsync for setting
-        - added unary version of RemoveEntryAsync - because of losing "params", usage was awkward otherwise
         - added GetTimeToLiveAsync - not available on the interface
         - sync API is Save (foreground) and SaveAsync (background); renamed here to ForegroundSaveAsync and BackgroundSaveAsync
           to avoid overload problems and accidental swaps from bg to fg when migrating to async API
@@ -118,7 +117,6 @@ namespace ServiceStack.Redis
 
         ValueTask<bool> ContainsKeyAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<bool> RemoveEntryAsync(string[] keys, CancellationToken cancellationToken = default);
-        ValueTask<bool> RemoveEntryAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> IncrementValueAsync(string key, CancellationToken cancellationToken = default);
         //ValueTask<long> IncrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
         //ValueTask<long> IncrementValueByAsync(string key, long count, CancellationToken cancellationToken = default);

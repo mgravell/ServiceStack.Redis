@@ -32,7 +32,7 @@ namespace ServiceStack.Redis.Generic
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
 
-            await client.SetAsync(key, SerializeValue(entity), cancellationToken).ConfigureAwait(false);
+            await AsyncClient.SetAsync(key, SerializeValue(entity), cancellationToken).ConfigureAwait(false);
             client.RegisterTypeId(entity);
         }
     }

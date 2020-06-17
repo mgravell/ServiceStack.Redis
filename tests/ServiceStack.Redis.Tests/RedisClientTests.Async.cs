@@ -30,7 +30,7 @@ namespace ServiceStack.Redis.Tests
             await RedisAsync.SetValueAsync("key", Value);
             var valueBytes = await NativeAsync.GetAsync("key");
             var valueString = GetString(valueBytes);
-            await RedisAsync.RemoveEntryAsync("key");
+            await RedisAsync.RemoveAsync("key");
 
             Assert.That(valueString, Is.EqualTo(Value));
         }
@@ -41,7 +41,7 @@ namespace ServiceStack.Redis.Tests
             await RedisAsync.SetValueAsync("key with space", Value);
             var valueBytes = await NativeAsync.GetAsync("key with space");
             var valueString = GetString(valueBytes);
-            await RedisAsync.RemoveEntryAsync("key with space");
+            await RedisAsync.RemoveAsync("key with space");
 
             Assert.That(valueString, Is.EqualTo(Value));
         }
@@ -122,7 +122,7 @@ namespace ServiceStack.Redis.Tests
 
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
 
-            await RedisAsync.RemoveEntryAsync("key");
+            await RedisAsync.RemoveAsync("key");
 
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
 
@@ -665,7 +665,7 @@ namespace ServiceStack.Redis.Tests
             await Task.Delay(2000);
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
 
-            await RedisAsync.RemoveEntryAsync("key");
+            await RedisAsync.RemoveAsync("key");
             await RedisAsync.SetValueIfNotExistsAsync("key", "val", expireIn: TimeSpan.FromMilliseconds(1000));
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
         }

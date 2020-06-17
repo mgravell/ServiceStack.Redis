@@ -172,32 +172,38 @@ namespace ServiceStack.Redis
             {
                 var keysArray = keys.ToArray();
                 var keyValues = r.MGet(keysArray);
-                var results = new Dictionary<string, T>();
-                var isBytes = typeof(T) == typeof(byte[]);
 
-                var i = 0;
-                foreach (var keyValue in keyValues)
-                {
-                    var key = keysArray[i++];
-
-                    if (keyValue == null)
-                    {
-                        results[key] = default(T);
-                        continue;
-                    }
-
-                    if (isBytes)
-                    {
-                        results[key] = (T)(object)keyValue;
-                    }
-                    else
-                    {
-                        var keyValueString = Encoding.UTF8.GetString(keyValue);
-                        results[key] = JsonSerializer.DeserializeFromString<T>(keyValueString);
-                    }
-                }
-                return results;
+                return ProcessGetAllResult<T>(keysArray, keyValues);
             });
+        }
+
+        private static IDictionary<string, T> ProcessGetAllResult<T>(string[] keysArray, byte[][] keyValues)
+        {
+            var results = new Dictionary<string, T>();
+            var isBytes = typeof(T) == typeof(byte[]);
+
+            var i = 0;
+            foreach (var keyValue in keyValues)
+            {
+                var key = keysArray[i++];
+
+                if (keyValue == null)
+                {
+                    results[key] = default(T);
+                    continue;
+                }
+
+                if (isBytes)
+                {
+                    results[key] = (T)(object)keyValue;
+                }
+                else
+                {
+                    var keyValueString = Encoding.UTF8.GetString(keyValue);
+                    results[key] = JsonSerializer.DeserializeFromString<T>(keyValueString);
+                }
+            }
+            return results;
         }
 
         public void SetAll<T>(IDictionary<string, T> values)
