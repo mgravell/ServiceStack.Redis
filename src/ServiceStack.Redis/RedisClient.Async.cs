@@ -489,6 +489,50 @@ namespace ServiceStack.Redis
         ValueTask IRemoveByPatternAsync.RemoveByRegexAsync(string regex, CancellationToken cancellationToken)
             => AsAsyncClient().RemoveByPatternAsync(RegexToGlob(regex), cancellationToken);
 
+        ValueTask ICacheClientAsync.RemoveAllAsync(IEnumerable<string> keys, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> ICacheClientAsync.IncrementAsync(string key, uint amount, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> ICacheClientAsync.DecrementAsync(string key, uint amount, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> ICacheClientAsync.AddAsync<T>(string key, T value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> ICacheClientAsync.ReplaceAsync<T>(string key, T value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> ICacheClientAsync.AddAsync<T>(string key, T value, DateTime expiresAt, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> ICacheClientAsync.ReplaceAsync<T>(string key, T value, DateTime expiresAt, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> ICacheClientAsync.AddAsync<T>(string key, T value, TimeSpan expiresIn, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> ICacheClientAsync.ReplaceAsync<T>(string key, T value, TimeSpan expiresIn, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
  

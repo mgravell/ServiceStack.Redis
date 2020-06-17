@@ -123,69 +123,58 @@ namespace ServiceStack.Redis.Tests
                     }
 
                     int match = 0;
+                    var expectedArgsString = string.Join<Type>(",", expectedSignature);
                     foreach (var candidate in asyncMethods)
                     {
                         if (candidate.Name != expectedName) continue;
                         if (method.IsGenericMethod != candidate.IsGenericMethod) continue;
 
-                        if (method.IsGenericMethod)
+                        if (method.IsGenericMethod && method.GetGenericArguments().Length != candidate.GetGenericArguments().Length)
                         {
-                            var fromT = method.GetGenericArguments();
-                            var toT = candidate.GetGenericArguments();
-
-                            Type SubstituteT(Type type)
-                            {
-                                for (int i = 0; i < fromT.Length; i++)
-                                    if (type == fromT[i]) return toT[i];
-
-                                if (type.IsGenericType)
-                                {
-                                    // deconstruct and reconstruct
-                                    var tArgs = type.GetGenericArguments();
-                                    for (int i = 0; i < tArgs.Length; i++)
-                                        tArgs[i] = SubstituteT(tArgs[i]);
-                                    type = type.GetGenericTypeDefinition().MakeGenericType(tArgs);
-                                }
-                                return type;
-                            }
-
-                            expectedReturnType = SubstituteT(expectedReturnType);
-                            for (int i = 0; i < expectedSignature.Length; i++)
-                            {
-                                expectedSignature[i] = SubstituteT(expectedSignature[i]);
-                            }
-
+                            continue; // wrong number of generic parameters
                         }
 
-                        if (candidate.ReturnType != expectedReturnType) continue;
+                        // comparing return types gets tricky for T, so let's just use strings; this also means that
+                        // we will spot mismatches generic type parameter names:
+                        if (candidate.ReturnType.ToString() != expectedReturnType.ToString())
+                        {
+                            continue; // wrong return
+                        }
                         var args = candidate.GetParameters();
-                        if (args.Length != expectedSignature.Length) continue;
-                        bool argFail = false;
-                        for (int i = 0; i < args.Length; i++)
+                        if (args.Length != expectedSignature.Length)
                         {
-                            if (args[i].ParameterType != expectedSignature[i])
-                            {
-                                argFail = true;
-                                break;
-                            }
+                            continue; // wrong number of parameters
                         }
-                        if (argFail) continue;
+
+                        // comparing args gets tricky for T, so let's just use strings; this also means that
+                        // we will spot mismatches generic type parameter names:
+                        var actualArgsString = string.Join<Type>(",", args.Select(x => x.ParameterType));
+                        if (expectedArgsString != actualArgsString)
+                        {
+                            continue; // wrong parameters
+                        }
 
                         // match!
                         match++;
+                    }
+                    string GetGenericNamePortion()
+                    {
+                        if (!method.IsGenericMethod) return "";
+                        var args = method.GetGenericArguments();
+                        return "<" + string.Join<Type>(",", args) + ">";
                     }
                     switch (match)
                     {
                         case 0:
                             missing++;
-                            TestContext.Out.WriteLine($"Not found: {expectedReturnType} {expectedName}({string.Join<Type>(",", expectedSignature)})");
+                            TestContext.Out.WriteLine($"Not found: {expectedReturnType} {expectedName}{GetGenericNamePortion()}({expectedArgsString})");
                             break;
                         case 1:
                             // found it, yay
                             break;
                         default:
                             missing++;
-                            TestContext.Out.WriteLine($"Ambiguous matches ({match}) found: {expectedReturnType} {expectedName}({string.Join<Type>(",", expectedSignature)})");
+                            TestContext.Out.WriteLine($"Ambiguous matches ({match}) found: {expectedReturnType} {expectedName}{GetGenericNamePortion()}({expectedArgsString})");
                             break;
                     }
                 }
