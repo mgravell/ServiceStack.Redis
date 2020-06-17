@@ -3,19 +3,23 @@ using System;
 
 namespace ServiceStack.Redis.Tests
 {
-    [Category("Async")]
-    public class RedisClientTestsBaseAsync : RedisClientTestsBase
+    public class RedisClientTestsBaseAsyncTests // testing the base class features
+        : RedisClientTestsBaseAsync
     {
         [Test]
         public void DetectUnexpectedSync()
         {
-#if DEBUG
+    #if DEBUG
             Assert.False(RedisRaw.DebugAllowSync, nameof(RedisRaw.DebugAllowSync));
             var ex = Assert.Throws<InvalidOperationException>(() => RedisRaw.Ping());
-            Assert.AreEqual("Unexpected synchronous operation detected", ex.Message);
-#endif
+            Assert.AreEqual("Unexpected synchronous operation detected from 'SendReceive'", ex.Message);
+    #endif
         }
+    }
 
+    [Category("Async")]
+    public abstract class RedisClientTestsBaseAsync : RedisClientTestsBase
+    {
         protected IRedisClientAsync RedisAsync => base.Redis;
         protected IRedisNativeClientAsync NativeAsync => base.Redis;
 
