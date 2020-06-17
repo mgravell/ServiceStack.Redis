@@ -447,6 +447,48 @@ namespace ServiceStack.Redis
 
         ValueTask<bool> ICacheClientAsync.RemoveAsync(string key, CancellationToken cancellationToken)
             => IsSuccess(NativeAsync.DelAsync(key, cancellationToken));
+
+        ValueTask<TimeSpan?> ICacheClientExtendedAsync.GetTimeToLiveAsync(string key, CancellationToken cancellationToken)
+        {
+            var pending = NativeAsync.TtlAsync(key, cancellationToken);
+            return pending.IsCompletedSuccessfully
+                ? new ValueTask<TimeSpan?>(ParseTimeToLiveResult(pending.Result))
+                : Awaited(pending);
+            static async ValueTask<TimeSpan?> Awaited(ValueTask<long> pending)
+                => ParseTimeToLiveResult(await pending.ConfigureAwait(false));
+        }
+
+        IAsyncEnumerable<string> ICacheClientExtendedAsync.GetKeysByPatternAsync(string pattern, CancellationToken cancellationToken)
+            => AsAsyncClient().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken);
+
+        ValueTask ICacheClientExtendedAsync.RemoveExpiredEntriesAsync(CancellationToken cancellationToken)
+        {
+            //Redis automatically removed expired Cache Entries
+            return default;
+        }
+
+        async ValueTask IRemoveByPatternAsync.RemoveByPatternAsync(string pattern, CancellationToken cancellationToken)
+        {
+            List<string> buffer = null;
+            const int BATCH_SIZE = 1024;
+            await foreach(var key in AsAsyncClient().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false))
+            {
+                (buffer ??= new List<string>()).Add(key);
+                if (buffer.Count == BATCH_SIZE)
+                {
+                    await NativeAsync.DelAsync(buffer.ToArray(), cancellationToken).ConfigureAwait(false);
+                    buffer.Clear();
+                }
+            }
+            if (buffer is object && buffer.Count != 0)
+            {
+                await NativeAsync.DelAsync(buffer.ToArray(), cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        ValueTask IRemoveByPatternAsync.RemoveByRegexAsync(string regex, CancellationToken cancellationToken)
+            => AsAsyncClient().RemoveByPatternAsync(RegexToGlob(regex), cancellationToken);
+
     }
 }
  

@@ -377,8 +377,10 @@ namespace ServiceStack.Redis
         }
 
         public TimeSpan? GetTimeToLive(string key)
+            => ParseTimeToLiveResult(Ttl(key));
+
+        private static TimeSpan? ParseTimeToLiveResult(long ttlSecs)
         {
-            var ttlSecs = Ttl(key);
             if (ttlSecs == -1)
                 return TimeSpan.MaxValue; //no expiry set
 
@@ -1007,8 +1009,11 @@ namespace ServiceStack.Redis
 
         public void RemoveByRegex(string pattern)
         {
-            RemoveByPattern(pattern.Replace(".*", "*").Replace(".+", "?"));
+            RemoveByPattern(RegexToGlob(pattern));
         }
+        
+        private static string RegexToGlob(string regex)
+            => regex.Replace(".*", "*").Replace(".+", "?");
 
         public IEnumerable<string> ScanAllKeys(string pattern = null, int pageSize = 1000)
         {

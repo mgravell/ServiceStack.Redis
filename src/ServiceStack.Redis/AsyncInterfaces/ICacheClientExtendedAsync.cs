@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ServiceStack.Caching
 {
@@ -8,10 +10,10 @@ namespace ServiceStack.Caching
     /// </summary>
     public interface ICacheClientExtendedAsync : ICacheClientAsync
     {
-        //TimeSpan? GetTimeToLive(string key);
+        ValueTask<TimeSpan?> GetTimeToLiveAsync(string key, CancellationToken cancellationToken = default);
 
-        //IEnumerable<string> GetKeysByPattern(string pattern);
+        IAsyncEnumerable<string> GetKeysByPatternAsync(string pattern, CancellationToken cancellationToken = default);
 
-        //void RemoveExpiredEntries();
+        ValueTask RemoveExpiredEntriesAsync(CancellationToken cancellationToken = default);
     }
 }

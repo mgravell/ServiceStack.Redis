@@ -1,16 +1,19 @@
-﻿namespace ServiceStack.Caching
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace ServiceStack.Caching
 {
     public interface IRemoveByPatternAsync
     {
-        ///// <summary>
-        ///// Removes items from cache that have keys matching the specified wildcard pattern
-        ///// </summary>
-        ///// <param name="pattern">The wildcard, where "*" means any sequence of characters and "?" means any single character.</param>
-        //void RemoveByPattern(string pattern);
-        ///// <summary>
-        ///// Removes items from the cache based on the specified regular expression pattern
-        ///// </summary>
-        ///// <param name="regex">Regular expression pattern to search cache keys</param>
-        //void RemoveByRegex(string regex);
+        /// <summary>
+        /// Removes items from cache that have keys matching the specified wildcard pattern
+        /// </summary>
+        /// <param name="pattern">The wildcard, where "*" means any sequence of characters and "?" means any single character.</param>
+        ValueTask RemoveByPatternAsync(string pattern, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Removes items from the cache based on the specified regular expression pattern
+        /// </summary>
+        /// <param name="regex">Regular expression pattern to search cache keys</param>
+        ValueTask RemoveByRegexAsync(string regex, CancellationToken cancellationToken = default);
     }
 }
