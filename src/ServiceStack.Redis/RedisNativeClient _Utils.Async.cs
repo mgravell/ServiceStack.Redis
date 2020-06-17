@@ -101,7 +101,7 @@ namespace ServiceStack.Redis
             if (c == -1)
                 throw CreateNoMoreDataError();
 
-            var s = ReadLine();
+            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
             if (log.IsDebugEnabled)
                 Log("R: {0}", s);
 
@@ -141,11 +141,11 @@ namespace ServiceStack.Redis
 
         private async ValueTask<RedisData> ReadComplexResponseAsync(CancellationToken cancellationToken)
         {
-            int c = await SafeReadByteAsync(cancellationToken);
+            int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
             if (c == -1)
                 throw CreateNoMoreDataError();
 
-            var s = await ReadLineAsync(cancellationToken);
+            var s = await ReadLineAsync(cancellationToken).ConfigureAwait(false);
             if (log.IsDebugEnabled)
                 Log("R: {0}", s);
 
@@ -154,7 +154,7 @@ namespace ServiceStack.Redis
                 case '$':
                     return new RedisData
                     {
-                        Data = await ParseSingleLineAsync(string.Concat(char.ToString((char)c), s), cancellationToken)
+                        Data = await ParseSingleLineAsync(string.Concat(char.ToString((char)c), s), cancellationToken).ConfigureAwait(false)
                     };
 
                 case '-':
@@ -166,7 +166,7 @@ namespace ServiceStack.Redis
                         var ret = new RedisData { Children = new List<RedisData>() };
                         for (var i = 0; i < count; i++)
                         {
-                            ret.Children.Add(await ReadComplexResponseAsync(cancellationToken));
+                            ret.Children.Add(await ReadComplexResponseAsync(cancellationToken).ConfigureAwait(false));
                         }
 
                         return ret;

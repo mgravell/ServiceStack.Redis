@@ -53,7 +53,6 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_send_complex_types_in_Custom_Commands()
         {
-            Assert.Fail("Something very wrong here, investigate");
             await RedisAsync.FlushAllAsync();
 
             RedisText ret;

@@ -90,6 +90,12 @@ namespace ServiceStack.Redis
                 SendTimeout = SendTimeout,
                 ReceiveTimeout = ReceiveTimeout
             };
+#if DEBUG
+            // allow sync commands during connect (we're OK with sync for connect; the
+            // DebugAllowSync feature being used here only impacts tests)
+            var oldDebugAllowSync = DebugAllowSync;
+            DebugAllowSync = true;
+#endif
             try
             {
                 if (log.IsDebugEnabled)
@@ -233,6 +239,12 @@ namespace ServiceStack.Redis
                 logError(ErrorConnect.Fmt(Host, Port));
                 throw;
             }
+            finally
+            {
+#if DEBUG
+                DebugAllowSync = oldDebugAllowSync;
+#endif
+            }
         }
 
         public static string ErrorConnect = "Could not connect to redis Instance at {0}:{1}";
@@ -244,6 +256,7 @@ namespace ServiceStack.Redis
         protected string ReadLine()
         {
             AssertNotDisposed();
+            AssertNotAsyncOnly();
 
             var sb = StringBuilderCache.Allocate();
 
@@ -568,7 +581,8 @@ namespace ServiceStack.Redis
         private int SafeReadByte(string name)
         {
             AssertNotDisposed();
-            
+            AssertNotAsyncOnly();
+
             if (log.IsDebugEnabled && RedisConfig.EnableVerboseLogging)
                 logDebug(name + "()");
         
@@ -576,12 +590,25 @@ namespace ServiceStack.Redis
         }
 
         internal TrackThread? TrackThread;
-        
+
+        partial void AssertNotAsyncOnly([CallerMemberName] string caller = default);
+#if DEBUG
+        public bool DebugAllowSync { get; set; } = true;
+        partial void AssertNotAsyncOnly(string caller)
+        {
+            // for unit tests only; asserts that we're not meant to be in an async context
+            if (!DebugAllowSync)
+                throw new InvalidOperationException("Unexpected synchronous operation detected from '" + caller + "'");
+        }
+#endif
+
+
         protected T SendReceive<T>(byte[][] cmdWithBinaryArgs,
             Func<T> fn,
             Action<Func<T>> completePipelineFn = null,
             bool sendWithoutRead = false)
         {
+            if (Pipeline is null) AssertNotAsyncOnly();
             if (TrackThread != null)
             {
                 if (TrackThread.Value.ThreadId != Thread.CurrentThread.ManagedThreadId)

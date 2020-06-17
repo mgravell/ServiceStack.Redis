@@ -34,6 +34,21 @@ namespace ServiceStack.Redis
         // the explicit interface implementations; the JIT should make this a direct call
         private IRedisNativeClientAsync NativeAsync => this;
 
+        internal ValueTask RegisterTypeIdAsync(string typeIdsSetKey, string id, CancellationToken cancellationToken)
+        {
+            if (this.Pipeline != null)
+            {
+                var registeredTypeIdsWithinPipeline = GetRegisteredTypeIdsWithinPipeline(typeIdsSetKey);
+                registeredTypeIdsWithinPipeline.Add(id);
+                return default;
+            }
+            else
+            {
+                return AsAsync().AddItemToSetAsync(typeIdsSetKey, id, cancellationToken);
+            }
+        }
+
+
         async ValueTask<DateTime> IRedisClientAsync.GetServerTimeAsync(CancellationToken cancellationToken)
         {
             var parts = await NativeAsync.TimeAsync(cancellationToken).ConfigureAwait(false);
@@ -69,7 +84,7 @@ namespace ServiceStack.Redis
         {
             using (JsConfig.With(new Text.Config { ExcludeTypeInfo = false }))
             {
-                return await action(this);
+                return await action(this).ConfigureAwait(false);
             }
         }
 
@@ -86,7 +101,7 @@ namespace ServiceStack.Redis
         {
             return ExecAsync(async r =>
                 typeof(T) == typeof(byte[])
-                    ? (T)(object)await ((IRedisNativeClientAsync)r).GetAsync(key, cancellationToken)
+                    ? (T)(object)await ((IRedisNativeClientAsync)r).GetAsync(key, cancellationToken).ConfigureAwait(false)
                     : JsonSerializer.DeserializeFromString<T>(await r.GetValueAsync(key, cancellationToken).ConfigureAwait(false))
             );
         }
@@ -94,7 +109,7 @@ namespace ServiceStack.Redis
         async ValueTask<List<string>> IRedisClientAsync.SearchKeysAsync(string pattern, CancellationToken cancellationToken)
         {
             var list = new List<string>();
-            await foreach (var value in ((IRedisClientAsync)this).ScanAllKeysAsync(pattern, cancellationToken: cancellationToken).ConfigureAwait(false))
+            await foreach (var value in ((IRedisClientAsync)this).ScanAllKeysAsync(pattern, cancellationToken: cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 list.Add(value);
             }
@@ -333,7 +348,7 @@ namespace ServiceStack.Redis
 
             await ((IRedisClientAsync)this).SetValueAsync(urnKey, valueString, cancellationToken).ConfigureAwait(false);
 
-            RegisterTypeId(GetTypeIdsSetKey(entityType), id.ToString());
+            await RegisterTypeIdAsync(GetTypeIdsSetKey(entityType), id.ToString(), cancellationToken).ConfigureAwait(false);
 
             return entity;
         }
