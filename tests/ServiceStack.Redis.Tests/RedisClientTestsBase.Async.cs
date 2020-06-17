@@ -1,7 +1,9 @@
+using NUnit.Framework;
 using System;
 
 namespace ServiceStack.Redis.Tests
 {
+    [Category("Async")]
     public abstract class RedisClientTestsBaseAsync : RedisClientTestsBase
     {
         protected IRedisClientAsync RedisAsync => base.Redis;

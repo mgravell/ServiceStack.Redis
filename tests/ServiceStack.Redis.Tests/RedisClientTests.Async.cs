@@ -1,13 +1,10 @@
 using NUnit.Framework;
 using ServiceStack.Redis.Support.Locking;
-using ServiceStack.Redis.Support.Queue.Implementation;
 using ServiceStack.Text;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests
@@ -21,7 +18,7 @@ namespace ServiceStack.Redis.Tests
         public override void OnBeforeEachTest()
         {
             base.OnBeforeEachTest();
-            RedisRaw.NamespacePrefix = "RedisClientTestsAsync";
+            RedisRaw.NamespacePrefix = nameof(RedisClientTestsAsync);
         }
 
         [Test]
@@ -69,10 +66,8 @@ namespace ServiceStack.Redis.Tests
                 value[i] = (byte)i;
             }
 
-            var redis = RedisAsync.As<byte[]>();
-
-            await redis.SetValueAsync(key, value);
-            var resultValue = await redis.GetValueAsync(key);
+            await RedisAsync.SetAsync(key, value);
+            var resultValue = await NativeAsync.GetAsync(key);
 
             Assert.That(resultValue, Is.EquivalentTo(value));
         }
@@ -80,9 +75,10 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task GetKeys_returns_matching_collection()
         {
-            await RedisAsync.SetValueAsync("ss-tests:a1", "One");
-            await RedisAsync.SetValueAsync("ss-tests:a2", "One");
-            await RedisAsync.SetValueAsync("ss-tests:b3", "One");
+            await RedisAsync.SetAsync("ss-tests:a1", "One");
+            await RedisAsync.SetAsync("ss-tests:a2", "One");
+            await RedisAsync.SetAsync("ss-tests:b3", "One");
+
             var matchingKeys = await RedisAsync.SearchKeysAsync("ss-tests:a*");
 
             Assert.That(matchingKeys.Count, Is.EqualTo(2));
@@ -116,8 +112,6 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_delete_keys()
         {
-            await NativeAsync.DelAsync("key");
-
             await RedisAsync.SetValueAsync("key", "val");
 
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
@@ -132,7 +126,7 @@ namespace ServiceStack.Redis.Tests
 
             await RedisAsync.SetAllAsync(keysMap);
 
-            for (int i = 0; i < 10; i++) // note: TimesAsync doesn't take Func<..., [Value]Task>; forces async void, which is bad
+            for (int i = 0; i < 10; i++)
                 Assert.That(await RedisAsync.ContainsKeyAsync("key" + i), Is.True);
 
             await RedisAsync.RemoveEntryAsync(keysMap.Keys.ToArray());
@@ -160,18 +154,17 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_RenameKey()
         {
             await RedisAsync.SetValueAsync("oldkey", "val");
-            await RedisAsync.RenameKeyAsync("oldkey", "newkey");
+            await NativeAsync.RenameAsync("oldkey", "newkey");
 
             Assert.That(await RedisAsync.ContainsKeyAsync("oldkey"), Is.False);
             Assert.That(await RedisAsync.ContainsKeyAsync("newkey"), Is.True);
         }
 
-        
         [Test]
         public async Task Can_Expire()
         {
             await RedisAsync.SetValueAsync("key", "val");
-            await NativeAsync.ExpireAsync("key", 1);
+            await RedisAsync.ExpireEntryInAsync("key", TimeSpan.FromSeconds(1));
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.True);
             await Task.Delay(2000);
             Assert.That(await RedisAsync.ContainsKeyAsync("key"), Is.False);
@@ -207,7 +200,7 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_GetTimeToLive()
         {
             await RedisAsync.SetValueAsync("key", "val");
-            await NativeAsync.ExpireAsync("key", 10);
+            await RedisAsync.ExpireEntryInAsync("key", TimeSpan.FromSeconds(10));
 
             var ttl = await RedisAsync.GetTimeToLiveAsync("key");
             Assert.That(ttl.Value.TotalSeconds, Is.GreaterThanOrEqualTo(9));
@@ -216,7 +209,7 @@ namespace ServiceStack.Redis.Tests
             ttl = await RedisAsync.GetTimeToLiveAsync("key");
             Assert.That(ttl.Value.TotalSeconds, Is.LessThanOrEqualTo(9));
         }
-        
+
         [Test]
         public async Task Can_GetServerTime()
         {
@@ -245,7 +238,6 @@ namespace ServiceStack.Redis.Tests
             Assert.That(await RedisAsync.EchoAsync("Hello"), Is.EqualTo("Hello"));
         }
 
-        
         [Test]
         public async Task Can_SlaveOfNoOne()
         {
@@ -257,14 +249,15 @@ namespace ServiceStack.Redis.Tests
         {
             try
             {
-                await RedisAsync.ForegroundSaveAsync();
+                await NativeAsync.SaveAsync();
             }
             catch (RedisResponseException e)
             {
                 // if exception has that message then it still proves that BgSave works as expected.
                 if (e.Message.StartsWith("Can't BGSAVE while AOF log rewriting is in progress")
                     || e.Message.StartsWith("An AOF log rewriting in progress: can't BGSAVE right now")
-                    || e.Message.StartsWith("Background save already in progress"))
+                    || e.Message.StartsWith("Background save already in progress")
+                    || e.Message.StartsWith("Another child process is active (AOF?): can't BGSAVE right now"))
                     return;
 
                 throw;
@@ -276,14 +269,15 @@ namespace ServiceStack.Redis.Tests
         {
             try
             {
-                await RedisAsync.BackgroundSaveAsync();
+                await NativeAsync.BgSaveAsync();
             }
             catch (RedisResponseException e)
             {
                 // if exception has that message then it still proves that BgSave works as expected.
                 if (e.Message.StartsWith("Can't BGSAVE while AOF log rewriting is in progress")
                     || e.Message.StartsWith("An AOF log rewriting in progress: can't BGSAVE right now")
-                    || e.Message.StartsWith("Background save already in progress"))
+                    || e.Message.StartsWith("Background save already in progress")
+                    || e.Message.StartsWith("Another child process is active (AOF?): can't BGSAVE right now"))
                     return;
 
                 throw;
@@ -301,7 +295,7 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_BgRewriteAof()
         {
-            await RedisAsync.BackgroundRewriteAppendOnlyFileAsync();
+            await NativeAsync.BgRewriteAofAsync();
         }
 
         [Test]
@@ -315,10 +309,9 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_get_Keys_with_pattern()
         {
             for (int i = 0; i < 5; i++)
-            {
                 await RedisAsync.SetValueAsync("k1:" + i, "val");
+            for (int i = 0; i < 5; i++)
                 await RedisAsync.SetValueAsync("k2:" + i, "val");
-            }
 
             var keys = await NativeAsync.KeysAsync("k1:*");
             Assert.That(keys.Length, Is.EqualTo(5));
@@ -336,9 +329,8 @@ namespace ServiceStack.Redis.Tests
 
             await RedisAsync.SetAllAsync(keysMap);
 
-            var keys = keysMap.Keys.ToList();
-            var map = await RedisAsync.GetValuesMapAsync(keys);
-            var mapKeys = await RedisAsync.GetValuesAsync(keys);
+            var map = await RedisAsync.GetAllAsync<string>(keysMap.Keys);
+            var mapKeys = await RedisAsync.GetValuesAsync(keysMap.Keys.ToList<string>());
 
             foreach (var entry in keysMap)
             {
@@ -377,20 +369,21 @@ namespace ServiceStack.Redis.Tests
             }
             await Task.WhenAll(tasks);
 
-            var val = int.Parse(await RedisAsync.GetValueAsync(key), CultureInfo.InvariantCulture);
+            var val = await RedisAsync.GetAsync<int>(key);
+
             Assert.That(val, Is.EqualTo(1 + 5));
         }
 
-        private async Task IncrementKeyInsideLock(String key, String lockKey, int clientNo, IRedisClientAsync client)
+        private async Task IncrementKeyInsideLock(String key, String lockKey, int clientNo, IRedisClient client)
         {
-            await using (await client.AcquireLockAsync(lockKey))
+            using (client.AcquireLock(lockKey))
             {
                 Debug.WriteLine(String.Format("client {0} acquired lock", clientNo));
-                var val = int.Parse(await client.GetValueAsync(key), CultureInfo.InvariantCulture);
+                var val = client.Get<int>(key);
 
                 await Task.Delay(200);
 
-                await client.SetValueAsync(key, (val + 1).ToString(CultureInfo.InvariantCulture));
+                client.Set(key, val + 1);
                 Debug.WriteLine(String.Format("client {0} released lock", clientNo));
             }
         }
@@ -401,23 +394,23 @@ namespace ServiceStack.Redis.Tests
             var key = PrefixedKey("AcquireLockKeyTimeOut");
             var lockKey = PrefixedKey("Can_AcquireLock_TimeOut");
             await RedisAsync.IncrementValueAsync(key); //1
-            await using var acquiredLock = await RedisAsync.AcquireLockAsync(lockKey);
+            var acquiredLock = await RedisAsync.AcquireLockAsync(lockKey);
             var waitFor = TimeSpan.FromMilliseconds(1000);
             var now = DateTime.Now;
 
             try
             {
-                await using (IRedisClientAsync client = new RedisClient(TestConfig.SingleHost))
+                using (var client = new RedisClient(TestConfig.SingleHost))
                 {
-                    await using (await client.AcquireLockAsync(lockKey, waitFor))
+                    using (client.AcquireLock(lockKey, waitFor))
                     {
-                        await client.IncrementValueAsync(key); //2
+                        await RedisAsync.IncrementValueAsync(key); //2
                     }
                 }
             }
             catch (TimeoutException)
             {
-                var val = int.Parse(await RedisAsync.GetValueAsync(key), CultureInfo.InvariantCulture);
+                var val = await RedisAsync.GetAsync<int>(key);
                 Assert.That(val, Is.EqualTo(1));
 
                 var timeTaken = DateTime.Now - now;
@@ -487,7 +480,6 @@ namespace ServiceStack.Redis.Tests
             state = await distributedLock.LockAsync(key, lockTimeout, lockTimeout, RedisAsync);
             Assert.AreEqual(state.Result, DistributedLock.LOCK_ACQUIRED);
 
-
             //cleanup
             Assert.IsTrue(await distributedLock.UnlockAsync(key, state.Expiration, RedisAsync));
         }
@@ -517,10 +509,9 @@ namespace ServiceStack.Redis.Tests
             var vals = 5.Times(x => "val" + x);
 
             using var redis = RedisClient.New();
-            var client = redis.AsAsyncClient();
-            await client.SetAllAsync(keys, vals);
+            await RedisAsync.SetAllAsync(keys, vals);
 
-            var all = await client.GetValuesAsync(keys);
+            var all = await RedisAsync.GetValuesAsync(keys);
             Assert.AreEqual(vals, all);
         }
 
@@ -549,12 +540,12 @@ namespace ServiceStack.Redis.Tests
 
             using var redis = RedisClient.New();
             var client = redis.AsAsyncClient();
-            var cacheClient = redis.AsAsyncCacheClient();
             await client.SetAllAsync(map);
 
-            Assert.That(await cacheClient.GetAsync<string>("key_a"), Is.EqualTo("123"));
+            Assert.That(await client.GetAsync<string>("key_a"), Is.EqualTo("123"));
             Assert.That(await client.GetValueAsync("key_b"), Is.EqualTo(""));
         }
+
 
         [Test]
         public async Task Can_store_Dictionary_as_bytes()
@@ -574,13 +565,17 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Should_reset_slowlog()
         {
-            await RedisAsync.SlowlogResetAsync();
+            using var redis = RedisClient.New();
+            var client = redis.AsAsyncClient();
+            await client.SlowlogResetAsync();
         }
 
         [Test]
         public async Task Can_get_slowlog()
         {
-            var log = await RedisAsync.SlowlogGetAsync(10);
+            using var redis = RedisClient.New();
+            var client = redis.AsAsyncClient();
+            var log = await client.SlowlogGetAsync(10);
 
             foreach (var t in log)
             {
@@ -595,26 +590,23 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_change_db_at_runtime()
         {
-            using (var syncClient = new RedisClient(TestConfig.SingleHost, TestConfig.RedisPort, db: 1))
+            // problem: the initial DB isn't triggering; to investigate
+            using var redis = new RedisClient(TestConfig.SingleHost, TestConfig.RedisPort, db: 1);
+            var val = Environment.TickCount;
+            var key = "test" + val;
+            try
             {
-                var redis = syncClient.AsAsyncCacheClient();
-                var tmp = syncClient.AsAsyncClient();
-                var val = Environment.TickCount;
-                var key = "test" + val;
-                try
-                {
-                    await redis.SetAsync(key, val);
-                    await tmp.ChangeDbAsync(2);
-                    Assert.That(await redis.GetAsync<int>(key), Is.EqualTo(0));
-                    await tmp.ChangeDbAsync(1);
-                    Assert.That(await redis.GetAsync<int>(key), Is.EqualTo(val));
-                    await redis.DisposeAsync();
-                }
-                finally
-                {
-                    await tmp.ChangeDbAsync(1);
-                    await redis.RemoveAsync(key);
-                }
+                await RedisAsync.SetAsync(key, val);
+                await RedisAsync.ChangeDbAsync(2);
+                Assert.That(await RedisAsync.GetAsync<int>(key), Is.EqualTo(0));
+                await RedisAsync.ChangeDbAsync(1);
+                Assert.That(await RedisAsync.GetAsync<int>(key), Is.EqualTo(val));
+                await RedisAsync.DisposeAsync();
+            }
+            finally
+            {
+                await RedisAsync.ChangeDbAsync(1);
+                await RedisAsync.RemoveAsync(key);
             }
         }
 

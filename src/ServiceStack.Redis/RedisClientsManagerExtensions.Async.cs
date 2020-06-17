@@ -126,6 +126,9 @@ namespace ServiceStack.Redis
 				return await lambda(redis.As<T>()).ConfigureAwait(false);
 			}
 		}
+
+		public static ValueTask<RedisText> CustomAsync(this IRedisClientAsync client, params object[] cmdWithArgs)
+			=> client.CustomAsync(cmdWithArgs, default);
 	}
 
 }

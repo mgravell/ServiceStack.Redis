@@ -2,15 +2,12 @@
 // License: https://raw.github.com/ServiceStack/ServiceStack/master/license.txt
 
 using NUnit.Framework;
-using NUnit.Framework.Internal.Execution;
 using ServiceStack.Caching;
 using ServiceStack.Data;
-using ServiceStack.FluentValidation.Validators;
 using ServiceStack.Redis.Generic;
 using ServiceStack.Redis.Pipeline;
 using ServiceStack.Redis.Support.Locking;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;

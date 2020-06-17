@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using ServiceStack.Caching;
 using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests
@@ -18,13 +17,13 @@ namespace ServiceStack.Redis.Tests
                 await client.SetAsync("db", 2);
             }
 
-            await using(var client = await redisManager.GetClientAsync())
+            await using (var client = await redisManager.GetClientAsync())
             {
                 await client.ChangeDbAsync(3);
                 await client.SetAsync("db", 3);
             }
 
-            await using(var client = await redisManager.GetClientAsync())
+            await using (var client = await redisManager.GetClientAsync())
             {
                 await client.ChangeDbAsync(2);
                 //((RedisClient)client).ChangeDb(2);

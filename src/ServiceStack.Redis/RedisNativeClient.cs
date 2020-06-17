@@ -210,6 +210,7 @@ namespace ServiceStack.Redis
             }
         }
 
+
         public void ChangeDb(long db)
         {
             this.db = db;

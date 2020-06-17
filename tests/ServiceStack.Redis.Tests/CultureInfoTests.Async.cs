@@ -1,7 +1,7 @@
-﻿using System.Globalization;
+﻿using NUnit.Framework;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
 
 namespace ServiceStack.Redis.Tests
 {
