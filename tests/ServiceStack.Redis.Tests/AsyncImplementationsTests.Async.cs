@@ -17,11 +17,12 @@ using System.Threading.Tasks;
 namespace ServiceStack.Redis.Tests
 {
     // verify that anything that implements IFoo also implements IFooAsync
-    public class AsyncImplementations
+    [Category("Async")]
+    public class AsyncImplementationTests
     {
         private static readonly Type[] AllTypes
             = typeof(RedisClient).Assembly.GetTypes()
-            .Concat(typeof(AsyncImplementations).Assembly.GetTypes())
+            .Concat(typeof(AsyncImplementationTests).Assembly.GetTypes())
             .Where(x => x.IsClass)
             .OrderBy(x => x.FullName).ToArray();
 
