@@ -25,8 +25,7 @@ namespace ServiceStack.Redis
 {
     partial class RedisClient : IRedisClientAsync, IRemoveByPatternAsync, ICacheClientAsync
     {
-        public IRedisClientAsync AsAsyncClient() => this;
-        public ICacheClientAsync AsAsyncCacheClient() => this;
+        public IRedisClientAsync AsAsync() => this;
 
         // the typed client implements this for us
         IRedisTypedClientAsync<T> IRedisClientAsync.As<T>() => (IRedisTypedClientAsync<T>)As<T>();
@@ -382,7 +381,7 @@ namespace ServiceStack.Redis
         {
             var fromScore = GetLexicalScore(fromStringScore);
             var toScore = GetLexicalScore(toStringScore);
-            return AsAsyncClient().GetSortedSetCountAsync(setId, fromScore, toScore, cancellationToken);
+            return AsAsync().GetSortedSetCountAsync(setId, fromScore, toScore, cancellationToken);
         }
 
         ValueTask<long> IRedisClientAsync.GetSortedSetCountAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken)
@@ -459,7 +458,7 @@ namespace ServiceStack.Redis
         }
 
         IAsyncEnumerable<string> ICacheClientExtendedAsync.GetKeysByPatternAsync(string pattern, CancellationToken cancellationToken)
-            => AsAsyncClient().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken);
+            => AsAsync().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken);
 
         ValueTask ICacheClientExtendedAsync.RemoveExpiredEntriesAsync(CancellationToken cancellationToken)
         {
@@ -471,7 +470,7 @@ namespace ServiceStack.Redis
         {
             List<string> buffer = null;
             const int BATCH_SIZE = 1024;
-            await foreach(var key in AsAsyncClient().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false))
+            await foreach(var key in AsAsync().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 (buffer ??= new List<string>()).Add(key);
                 if (buffer.Count == BATCH_SIZE)
@@ -487,7 +486,7 @@ namespace ServiceStack.Redis
         }
 
         ValueTask IRemoveByPatternAsync.RemoveByRegexAsync(string regex, CancellationToken cancellationToken)
-            => AsAsyncClient().RemoveByPatternAsync(RegexToGlob(regex), cancellationToken);
+            => AsAsync().RemoveByPatternAsync(RegexToGlob(regex), cancellationToken);
 
         ValueTask ICacheClientAsync.RemoveAllAsync(IEnumerable<string> keys, CancellationToken cancellationToken)
         {
