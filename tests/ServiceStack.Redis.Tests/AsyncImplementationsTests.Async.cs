@@ -48,9 +48,10 @@ namespace ServiceStack.Redis.Tests
         [TestCase(typeof(IDistributedLock), typeof(IDistributedLockAsync))]
         public void TestSameAPI(Type syncInterface, Type asyncInterface)
         {
+            TestContext.Out.WriteLine($"Comparing '{syncInterface.Name}' and '{asyncInterface.Name}'"); 
             int missing = 0, extra = 0;
-            var syncMethods = syncInterface.GetMethods();
-            var asyncMethods = asyncInterface.GetMethods();
+            var syncMethods = syncInterface.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            var asyncMethods = asyncInterface.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var method in syncMethods)
             {
                 try
@@ -81,7 +82,6 @@ namespace ServiceStack.Redis.Tests
                         }
                         expectedSignature = new[] { arg0, parameters[1].ParameterType, parameters[2].ParameterType };
                         expectedName = method.Name;
-
                     }
                     else if (syncInterface == typeof(IRedisQueueCompletableOperation))
                     {
@@ -122,11 +122,71 @@ namespace ServiceStack.Redis.Tests
                         }
                     }
 
-                    var found = asyncInterface.GetMethod(expectedName, expectedSignature);
-                    if (found == null || expectedReturnType != found.ReturnType)
+                    int match = 0;
+                    foreach (var candidate in asyncMethods)
                     {
-                        missing++;
-                        TestContext.Out.WriteLine($"Not found: {expectedReturnType} {expectedName}({string.Join<Type>(",", expectedSignature)})");
+                        if (candidate.Name != expectedName) continue;
+                        if (method.IsGenericMethod != candidate.IsGenericMethod) continue;
+
+                        if (method.IsGenericMethod)
+                        {
+                            var fromT = method.GetGenericArguments();
+                            var toT = candidate.GetGenericArguments();
+
+                            Type SubstituteT(Type type)
+                            {
+                                for (int i = 0; i < fromT.Length; i++)
+                                    if (type == fromT[i]) return toT[i];
+
+                                if (type.IsGenericType)
+                                {
+                                    // deconstruct and reconstruct
+                                    var tArgs = type.GetGenericArguments();
+                                    for (int i = 0; i < tArgs.Length; i++)
+                                        tArgs[i] = SubstituteT(tArgs[i]);
+                                    type = type.GetGenericTypeDefinition().MakeGenericType(tArgs);
+                                }
+                                return type;
+                            }
+
+                            expectedReturnType = SubstituteT(expectedReturnType);
+                            for (int i = 0; i < expectedSignature.Length; i++)
+                            {
+                                expectedSignature[i] = SubstituteT(expectedSignature[i]);
+                            }
+
+                        }
+
+                        if (candidate.ReturnType != expectedReturnType) continue;
+                        var args = candidate.GetParameters();
+                        if (args.Length != expectedSignature.Length) continue;
+                        bool argFail = false;
+                        for (int i = 0; i < args.Length; i++)
+                        {
+                            if (args[i].ParameterType != expectedSignature[i])
+                            {
+                                argFail = true;
+                                break;
+                            }
+                        }
+                        if (argFail) continue;
+
+                        // match!
+                        match++;
+                    }
+                    switch (match)
+                    {
+                        case 0:
+                            missing++;
+                            TestContext.Out.WriteLine($"Not found: {expectedReturnType} {expectedName}({string.Join<Type>(",", expectedSignature)})");
+                            break;
+                        case 1:
+                            // found it, yay
+                            break;
+                        default:
+                            missing++;
+                            TestContext.Out.WriteLine($"Ambiguous matches ({match}) found: {expectedReturnType} {expectedName}({string.Join<Type>(",", expectedSignature)})");
+                            break;
                     }
                 }
                 catch (Exception ex)
