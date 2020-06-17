@@ -418,6 +418,11 @@ namespace ServiceStack.Redis.Tests
                 Assert.That(timeTaken.TotalMilliseconds < waitFor.TotalMilliseconds + 1000, Is.True);
                 return;
             }
+            finally
+            {
+                await RedisAsync.RemoveAsync(key);
+                await RedisAsync.RemoveAsync(lockKey);
+            }
             Assert.Fail("should have Timed out");
         }
 
