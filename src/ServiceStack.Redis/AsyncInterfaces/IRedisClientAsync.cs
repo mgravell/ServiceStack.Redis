@@ -125,9 +125,9 @@ namespace ServiceStack.Redis
         //ValueTask<long> DecrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
         ValueTask<List<string>> SearchKeysAsync(string pattern, CancellationToken cancellationToken = default);
 
-        //ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<RedisKeyType> GetEntryTypeAsync(string key, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetStringCountAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<long> GetStringCountAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<string> GetRandomKeyAsync(CancellationToken cancellationToken = default);
         ValueTask<bool> ExpireEntryInAsync(string key, TimeSpan expireIn, CancellationToken cancellationToken = default);
         ValueTask<bool> ExpireEntryAtAsync(string key, DateTime expireAt, CancellationToken cancellationToken = default);
@@ -194,7 +194,7 @@ namespace ServiceStack.Redis
         ValueTask<string> PopItemFromSetAsync(string setId, CancellationToken cancellationToken = default);
         ValueTask<List<string>> PopItemsFromSetAsync(string setId, int count, CancellationToken cancellationToken = default);
         //ValueTask MoveBetweenSetsAsync(string fromSetId, string toSetId, string item, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetSetCountAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<long> GetSetCountAsync(string setId, CancellationToken cancellationToken = default);
         //ValueTask<bool> SetContainsItemAsync(string setId, string item, CancellationToken cancellationToken = default);
         //HashSet<string> GetIntersectFromSetsAsync(params string[] setIds, CancellationToken cancellationToken = default);
         //ValueTask StoreIntersectFromSetsAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
@@ -226,7 +226,7 @@ namespace ServiceStack.Redis
         //ValueTask TrimListAsync(string listId, int keepStartingFrom, int keepEndingAt, CancellationToken cancellationToken = default);
         //ValueTask<long> RemoveItemFromListAsync(string listId, string value, CancellationToken cancellationToken = default);
         //ValueTask<long> RemoveItemFromListAsync(string listId, string value, int noOfMatches, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetListCountAsync(string listId, CancellationToken cancellationToken = default);
+        ValueTask<long> GetListCountAsync(string listId, CancellationToken cancellationToken = default);
         //ValueTask<string> GetItemFromListAsync(string listId, int listIndex, CancellationToken cancellationToken = default);
         //ValueTask SetItemInListAsync(string listId, int listIndex, string value, CancellationToken cancellationToken = default);
 
@@ -323,7 +323,7 @@ namespace ServiceStack.Redis
         //ValueTask<string> GetValueFromHashAsync(string hashId, string key, CancellationToken cancellationToken = default);
         //List<string> GetValuesFromHashAsync(string hashId, params string[] keys, CancellationToken cancellationToken = default);
         //ValueTask<bool> RemoveEntryFromHashAsync(string hashId, string key, CancellationToken cancellationToken = default);
-        //ValueTask<long> GetHashCountAsync(string hashId, CancellationToken cancellationToken = default);
+        ValueTask<long> GetHashCountAsync(string hashId, CancellationToken cancellationToken = default);
         //List<string> GetHashKeysAsync(string hashId, CancellationToken cancellationToken = default);
         //List<string> GetHashValuesAsync(string hashId, CancellationToken cancellationToken = default);
         //Dictionary<string, string> GetAllEntriesFromHashAsync(string hashId, CancellationToken cancellationToken = default);
@@ -333,17 +333,17 @@ namespace ServiceStack.Redis
 
         //#region Eval/Lua operations
 
-        //T ExecCachedLua<T>Async(string scriptBody, Func<string, T> scriptSha1, CancellationToken cancellationToken = default);
+        ValueTask<T> ExecCachedLuaAsync<T>(string scriptBody, Func<string, ValueTask<T>> scriptSha1, CancellationToken cancellationToken = default);
 
-        //RedisText ExecLuaAsync(string body, params string[] args, CancellationToken cancellationToken = default);
-        //RedisText ExecLuaAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
-        //RedisText ExecLuaShaAsync(string sha1, params string[] args, CancellationToken cancellationToken = default);
-        //RedisText ExecLuaShaAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<RedisText> ExecLuaAsync(string body, params string[] args, CancellationToken cancellationToken = default);
+        ValueTask<RedisText> ExecLuaAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
+        //ValueTask<RedisText> ExecLuaShaAsync(string sha1, params string[] args, CancellationToken cancellationToken = default);
+        ValueTask<RedisText> ExecLuaShaAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken = default);
 
         //ValueTask<string> ExecLuaAsStringAsync(string luaBody, params string[] args, CancellationToken cancellationToken = default);
-        //ValueTask<string> ExecLuaAsStringAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
+        ValueTask<string> ExecLuaAsStringAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
         //ValueTask<string> ExecLuaShaAsStringAsync(string sha1, params string[] args, CancellationToken cancellationToken = default);
-        //ValueTask<string> ExecLuaShaAsStringAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken = default);
+        ValueTask<string> ExecLuaShaAsStringAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken = default);
 
         //ValueTask<long> ExecLuaAsIntAsync(string luaBody, params string[] args, CancellationToken cancellationToken = default);
         //ValueTask<long> ExecLuaAsIntAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken = default);
@@ -361,7 +361,7 @@ namespace ServiceStack.Redis
         //Dictionary<string, bool> WhichLuaScriptsExistsAsync(params string[] sha1Refs, CancellationToken cancellationToken = default);
         //ValueTask RemoveAllLuaScriptsAsync(CancellationToken cancellationToken = default);
         //ValueTask KillRunningLuaScriptAsync(CancellationToken cancellationToken = default);
-        //ValueTask<string> LoadLuaScriptAsync(string body, CancellationToken cancellationToken = default);
+        ValueTask<string> LoadLuaScriptAsync(string body, CancellationToken cancellationToken = default);
 
         //#endregion
 

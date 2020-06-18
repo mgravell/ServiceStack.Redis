@@ -616,6 +616,61 @@ namespace ServiceStack.Redis
 
         ValueTask<long> IRedisClientAsync.RemoveRangeFromSortedSetBySearchAsync(string setId, string start, string end, CancellationToken cancellationToken)
             => NativeAsync.ZRemRangeByLexAsync(setId, GetSearchStart(start), GetSearchEnd(end), cancellationToken);
+
+        ValueTask<string> IRedisClientAsync.TypeAsync(string key, CancellationToken cancellationToken)
+            => NativeAsync.TypeAsync(key, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.GetStringCountAsync(string key, CancellationToken cancellationToken)
+            => NativeAsync.StrLenAsync(key, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.GetSetCountAsync(string setId, CancellationToken cancellationToken)
+            => NativeAsync.SCardAsync(setId, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.GetListCountAsync(string listId, CancellationToken cancellationToken)
+            => NativeAsync.LLenAsync(listId, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.GetHashCountAsync(string hashId, CancellationToken cancellationToken)
+            => NativeAsync.HLenAsync(hashId, cancellationToken);
+
+        async ValueTask<T> IRedisClientAsync.ExecCachedLuaAsync<T>(string scriptBody, Func<string, ValueTask<T>> scriptSha1, CancellationToken cancellationToken)
+        {
+            if (!CachedLuaSha1Map.TryGetValue(scriptBody, out var sha1))
+                CachedLuaSha1Map[scriptBody] = sha1 = await AsAsync().LoadLuaScriptAsync(scriptBody, cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                return await scriptSha1(sha1).ConfigureAwait(false);
+            }
+            catch (RedisResponseException ex)
+            {
+                if (!ex.Message.StartsWith("NOSCRIPT"))
+                    throw;
+
+                CachedLuaSha1Map[scriptBody] = sha1 = await AsAsync().LoadLuaScriptAsync(scriptBody, cancellationToken).ConfigureAwait(false);
+                return await scriptSha1(sha1).ConfigureAwait(false);
+            }
+        }
+
+        async ValueTask<RedisText> IRedisClientAsync.ExecLuaAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken)
+        {
+            var data = await NativeAsync.EvalCommandAsync(luaBody, keys.Length, MergeAndConvertToBytes(keys, args), cancellationToken).ConfigureAwait(false);
+            return data.ToRedisText();
+        }
+
+        async ValueTask<RedisText> IRedisClientAsync.ExecLuaShaAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken)
+        {
+            var data = await NativeAsync.EvalShaCommandAsync(sha1, keys.Length, MergeAndConvertToBytes(keys, args), cancellationToken).ConfigureAwait(false);
+            return data.ToRedisText();
+        }
+
+        ValueTask<string> IRedisClientAsync.ExecLuaAsStringAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken)
+            => NativeAsync.EvalShaStrAsync(luaBody, keys.Length, MergeAndConvertToBytes(keys, args), cancellationToken);
+
+        ValueTask<string> IRedisClientAsync.ExecLuaShaAsStringAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken)
+            => NativeAsync.EvalStrAsync(sha1, keys.Length, MergeAndConvertToBytes(keys, args), cancellationToken);
+
+        async ValueTask<string> IRedisClientAsync.LoadLuaScriptAsync(string body, CancellationToken cancellationToken)
+            => (await NativeAsync.ScriptLoadAsync(body, cancellationToken).ConfigureAwait(false)).FromUtf8Bytes();
     }
 }
  

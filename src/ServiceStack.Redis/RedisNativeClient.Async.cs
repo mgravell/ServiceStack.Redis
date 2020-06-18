@@ -3,6 +3,7 @@ using ServiceStack.Text;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -499,6 +500,122 @@ namespace ServiceStack.Redis
 
             return SendExpectLongAsync(cancellationToken,
                 Commands.ZRemRangeByLex, setId.ToUtf8Bytes(), min.ToUtf8Bytes(), max.ToUtf8Bytes());
+        }
+
+        ValueTask<string> IRedisNativeClientAsync.CalculateSha1Async(string luaBody, CancellationToken cancellationToken)
+        {
+            AssertNotNull(luaBody, nameof(luaBody));
+
+            byte[] buffer = Encoding.UTF8.GetBytes(luaBody);
+            return new ValueTask<string>(BitConverter.ToString(buffer.ToSha1Hash()).Replace("-", ""));
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ScriptExistsAsync(byte[][] sha1Refs, CancellationToken cancellationToken)
+        {
+            var keysAndValues = MergeCommandWithArgs(Commands.Script, Commands.Exists, sha1Refs);
+            return SendExpectMultiDataAsync(cancellationToken, keysAndValues);
+        }
+
+        ValueTask IRedisNativeClientAsync.ScriptFlushAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.Script, Commands.Flush);
+
+        ValueTask IRedisNativeClientAsync.ScriptKillAsync(CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.Script, Commands.Kill);
+
+        ValueTask<byte[]> IRedisNativeClientAsync.ScriptLoadAsync(string body, CancellationToken cancellationToken)
+        {
+            AssertNotNull(body, nameof(body));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.Script, Commands.Load, body.ToUtf8Bytes());
+            return SendExpectDataAsync(cancellationToken, cmdArgs);
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.StrLenAsync(string key, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.StrLen, key.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.LLenAsync(string listId, CancellationToken cancellationToken)
+        {
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectLongAsync(cancellationToken, Commands.LLen, listId.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.SCardAsync(string setId, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectLongAsync(cancellationToken, Commands.SCard, setId.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.HLenAsync(string hashId, CancellationToken cancellationToken)
+        {
+            AssertNotNull(hashId, nameof(hashId));
+            return SendExpectLongAsync(cancellationToken, Commands.HLen, hashId.ToUtf8Bytes());
+        }
+
+        ValueTask<RedisData> IRedisNativeClientAsync.EvalCommandAsync(string luaBody, int numberKeysInArgs, byte[][] keys, CancellationToken cancellationToken)
+        {
+            AssertNotNull(luaBody, nameof(luaBody));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.Eval, luaBody.ToUtf8Bytes(), keys.PrependInt(numberKeysInArgs));
+            return RawCommandAsync(cancellationToken, cmdArgs);
+        }
+
+        ValueTask<RedisData> IRedisNativeClientAsync.EvalShaCommandAsync(string sha1, int numberKeysInArgs, byte[][] keys, CancellationToken cancellationToken)
+        {
+            AssertNotNull(sha1, nameof(sha1));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.EvalSha, sha1.ToUtf8Bytes(), keys.PrependInt(numberKeysInArgs));
+            return RawCommandAsync(cancellationToken, cmdArgs);
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.EvalAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken)
+        {
+            AssertNotNull(luaBody, nameof(luaBody));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.Eval, luaBody.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
+            return SendExpectMultiDataAsync(cancellationToken, cmdArgs);
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.EvalShaAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken)
+        {
+            AssertNotNull(sha1, nameof(sha1));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.EvalSha, sha1.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
+            return SendExpectMultiDataAsync(cancellationToken, cmdArgs);
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.EvalIntAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken)
+        {
+            AssertNotNull(luaBody, nameof(luaBody));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.Eval, luaBody.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
+            return SendExpectLongAsync(cancellationToken, cmdArgs);
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.EvalShaIntAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken)
+        {
+            AssertNotNull(sha1, nameof(sha1));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.EvalSha, sha1.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
+            return SendExpectLongAsync(cancellationToken, cmdArgs);
+        }
+
+        async ValueTask<string> IRedisNativeClientAsync.EvalStrAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken)
+        {
+            AssertNotNull(luaBody, nameof(luaBody));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.Eval, luaBody.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
+            return (await SendExpectDataAsync(cancellationToken, cmdArgs).ConfigureAwait(false)).FromUtf8Bytes();
+        }
+
+        async ValueTask<string> IRedisNativeClientAsync.EvalShaStrAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken)
+        {
+            AssertNotNull(sha1, nameof(sha1));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.EvalSha, sha1.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
+            return (await SendExpectDataAsync(cancellationToken, cmdArgs).ConfigureAwait(false)).FromUtf8Bytes();
         }
     }
 }

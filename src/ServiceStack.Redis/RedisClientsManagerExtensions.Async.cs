@@ -1,16 +1,16 @@
+using ServiceStack.Caching;
+using ServiceStack.Redis.Generic;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ServiceStack.Caching;
-using ServiceStack.Redis.Generic;
 
 namespace ServiceStack.Redis
 {
-	/// <summary>
-	/// Useful wrapper IRedisClientsManager to cut down the boiler plate of most IRedisClient access
-	/// </summary>
-	public static partial class RedisClientsManagerExtensions
+    /// <summary>
+    /// Useful wrapper IRedisClientsManager to cut down the boiler plate of most IRedisClient access
+    /// </summary>
+    public static partial class RedisClientsManagerExtensions
 	{
 		///// <summary>
 		///// Creates a PubSubServer that uses a background thread to listen and process for
@@ -126,9 +126,6 @@ namespace ServiceStack.Redis
 				return await lambda(redis.As<T>()).ConfigureAwait(false);
 			}
 		}
-
-		public static ValueTask<RedisText> CustomAsync(this IRedisClientAsync client, params object[] cmdWithArgs)
-			=> client.CustomAsync(cmdWithArgs, default);
 	}
 
 }

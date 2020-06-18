@@ -74,7 +74,7 @@ namespace ServiceStack.Redis
         ValueTask<byte[][]> KeysAsync(string pattern, CancellationToken cancellationToken = default);
         ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> ExistsAsync(string key, CancellationToken cancellationToken = default);
-        //ValueTask<long> StrLenAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<long> StrLenAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<bool> SetAsync(string key, byte[] value, bool exists, long expirySeconds = 0, long expiryMilliseconds = 0, CancellationToken cancellationToken = default);
         ValueTask SetAsync(string key, byte[] value, long expirySeconds = 0, long expiryMilliseconds = 0, CancellationToken cancellationToken = default);
         ValueTask SetExAsync(string key, int expireInSeconds, byte[] value, CancellationToken cancellationToken = default);
@@ -134,7 +134,7 @@ namespace ServiceStack.Redis
         //ValueTask<long> LPushXAsync(string listId, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask LTrimAsync(string listId, int keepStartingFrom, int keepEndingAt, CancellationToken cancellationToken = default);
         //ValueTask<long> LRemAsync(string listId, int removeNoOfMatches, byte[] value, CancellationToken cancellationToken = default);
-        //ValueTask<long> LLenAsync(string listId, CancellationToken cancellationToken = default);
+        ValueTask<long> LLenAsync(string listId, CancellationToken cancellationToken = default);
         //ValueTask<byte[]> LIndexAsync(string listId, int listIndex, CancellationToken cancellationToken = default);
         //ValueTask LInsertAsync(string listId, bool insertBefore, byte[] pivot, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask LSetAsync(string listId, int listIndex, byte[] value, CancellationToken cancellationToken = default);
@@ -159,7 +159,7 @@ namespace ServiceStack.Redis
         ValueTask<byte[]> SPopAsync(string setId, CancellationToken cancellationToken = default);
         ValueTask<byte[][]> SPopAsync(string setId, int count, CancellationToken cancellationToken = default);
         //ValueTask SMoveAsync(string fromSetId, string toSetId, byte[] value, CancellationToken cancellationToken = default);
-        //ValueTask<long> SCardAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<long> SCardAsync(string setId, CancellationToken cancellationToken = default);
         //ValueTask<long> SIsMemberAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> SInterAsync(params string[] setIds, CancellationToken cancellationToken = default);
         //ValueTask SInterStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
@@ -213,7 +213,7 @@ namespace ServiceStack.Redis
         //ValueTask<byte[][]> HMGetAsync(string hashId, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
         //ValueTask<long> HDelAsync(string hashId, byte[] key, CancellationToken cancellationToken = default);
         //ValueTask<long> HExistsAsync(string hashId, byte[] key, CancellationToken cancellationToken = default);
-        //ValueTask<long> HLenAsync(string hashId, CancellationToken cancellationToken = default);
+        ValueTask<long> HLenAsync(string hashId, CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> HKeysAsync(string hashId, CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> HValsAsync(string hashId, CancellationToken cancellationToken = default);
         //ValueTask<byte[][]> HGetAllAsync(string hashId, CancellationToken cancellationToken = default);
@@ -241,22 +241,22 @@ namespace ServiceStack.Redis
         //IRedisSubscription CreateSubscriptionAsync(CancellationToken cancellationToken = default);
 
         ////Redis LUA support
-        //ValueTask<RedisData> EvalCommandAsync(string luaBody, int numberKeysInArgs, params byte[][] keys, CancellationToken cancellationToken = default);
-        //ValueTask<RedisData> EvalShaCommandAsync(string sha1, int numberKeysInArgs, params byte[][] keys, CancellationToken cancellationToken = default);
+        ValueTask<RedisData> EvalCommandAsync(string luaBody, int numberKeysInArgs, byte[][] keys, CancellationToken cancellationToken = default);
+        ValueTask<RedisData> EvalShaCommandAsync(string sha1, int numberKeysInArgs, byte[][] keys, CancellationToken cancellationToken = default);
 
-        //ValueTask<byte[][]> EvalAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
-        //ValueTask<byte[][]> EvalShaAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> EvalAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> EvalShaAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
 
-        //ValueTask<long> EvalIntAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
-        //ValueTask<long> EvalShaIntAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs, CancellationToken cancellationToken = default);
-        //ValueTask<string> EvalStrAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
-        //ValueTask<string> EvalShaStrAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<long> EvalIntAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<long> EvalShaIntAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<string> EvalStrAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<string> EvalShaStrAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
 
-        //ValueTask<string> CalculateSha1Async(string luaBody, CancellationToken cancellationToken = default);
-        //ValueTask<byte[][]> ScriptExistsAsync(params byte[][] sha1Refs, CancellationToken cancellationToken = default);
-        //ValueTask ScriptFlushAsync(CancellationToken cancellationToken = default);
-        //ValueTask ScriptKillAsync(CancellationToken cancellationToken = default);
-        //ValueTask<byte[]> ScriptLoadAsync(string body, CancellationToken cancellationToken = default);
+        ValueTask<string> CalculateSha1Async(string luaBody, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> ScriptExistsAsync(byte[][] sha1Refs, CancellationToken cancellationToken = default);
+        ValueTask ScriptFlushAsync(CancellationToken cancellationToken = default);
+        ValueTask ScriptKillAsync(CancellationToken cancellationToken = default);
+        ValueTask<byte[]> ScriptLoadAsync(string body, CancellationToken cancellationToken = default);
 
         ValueTask SlowlogResetAsync(CancellationToken cancellationToken = default);
         ValueTask<object[]> SlowlogGetAsync(int? top = null, CancellationToken cancellationToken = default);
