@@ -305,9 +305,9 @@ namespace ServiceStack.Redis
         //ValueTask<long> StoreIntersectFromSortedSetsAsync(string intoSetId, string[] setIds, string[] args, CancellationToken cancellationToken = default);
         //ValueTask<long> StoreUnionFromSortedSetsAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
         //ValueTask<long> StoreUnionFromSortedSetsAsync(string intoSetId, string[] setIds, string[] args, CancellationToken cancellationToken = default);
-        //List<string> SearchSortedSetAsync(string setId, string start = null, string end = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
-        //ValueTask<long> SearchSortedSetCountAsync(string setId, string start = null, string end = null, CancellationToken cancellationToken = default);
-        //ValueTask<long> RemoveRangeFromSortedSetBySearchAsync(string setId, string start = null, string end = null, CancellationToken cancellationToken = default);
+        ValueTask<List<string>> SearchSortedSetAsync(string setId, string start = null, string end = null, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
+        ValueTask<long> SearchSortedSetCountAsync(string setId, string start = null, string end = null, CancellationToken cancellationToken = default);
+        ValueTask<long> RemoveRangeFromSortedSetBySearchAsync(string setId, string start = null, string end = null, CancellationToken cancellationToken = default);
 
         //#endregion
 

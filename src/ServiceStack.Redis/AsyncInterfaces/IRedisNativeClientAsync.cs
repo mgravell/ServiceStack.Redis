@@ -199,9 +199,9 @@ namespace ServiceStack.Redis
         ValueTask<double>  ZScoreAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<long> ZUnionStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
         //ValueTask<long> ZInterStoreAsync(string intoSetId, params string[] setIds, CancellationToken cancellationToken = default);
-        //ValueTask<byte[][]> ZRangeByLexAsync(string setId, string min, string max, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
-        //ValueTask<long> ZLexCountAsync(string setId, string min, string max, CancellationToken cancellationToken = default);
-        //ValueTask<long> ZRemRangeByLexAsync(string setId, string min, string max, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> ZRangeByLexAsync(string setId, string min, string max, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
+        ValueTask<long> ZLexCountAsync(string setId, string min, string max, CancellationToken cancellationToken = default);
+        ValueTask<long> ZRemRangeByLexAsync(string setId, string min, string max, CancellationToken cancellationToken = default);
 
         ////Redis Hash operations
         ValueTask<long> HSetAsync(string hashId, byte[] key, byte[] value, CancellationToken cancellationToken = default);

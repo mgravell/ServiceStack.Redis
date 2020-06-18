@@ -4,25 +4,27 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ServiceStack.Data
 {
     public interface IEntityStoreAsync : IAsyncDisposable
     {
-        //T GetById<T>(object id);
+        ValueTask<T> GetByIdAsync<T>(object id, CancellationToken cancellationToken = default);
 
-        //IList<T> GetByIds<T>(ICollection ids);
+        ValueTask<IList<T>> GetByIdsAsync<T>(ICollection ids, CancellationToken cancellationToken = default);
 
-        //T Store<T>(T entity);
+        ValueTask<T> StoreAsync<T>(T entity, CancellationToken cancellationToken = default);
 
-        //void StoreAll<TEntity>(IEnumerable<TEntity> entities);
+        ValueTask StoreAllAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
 
-        //void Delete<T>(T entity);
+        ValueTask DeleteAsync<T>(T entity, CancellationToken cancellationToken = default);
 
-        //void DeleteById<T>(object id);
+        ValueTask DeleteByIdAsync<T>(object id, CancellationToken cancellationToken = default);
 
-        //void DeleteByIds<T>(ICollection ids);
+        ValueTask DeleteByIdsAsync<T>(ICollection ids, CancellationToken cancellationToken = default);
 
-        //void DeleteAll<TEntity>();
+        ValueTask DeleteAllAsync<TEntity>(CancellationToken cancellationToken = default);
     }
 }

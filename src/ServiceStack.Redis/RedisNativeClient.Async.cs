@@ -481,5 +481,24 @@ namespace ServiceStack.Redis
 
         async ValueTask<Dictionary<string, string>> IRedisNativeClientAsync.InfoAsync(CancellationToken cancellationToken)
             => ParseInfoResult(await SendExpectStringAsync(cancellationToken, Commands.Info).ConfigureAwait(false));
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByLexAsync(string setId, string min, string max, int? skip, int? take, CancellationToken cancellationToken)
+            => SendExpectMultiDataAsync(cancellationToken, GetZRangeByLexArgs(setId, min, max, skip, take));
+
+        ValueTask<long> IRedisNativeClientAsync.ZLexCountAsync(string setId, string min, string max, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+
+            return SendExpectLongAsync(cancellationToken,
+                Commands.ZLexCount, setId.ToUtf8Bytes(), min.ToUtf8Bytes(), max.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZRemRangeByLexAsync(string setId, string min, string max, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+
+            return SendExpectLongAsync(cancellationToken,
+                Commands.ZRemRangeByLex, setId.ToUtf8Bytes(), min.ToUtf8Bytes(), max.ToUtf8Bytes());
+        }
     }
 }

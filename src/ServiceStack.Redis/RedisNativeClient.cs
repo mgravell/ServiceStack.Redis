@@ -1919,7 +1919,7 @@ namespace ServiceStack.Redis
             return SendExpectLong(cmdWithArgs);
         }
 
-        public byte[][] ZRangeByLex(string setId, string min, string max, int? skip = null, int? take = null)
+        static byte[][] GetZRangeByLexArgs(string setId, string min, string max, int? skip, int? take)
         {
             if (setId == null)
                 throw new ArgumentNullException("setId");
@@ -1935,9 +1935,10 @@ namespace ServiceStack.Redis
                 cmdWithArgs.Add(skip.GetValueOrDefault(0).ToUtf8Bytes());
                 cmdWithArgs.Add(take.GetValueOrDefault(0).ToUtf8Bytes());
             }
-
-            return SendExpectMultiData(cmdWithArgs.ToArray());
+            return cmdWithArgs.ToArray();
         }
+        public byte[][] ZRangeByLex(string setId, string min, string max, int? skip = null, int? take = null)
+            => SendExpectMultiData(GetZRangeByLexArgs(setId, min, max, skip, take));
 
         public long ZLexCount(string setId, string min, string max)
         {

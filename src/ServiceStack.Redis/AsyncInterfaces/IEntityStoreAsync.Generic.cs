@@ -4,6 +4,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ServiceStack.Data
 {
@@ -13,22 +15,22 @@ namespace ServiceStack.Data
     /// <typeparam name="T"></typeparam>
     public interface IEntityStoreAsync<T>
     {
-        //T GetById(object id);
+        ValueTask<T> GetByIdAsync(object id, CancellationToken cancellationToken = default);
 
-        //IList<T> GetByIds(IEnumerable ids);
+        ValueTask<IList<T>> GetByIdsAsync(IEnumerable ids, CancellationToken cancellationToken = default);
 
-        //IList<T> GetAll();
+        ValueTask<IList<T>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        //T Store(T entity);
+        ValueTask<T> StoreAsync(T entity, CancellationToken cancellationToken = default);
 
-        //void StoreAll(IEnumerable<T> entities);
+        ValueTask StoreAllAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 
-        //void Delete(T entity);
+        ValueTask DeleteAsync(T entity, CancellationToken cancellationToken = default);
 
-        //void DeleteById(object id);
+        ValueTask DeleteByIdAsync(object id, CancellationToken cancellationToken = default);
 
-        //void DeleteByIds(IEnumerable ids);
+        ValueTask DeleteByIdsAsync(IEnumerable ids, CancellationToken cancellationToken = default);
 
-        //void DeleteAll();
+        ValueTask DeleteAllAsync(CancellationToken cancellationToken = default);
     }
 }

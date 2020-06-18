@@ -11,10 +11,12 @@
 //
 
 using ServiceStack.Caching;
+using ServiceStack.Data;
 using ServiceStack.Redis.Generic;
 using ServiceStack.Redis.Pipeline;
 using ServiceStack.Text;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -25,6 +27,9 @@ namespace ServiceStack.Redis
 {
     partial class RedisClient : IRedisClientAsync, IRemoveByPatternAsync, ICacheClientAsync
     {
+        /// <summary>
+        /// Access this instance for async usage
+        /// </summary>
         public IRedisClientAsync AsAsync() => this;
 
         // the typed client implements this for us
@@ -556,6 +561,61 @@ namespace ServiceStack.Redis
 
         ValueTask<DateTime> IRedisClientAsync.LastSaveAsync(CancellationToken cancellationToken)
             => NativeAsync.LastSaveAsync(cancellationToken);
+
+        ValueTask<T> IEntityStoreAsync.GetByIdAsync<T>(object id, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<IList<T>> IEntityStoreAsync.GetByIdsAsync<T>(ICollection ids, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<T> IEntityStoreAsync.StoreAsync<T>(T entity, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync.StoreAllAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync.DeleteAsync<T>(T entity, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync.DeleteByIdAsync<T>(object id, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync.DeleteByIdsAsync<T>(ICollection ids, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync.DeleteAllAsync<TEntity>(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        async ValueTask<List<string>> IRedisClientAsync.SearchSortedSetAsync(string setId, string start, string end, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            start = GetSearchStart(start);
+            end = GetSearchEnd(end);
+
+            var ret = await NativeAsync.ZRangeByLexAsync(setId, start, end, skip, take, cancellationToken);
+            return ret.ToStringList();
+        }
+
+        ValueTask<long> IRedisClientAsync.SearchSortedSetCountAsync(string setId, string start, string end, CancellationToken cancellationToken)
+            => NativeAsync.ZLexCountAsync(setId, GetSearchStart(start), GetSearchEnd(end), cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.RemoveRangeFromSortedSetBySearchAsync(string setId, string start, string end, CancellationToken cancellationToken)
+            => NativeAsync.ZRemRangeByLexAsync(setId, GetSearchStart(start), GetSearchEnd(end), cancellationToken);
     }
 }
  

@@ -10,7 +10,10 @@
 // Licensed under the same terms of ServiceStack.
 //
 
+using ServiceStack.Data;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,6 +37,52 @@ namespace ServiceStack.Redis.Generic
 
             await AsyncClient.SetAsync(key, SerializeValue(entity), cancellationToken).ConfigureAwait(false);
             client.RegisterTypeId(entity);
+        }
+
+        ValueTask<T> IEntityStoreAsync<T>.GetByIdAsync(object id, CancellationToken cancellationToken)
+        {
+            var key = client.UrnKey<T>(id);
+            return AsAsync().GetValueAsync(key, cancellationToken);
+        }
+
+        ValueTask<IList<T>> IEntityStoreAsync<T>.GetByIdsAsync(IEnumerable ids, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<IList<T>> IEntityStoreAsync<T>.GetAllAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<T> IEntityStoreAsync<T>.StoreAsync(T entity, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync<T>.StoreAllAsync(IEnumerable<T> entities, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync<T>.DeleteAsync(T entity, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync<T>.DeleteByIdAsync(object id, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync<T>.DeleteByIdsAsync(IEnumerable ids, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IEntityStoreAsync<T>.DeleteAllAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }
