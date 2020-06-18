@@ -478,5 +478,8 @@ namespace ServiceStack.Redis
 
             return SendExpectComplexResponseAsync(cancellationToken, byteArgs.ToArray());
         }
+
+        async ValueTask<Dictionary<string, string>> IRedisNativeClientAsync.InfoAsync(CancellationToken cancellationToken)
+            => ParseInfoResult(await SendExpectStringAsync(cancellationToken, Commands.Info).ConfigureAwait(false));
     }
 }

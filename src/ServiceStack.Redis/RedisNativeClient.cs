@@ -230,22 +230,23 @@ namespace ServiceStack.Redis
 
         public Dictionary<string, string> Info
         {
-            get
+            get => ParseInfoResult(SendExpectString(Commands.Info));
+        }
+
+        private static Dictionary<string, string> ParseInfoResult(string lines)
+        {
+            var info = new Dictionary<string, string>();
+
+            foreach (var line in lines
+                .Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries))
             {
-                var lines = SendExpectString(Commands.Info);
-                var info = new Dictionary<string, string>();
+                var p = line.IndexOf(':');
+                if (p == -1) continue;
 
-                foreach (var line in lines
-                    .Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    var p = line.IndexOf(':');
-                    if (p == -1) continue;
-
-                    info[line.Substring(0, p)] = line.Substring(p + 1);
-                }
-
-                return info;
+                info[line.Substring(0, p)] = line.Substring(p + 1);
             }
+
+            return info;
         }
 
         public string ServerVersion

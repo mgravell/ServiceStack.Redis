@@ -30,7 +30,7 @@ namespace ServiceStack.Redis
          */
 
         ////Redis utility operations
-        //ValueTask<Dictionary<string, string>> InfoAsync(CancellationToken cancellationToken = default);
+        ValueTask<Dictionary<string, string>> InfoAsync(CancellationToken cancellationToken = default);
         long Db { get; }
         ValueTask SelectAsync(long db, CancellationToken cancellationToken = default);
 

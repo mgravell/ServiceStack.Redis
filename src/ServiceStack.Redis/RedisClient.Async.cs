@@ -547,6 +547,15 @@ namespace ServiceStack.Redis
         {
             throw new NotImplementedException();
         }
+
+        ValueTask<long> IRedisClientAsync.DbSizeAsync(CancellationToken cancellationToken)
+            => NativeAsync.DbSizeAsync(cancellationToken);
+
+        ValueTask<Dictionary<string, string>> IRedisClientAsync.InfoAsync(CancellationToken cancellationToken)
+            => NativeAsync.InfoAsync(cancellationToken);
+
+        ValueTask<DateTime> IRedisClientAsync.LastSaveAsync(CancellationToken cancellationToken)
+            => NativeAsync.LastSaveAsync(cancellationToken);
     }
 }
  

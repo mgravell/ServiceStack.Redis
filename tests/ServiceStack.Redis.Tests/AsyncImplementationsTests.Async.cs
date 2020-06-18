@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,148 +47,281 @@ namespace ServiceStack.Redis.Tests
         [TestCase(typeof(IDistributedLock), typeof(IDistributedLockAsync))]
         public void TestSameAPI(Type syncInterface, Type asyncInterface)
         {
-            TestContext.Out.WriteLine($"Comparing '{syncInterface.Name}' and '{asyncInterface.Name}'"); 
-            int missing = 0, extra = 0;
-            var syncMethods = syncInterface.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            var asyncMethods = asyncInterface.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            foreach (var method in syncMethods)
+            TestContext.Out.WriteLine($"Comparing '{GetCSharpTypeName(syncInterface)}' and '{GetCSharpTypeName(asyncInterface)}'...");
+
+            var actual = new List<string>();
+            foreach (var method in asyncInterface.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
-                try
+                actual.Add(GetSignature(method.ReturnType, method.Name, method.IsGenericMethodDefinition ? method.GetGenericArguments() : default,
+                    Array.ConvertAll(method.GetParameters(), p => p.ParameterType)));
+            }
+            var expected = new List<string>();
+            foreach (var method in syncInterface.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            {
+                Type[] expectedSignature;
+                Type expectedReturnType;
+                string expectedName = method.Name + "Async";
+                var parameterTypes = Array.ConvertAll(method.GetParameters(), p => p.ParameterType);
+                if (method.IsSpecialName)
                 {
-                    Type[] expectedSignature;
-                    Type expectedReturnType;
-                    string expectedName = method.Name + "Async";
-                    var parameters = method.GetParameters();
-                    if (syncInterface == typeof(IDistributedLock) && method.Name == nameof(IDistributedLock.Lock))
+                    const string GET = "get_", SET = "set_";
+
+                    string movedToAsyncGetter = default, movedToAsyncSetter = default;
+                    if (syncInterface == typeof(IRedisClient))
                     {
-                        continue; // different API due to "out: not being supported in async
+                        expectedName = method.Name switch
+                        {
+                            // these are renamed to avoid "SaveAsync" and "SaveAsyncAsync" which would be hella confusing
+                            nameof(IRedisClient.Save) => nameof(IRedisClientAsync.ForegroundSaveAsync),
+                            nameof(IRedisClient.SaveAsync) => nameof(IRedisClientAsync.BackgroundSaveAsync),
+                            // this is renamed for consistency with BackgroundSaveAsync
+                            nameof(IRedisClient.RewriteAppendOnlyFileAsync) => nameof(IRedisClientAsync.BackgroundRewriteAppendOnlyFileAsync),
+                            _ => expectedName,
+                        };
+
+                        movedToAsyncGetter = method.Name switch
+                        {
+                            GET + nameof(IRedisClient.DbSize) => nameof(IRedisClientAsync.DbSizeAsync),
+                            GET + nameof(IRedisClient.LastSave) => nameof(IRedisClientAsync.LastSaveAsync),
+                            GET + nameof(IRedisClient.Info) => nameof(IRedisClientAsync.InfoAsync),
+                            _ => default,
+                        };
+                        movedToAsyncSetter = method.Name switch
+                        {
+                            SET + nameof(IRedisClient.Db) => nameof(IRedisClientAsync.ChangeDbAsync),
+                            _ => default,
+                        };
+                    }
+                    else if (syncInterface == typeof(IRedisNativeClient))
+                    {
+                        movedToAsyncGetter = method.Name switch
+                        {
+                            GET + nameof(IRedisNativeClient.DbSize) => nameof(IRedisNativeClientAsync.DbSizeAsync),
+                            GET + nameof(IRedisNativeClient.LastSave) => nameof(IRedisNativeClientAsync.LastSaveAsync),
+                            GET + nameof(IRedisNativeClient.Info) => nameof(IRedisNativeClientAsync.InfoAsync),
+                            _ => default,
+                        };
+                        movedToAsyncSetter = method.Name switch
+                        {
+                            SET + nameof(IRedisNativeClient.Db) => nameof(IRedisNativeClientAsync.SelectAsync),
+                            _ => default,
+                        };
                     }
 
-                    if (syncInterface == typeof(IRedisQueueableOperation))
+                    if (movedToAsyncGetter is object)
                     {
-                        if (parameters.Length < 3) continue; // not propagating the x3 overloads; use optional parameters instead
-                        expectedReturnType = typeof(void);
-                        Type arg0;
-                        if (parameters[0].ParameterType == typeof(Action<IRedisClient>))
-                        {
-                            arg0 = typeof(Func<IRedisClientAsync, ValueTask>);
-                        }
-                        else // Func<IRedisClient, T> - replace with Func<IRedisClientAsync, ValueTask<T>>
-                        {
-                            arg0 = typeof(Func<,>).MakeGenericType(
-                                typeof(IRedisClientAsync),
-                                typeof(ValueTask<>).MakeGenericType(parameters[0].ParameterType.GetGenericArguments()[1]));
-                        }
-                        expectedSignature = new[] { arg0, parameters[1].ParameterType, parameters[2].ParameterType };
-                        expectedName = method.Name;
+                        expectedName = movedToAsyncGetter;
+                        expectedReturnType = typeof(ValueTask<>).MakeGenericType(method.ReturnType);
+                        expectedSignature = new[] { typeof(CancellationToken) };
                     }
-                    else if (syncInterface == typeof(IRedisQueueCompletableOperation))
+                    else if (movedToAsyncSetter is object)
                     {
-                        expectedReturnType = typeof(void);
-                        expectedSignature = new Type[1];
-                        if (parameters[0].ParameterType == typeof(Action))
-                        {
-                            expectedSignature[0] = typeof(Func<CancellationToken, ValueTask>);
-                        }
-                        else
-                        {   // Func<T> for some T - replace with Func<CancellationToken, ValueTask<T>>
-                            expectedSignature[0] = typeof(Func<,>).MakeGenericType(
-                                typeof(CancellationToken),
-                                typeof(ValueTask<>).MakeGenericType(parameters[0].ParameterType.GetGenericArguments()));
-                        }
+                        expectedName = movedToAsyncSetter;
+                        expectedReturnType = typeof(ValueTask);
+                        expectedSignature = new[] { parameterTypes.Single(), typeof(CancellationToken) };
                     }
                     else
                     {
-                        // default interpretation
-                        expectedSignature = new Type[parameters.Length + 1];
-                        for (int i = 0; i < parameters.Length; i++)
-                        {
-                            expectedSignature[i] = SwapForAsyncIfNeedeed(parameters[i].ParameterType);
-                        }
-                        expectedSignature[parameters.Length] = typeof(CancellationToken);
-
-                        if (method.ReturnType == typeof(void))
-                        {
-                            expectedReturnType = typeof(ValueTask);
-                        }
-                        else if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                        {
-                            expectedReturnType = typeof(IAsyncEnumerable<>).MakeGenericType(method.ReturnType.GetGenericArguments());
-                        }
-                        else
-                        {
-                            expectedReturnType = typeof(ValueTask<>).MakeGenericType(SwapForAsyncIfNeedeed(method.ReturnType));
-                        }
-                    }
-
-                    int match = 0;
-                    var expectedArgsString = string.Join<Type>(",", expectedSignature);
-                    foreach (var candidate in asyncMethods)
-                    {
-                        if (candidate.Name != expectedName) continue;
-                        if (method.IsGenericMethod != candidate.IsGenericMethod) continue;
-
-                        if (method.IsGenericMethod && method.GetGenericArguments().Length != candidate.GetGenericArguments().Length)
-                        {
-                            continue; // wrong number of generic parameters
-                        }
-
-                        // comparing return types gets tricky for T, so let's just use strings; this also means that
-                        // we will spot mismatches generic type parameter names:
-                        if (candidate.ReturnType.ToString() != expectedReturnType.ToString())
-                        {
-                            continue; // wrong return
-                        }
-                        var args = candidate.GetParameters();
-                        if (args.Length != expectedSignature.Length)
-                        {
-                            continue; // wrong number of parameters
-                        }
-
-                        // comparing args gets tricky for T, so let's just use strings; this also means that
-                        // we will spot mismatches generic type parameter names:
-                        var actualArgsString = string.Join<Type>(",", args.Select(x => x.ParameterType));
-                        if (expectedArgsString != actualArgsString)
-                        {
-                            continue; // wrong parameters
-                        }
-
-                        // match!
-                        match++;
-                    }
-                    string GetGenericNamePortion()
-                    {
-                        if (!method.IsGenericMethod) return "";
-                        var args = method.GetGenericArguments();
-                        return "<" + string.Join<Type>(",", args) + ">";
-                    }
-                    switch (match)
-                    {
-                        case 0:
-                            missing++;
-                            TestContext.Out.WriteLine($"Not found: {expectedReturnType} {expectedName}{GetGenericNamePortion()}({expectedArgsString})");
-                            break;
-                        case 1:
-                            // found it, yay
-                            break;
-                        default:
-                            missing++;
-                            TestContext.Out.WriteLine($"Ambiguous matches ({match}) found: {expectedReturnType} {expectedName}{GetGenericNamePortion()}({expectedArgsString})");
-                            break;
+                        // default is for properties and indexers etc to remain "as-is"
+                        expectedName = method.Name;
+                        expectedReturnType = method.ReturnType;
+                        expectedSignature = parameterTypes;
                     }
                 }
-                catch (Exception ex)
+
+                else if (syncInterface == typeof(IRedisClient) && method.Name == nameof(IRedisClient.AcquireLock))
                 {
-                    TestContext.Out.WriteLine($"{ex.Message}: {method}");
-                    missing++;
+                    // we're merging the two overloads into one nullable
+                    if (parameterTypes.Length == 1) continue;
+                    expectedReturnType = typeof(ValueTask<IAsyncDisposable>);
+                    parameterTypes[1] = typeof(TimeSpan?); // make it optional
+                    expectedSignature = parameterTypes;
                 }
+
+                else if (syncInterface == typeof(IDistributedLock) && method.Name == nameof(IDistributedLock.Lock))
+                {
+                    // different API shape due to "out: not being supported in async
+                    expectedReturnType = typeof(ValueTask<LockState>);
+                    expectedSignature = new[] { typeof(string), typeof(int), typeof(int), typeof(IRedisClientAsync), typeof(CancellationToken) };
+                }
+                else if (syncInterface == typeof(IRedisQueueableOperation))
+                {
+                    if (parameterTypes.Length < 3) continue; // not propagating the x3 overloads; use optional parameters instead
+                    expectedReturnType = typeof(void);
+                    Type arg0;
+                    if (parameterTypes[0] == typeof(Action<IRedisClient>))
+                    {
+                        arg0 = typeof(Func<IRedisClientAsync, ValueTask>);
+                    }
+                    else // Func<IRedisClient, T> - replace with Func<IRedisClientAsync, ValueTask<T>>
+                    {
+                        arg0 = typeof(Func<,>).MakeGenericType(
+                            typeof(IRedisClientAsync),
+                            typeof(ValueTask<>).MakeGenericType(parameterTypes[0].GetGenericArguments()[1]));
+                    }
+                    expectedSignature = new[] { arg0, parameterTypes[1], parameterTypes[2] };
+                    expectedName = method.Name;
+                }
+                else if (syncInterface == typeof(IRedisQueueCompletableOperation))
+                {
+                    expectedReturnType = typeof(void);
+                    expectedSignature = new Type[1];
+                    if (parameterTypes[0] == typeof(Action))
+                    {
+                        expectedSignature[0] = typeof(Func<CancellationToken, ValueTask>);
+                    }
+                    else
+                    {   // Func<T> for some T - replace with Func<CancellationToken, ValueTask<T>>
+                        expectedSignature[0] = typeof(Func<,>).MakeGenericType(
+                            typeof(CancellationToken),
+                            typeof(ValueTask<>).MakeGenericType(parameterTypes[0].GetGenericArguments()));
+                    }
+                }
+                else
+                {
+                    // default interpretation
+                    expectedSignature = new Type[parameterTypes.Length + 1];
+                    for (int i = 0; i < parameterTypes.Length; i++)
+                    {
+                        expectedSignature[i] = SwapForAsyncIfNeedeed(parameterTypes[i]);
+                    }
+                    expectedSignature[parameterTypes.Length] = typeof(CancellationToken);
+
+                    if (method.ReturnType == typeof(void))
+                    {
+                        expectedReturnType = typeof(ValueTask);
+                    }
+                    else if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    {
+                        expectedReturnType = typeof(IAsyncEnumerable<>).MakeGenericType(method.ReturnType.GetGenericArguments());
+                    }
+                    else
+                    {
+                        expectedReturnType = typeof(ValueTask<>).MakeGenericType(SwapForAsyncIfNeedeed(method.ReturnType));
+                    }
+                }
+
+                expected.Add(GetSignature(expectedReturnType, expectedName, method.IsGenericMethodDefinition ? method.GetGenericArguments() : default, expectedSignature));
             }
-            Assert.True(missing == 0 && extra == 0, $"{asyncInterface.Name} missing: {missing} of {syncMethods.Length}; extra: {extra} of {asyncMethods.Length} (extra not implemented yet)");
+            expected.Sort();
+            actual.Sort();
+            int missing = 0, extra = 0;
+            TestContext.Out.WriteLine($"Total: {expected.Count} expected ('{GetCSharpTypeName(syncInterface)}'), {actual.Count} actual ('{GetCSharpTypeName(asyncInterface)}')");
+            foreach (var method in actual.Except(expected))
+            {
+                TestContext.Out.WriteLine($"+ {method}");
+                extra++;
+            }
+            foreach (var method in expected.Except(actual))
+            {
+                TestContext.Out.WriteLine($"- {method}");
+                missing++;
+            }
+            Assert.AreEqual(0, missing + extra, $"'{GetCSharpTypeName(asyncInterface)}' missing: {missing}; extra: {extra}; expected: {expected.Count}; actual: {actual.Count}");
             static Type SwapForAsyncIfNeedeed(Type type)
             {
                 if (type == typeof(IRedisClient)) return typeof(IRedisClientAsync);
                 if (type == typeof(ICacheClient)) return typeof(ICacheClientAsync);
+                if (type == typeof(IRedisPipeline)) return typeof(IRedisPipelineAsync);
+                if (type == typeof(IRedisPipelineShared)) return typeof(IRedisPipelineSharedAsync);
+                if (type == typeof(IDisposable)) return typeof(IAsyncDisposable);
                 return type;
+            }
+
+            static string GetSignature(Type returnType, string name, Type[] genericParameters, Type[] parameters)
+            {
+                genericParameters ??= Type.EmptyTypes;
+                parameters ??= Type.EmptyTypes;
+                var sb = new StringBuilder();
+                AppendCSharpTypeName(returnType, sb);
+                sb.Append(" ").Append(name);
+                if (genericParameters.Length != 0)
+                {
+                    sb.Append("<");
+                    for (int i = 0; i < genericParameters.Length; i++)
+                    {
+                        if (i != 0) sb.Append(", ");
+                        AppendCSharpTypeName(genericParameters[i], sb);
+                    }
+                    sb.Append(">");
+                }
+                sb.Append("(");
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (i != 0) sb.Append(", ");
+                    AppendCSharpTypeName(parameters[i], sb);
+                }
+                return sb.Append(")").ToString();
+            }
+
+            static string GetCSharpTypeName(Type type)
+            {
+                if (!(type.IsGenericType || type.IsArray))
+                {
+                    return GetSimpleCSharpTypeName(type);
+                }
+                var sb = new StringBuilder();
+                AppendCSharpTypeName(type, sb);
+                return sb.ToString();
+            }
+            static string GetSimpleCSharpTypeName(Type type)
+            {
+                if (type == typeof(void)) return "void";
+                if (type == typeof(int)) return "int";
+                if (type == typeof(bool)) return "bool";
+                if (type == typeof(string)) return "string";
+                if (type == typeof(double)) return "double";
+                if (type == typeof(long)) return "long";
+                if (type == typeof(object)) return "object";
+                if (type == typeof(byte)) return "byte";
+                return type.Name;
+            }
+            static void AppendCSharpTypeName(Type type, StringBuilder sb)
+            {
+                if (type.IsArray)
+                {
+                    // we won't worry about the difference between vector and non-vector rank zero arrays
+                    AppendCSharpTypeName(type.GetElementType(), sb);
+                    sb.Append("[").Append(',', type.GetArrayRank() - 1).Append("]");
+                }
+                else if (type.IsGenericParameter)
+                {
+                    sb.Append(type.Name);
+                }
+                else if (type.IsGenericType)
+                {
+                    var nullable = Nullable.GetUnderlyingType(type);
+                    if (nullable is object)
+                    {
+                        AppendCSharpTypeName(nullable, sb);
+                        sb.Append("?");
+                    }
+                    else
+                    {
+                        var name = type.Name;
+                        int i = name.IndexOf('`');
+                        if (i < 0)
+                        {
+                            sb.Append(name);
+                        }
+                        else
+                        {
+                            sb.Append(name, 0, i);
+                        }
+                        sb.Append("<");
+                        var targs = type.GetGenericArguments();
+                        for (i = 0; i < targs.Length; i++)
+                        {
+                            if (i != 0) sb.Append(", ");
+                            sb.Append(GetCSharpTypeName(targs[i]));
+                        }
+                        sb.Append(">");
+                    }
+                }
+                else
+                {
+                    sb.Append(GetSimpleCSharpTypeName(type));
+                }
             }
         }
 

@@ -39,11 +39,11 @@ namespace ServiceStack.Redis
         //Basic Redis Connection operations
         long Db { get; }
         ValueTask ChangeDbAsync(long db, CancellationToken cancellationToken = default);
-        // ValueTask<long> DbSizeAsync(CancellationToken cancellationToken = default);
+        ValueTask<long> DbSizeAsync(CancellationToken cancellationToken = default);
 
-        //Dictionary<string, string> Info { get; }
+        ValueTask<Dictionary<string, string>> InfoAsync(CancellationToken cancellationToken = default);
         ValueTask<DateTime> GetServerTimeAsync(CancellationToken cancellationToken = default);
-        //DateTime LastSave { get; }
+        ValueTask<DateTime> LastSaveAsync(CancellationToken cancellationToken = default);
         string Host { get; }
         int Port { get; }
         int ConnectTimeout { get; set; }
