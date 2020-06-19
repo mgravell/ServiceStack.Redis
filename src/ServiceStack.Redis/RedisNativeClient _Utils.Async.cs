@@ -1,4 +1,5 @@
-﻿using ServiceStack.Redis.Pipeline;
+﻿using ServiceStack.Redis.Internal;
+using ServiceStack.Redis.Pipeline;
 using ServiceStack.Text;
 using ServiceStack.Text.Pools;
 using System;
@@ -22,7 +23,7 @@ namespace ServiceStack.Redis
         }
 
         protected ValueTask SendWithoutReadAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
-            => DiscardResult(SendReceiveAsync<long>(cmdWithBinaryArgs, null, cancellationToken, null, sendWithoutRead: true));
+            => SendReceiveAsync<long>(cmdWithBinaryArgs, null, cancellationToken, null, sendWithoutRead: true).Await();
 
         private ValueTask<long> SendExpectLongAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
@@ -36,21 +37,15 @@ namespace ServiceStack.Redis
                 PipelineAsync != null ? PipelineAsync.CompleteDoubleQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<double>>>)null);
         }
         protected ValueTask<string> SendExpectStringAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
-            => FromUtf8Bytes(SendExpectDataAsync(cancellationToken, cmdWithBinaryArgs));
+            => SendExpectDataAsync(cancellationToken, cmdWithBinaryArgs).AwaitFromUtf8Bytes();
 
         private ValueTask SendExpectSuccessAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {
             //Turn Action into Func Hack
             Action<Func<CancellationToken, ValueTask<long>>> completePipelineFn = null;
-            if (PipelineAsync != null) completePipelineFn = f => { PipelineAsync.CompleteVoidQueuedCommandAsync(async ct => await f(ct).ConfigureAwait(false)); };
+            if (PipelineAsync != null) completePipelineFn = f => { PipelineAsync.CompleteVoidQueuedCommandAsync(ct => f(ct).Await()); };
 
-            return DiscardResult(SendReceiveAsync(cmdWithBinaryArgs, ExpectSuccessFnAsync, cancellationToken, completePipelineFn));
-        }
-
-        internal static ValueTask DiscardResult<T>(ValueTask<T> pending)
-        {
-            return pending.IsCompletedSuccessfully ? default : Awaited(pending);
-            async static ValueTask Awaited(ValueTask<T> pending) => await pending.ConfigureAwait(false);
+            return SendReceiveAsync(cmdWithBinaryArgs, ExpectSuccessFnAsync, cancellationToken, completePipelineFn).Await();
         }
 
         private ValueTask<byte[]> SendExpectDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
@@ -63,37 +58,17 @@ namespace ServiceStack.Redis
             return SendReceiveAsync(cmdWithBinaryArgs, ExpectCodeAsync, cancellationToken, PipelineAsync != null ? PipelineAsync.CompleteStringQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<string>>>)null);
         }
 
-        private async ValueTask<ScanResult> SendExpectScanResultAsync(CancellationToken cancellationToken, byte[] cmd, params byte[][] args)
+        private ValueTask<ScanResult> SendExpectScanResultAsync(CancellationToken cancellationToken, byte[] cmd, params byte[][] args)
         {
             var cmdWithArgs = MergeCommandWithArgs(cmd, args);
-            var multiData = await SendExpectDeeplyNestedMultiDataAsync(cancellationToken, cmdWithArgs).ConfigureAwait(false);
-            var counterBytes = (byte[])multiData[0];
-
-            var ret = new ScanResult
-            {
-                Cursor = ulong.Parse(counterBytes.FromUtf8Bytes()),
-                Results = new List<byte[]>()
-            };
-            var keysBytes = (object[])multiData[1];
-
-            foreach (var keyBytes in keysBytes)
-            {
-                ret.Results.Add((byte[])keyBytes);
-            }
-
-            return ret;
+            return SendExpectDeeplyNestedMultiDataAsync(cancellationToken, cmdWithArgs).Await(multiData => ParseScanResult(multiData));
         }
 
         private ValueTask<object[]> SendExpectDeeplyNestedMultiDataAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
-        {
-            return SendReceiveAsync(cmdWithBinaryArgs, ReadDeeplyNestedMultiDataAsync, cancellationToken);
-        }
+            => SendReceiveAsync(cmdWithBinaryArgs, ReadDeeplyNestedMultiDataAsync, cancellationToken);
 
-        private async ValueTask<object[]> ReadDeeplyNestedMultiDataAsync(CancellationToken cancellationToken)
-        {
-            var result = await ReadDeeplyNestedMultiDataItemAsync(cancellationToken).ConfigureAwait(false);
-            return (object[])result;
-        }
+        private ValueTask<object[]> ReadDeeplyNestedMultiDataAsync(CancellationToken cancellationToken)
+            => ReadDeeplyNestedMultiDataItemAsync(cancellationToken).Await(result => (object[])result);
 
         private async ValueTask<object> ReadDeeplyNestedMultiDataItemAsync(CancellationToken cancellationToken)
         {

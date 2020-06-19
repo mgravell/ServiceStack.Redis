@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ServiceStack.Redis.Internal;
 using ServiceStack.Text;
 
 namespace ServiceStack.Redis
@@ -8,12 +9,11 @@ namespace ServiceStack.Redis
     public partial class RedisLock
         : IAsyncDisposable
     {
-        internal static async ValueTask<RedisLock> CreateAsync(IRedisClientAsync redisClient, string key,
+        internal static ValueTask<RedisLock> CreateAsync(IRedisClientAsync redisClient, string key,
             TimeSpan? timeOut = default, CancellationToken cancellationToken = default)
         {
             var obj = new RedisLock(redisClient, key);
-            await obj.AcquireAsync(timeOut, cancellationToken).ConfigureAwait(false);
-            return obj;
+            return obj.AcquireAsync(timeOut, cancellationToken).Await(obj);
         }
 
         // async version of ExecUtils.RetryUntilTrue
@@ -90,6 +90,6 @@ namespace ServiceStack.Redis
         }
 
         ValueTask IAsyncDisposable.DisposeAsync()
-            => RedisNativeClient.DiscardResult(((IRedisClientAsync)untypedClient).RemoveAsync(key));
+            => ((IRedisClientAsync)untypedClient).RemoveAsync(key).Await();
     }
 }

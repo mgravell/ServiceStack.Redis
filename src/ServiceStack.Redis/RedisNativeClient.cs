@@ -1045,6 +1045,10 @@ namespace ServiceStack.Redis
         {
             var cmdWithArgs = MergeCommandWithArgs(cmd, args);
             var multiData = SendExpectDeeplyNestedMultiData(cmdWithArgs);
+            return ParseScanResult(multiData);
+        }
+        internal static ScanResult ParseScanResult(object[] multiData)
+        {
             var counterBytes = (byte[])multiData[0];
 
             var ret = new ScanResult
