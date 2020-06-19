@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	<!-- net46 is without async -->
-    <TargetFrameworks>net46;net472;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net46;net472;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>ServiceStack.Redis.Tests</AssemblyName>
     <OutputType>Library</OutputType>
@@ -30,6 +30,9 @@
     <Compile Remove="**/*.Async.cs" />
     <None Include="**/*.Async.cs" />
   </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'netcoreapp2.1'">
+    <DefineConstants>$(DefineConstants);NO_DEFAULT_INTERFACE_IMPLEMENTATIONS</DefineConstants>
+  </PropertyGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Threading" />

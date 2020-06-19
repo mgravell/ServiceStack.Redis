@@ -596,16 +596,16 @@ namespace ServiceStack.Redis
         }
 
         ValueTask<RedisText> IRedisClientAsync.ExecLuaAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken)
-            => NativeAsync.EvalCommandAsync(luaBody, keys.Length, MergeAndConvertToBytes(keys, args), cancellationToken).Await(data => data.ToRedisText());
+            => NativeAsync.EvalCommandAsync(luaBody, keys?.Length ?? 0, MergeAndConvertToBytes(keys, args), cancellationToken).Await(data => data.ToRedisText());
 
         ValueTask<RedisText> IRedisClientAsync.ExecLuaShaAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken)
-            => NativeAsync.EvalShaCommandAsync(sha1, keys.Length, MergeAndConvertToBytes(keys, args), cancellationToken).Await(data => data.ToRedisText());
+            => NativeAsync.EvalShaCommandAsync(sha1, keys?.Length ?? 0, MergeAndConvertToBytes(keys, args), cancellationToken).Await(data => data.ToRedisText());
 
         ValueTask<string> IRedisClientAsync.ExecLuaAsStringAsync(string luaBody, string[] keys, string[] args, CancellationToken cancellationToken)
-            => NativeAsync.EvalStrAsync(luaBody, keys.Length, MergeAndConvertToBytes(keys, args), cancellationToken);
+            => NativeAsync.EvalStrAsync(luaBody, keys?.Length ?? 0, MergeAndConvertToBytes(keys, args), cancellationToken);
 
         ValueTask<string> IRedisClientAsync.ExecLuaShaAsStringAsync(string sha1, string[] keys, string[] args, CancellationToken cancellationToken)
-            => NativeAsync.EvalShaStrAsync(sha1, keys.Length, MergeAndConvertToBytes(keys, args), cancellationToken);
+            => NativeAsync.EvalShaStrAsync(sha1, keys?.Length ?? 0, MergeAndConvertToBytes(keys, args), cancellationToken);
 
         ValueTask<string> IRedisClientAsync.LoadLuaScriptAsync(string body, CancellationToken cancellationToken)
             => NativeAsync.ScriptLoadAsync(body, cancellationToken).AwaitFromUtf8Bytes();

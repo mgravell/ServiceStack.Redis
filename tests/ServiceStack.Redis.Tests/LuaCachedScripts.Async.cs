@@ -36,6 +36,7 @@ return results
                 await redis.SetValueAsync("key:" + i, "value:" + i);
         }
 
+#if !NO_DEFAULT_INTERFACE_IMPLEMENTATIONS
         [Test]
         public async Task Can_call_repeated_scans_in_LUA()
         {
@@ -84,6 +85,56 @@ return results
                 Assert.That(r.Children.Count, Is.EqualTo(10));
             }
         }
+#endif
+
+        [Test]
+        public async Task Can_call_repeated_scans_in_LUA_longhand()
+        {
+            await using (var redis = new RedisClient().AsAsync())
+            {
+                await AddTestKeysAsync(redis, 20);
+
+                var r = await redis.ExecLuaAsync(LuaScript, null, new[] { "key:*", "10" });
+                Assert.That(r.Children.Count, Is.EqualTo(10));
+
+                r = await redis.ExecLuaAsync(LuaScript, null, new[] { "key:*", "40" });
+                Assert.That(r.Children.Count, Is.EqualTo(20));
+            }
+        }
+
+        [Test]
+        public async Task Can_call_Cached_Lua_longhand()
+        {
+            await using (var redis = new RedisClient().AsAsync())
+            {
+                await AddTestKeysAsync(redis, 20);
+
+                var r = await redis.ExecCachedLuaAsync(LuaScript, sha1 =>
+                    redis.ExecLuaShaAsync(sha1, null, new[] { "key:*", "10" }));
+                Assert.That(r.Children.Count, Is.EqualTo(10));
+
+                r = await redis.ExecCachedLuaAsync(LuaScript, sha1 =>
+                    redis.ExecLuaShaAsync(sha1, null, new[] { "key:*", "10" }));
+                Assert.That(r.Children.Count, Is.EqualTo(10));
+            }
+        }
+
+        [Test]
+        public async Task Can_call_Cached_Lua_even_after_script_is_flushed_longhand()
+        {
+            await using (var redis = new RedisClient().AsAsync())
+            {
+                var r = await redis.ExecCachedLuaAsync(LuaScript, sha1 =>
+                    redis.ExecLuaShaAsync(sha1, null, new[] { "key:*", "10" }));
+                Assert.That(r.Children.Count, Is.EqualTo(10));
+
+                await ((IRedisNativeClientAsync)redis).ScriptFlushAsync();
+
+                r = await redis.ExecCachedLuaAsync(LuaScript, sha1 =>
+                    redis.ExecLuaShaAsync(sha1, null, new[] { "key:*", "10" }));
+                Assert.That(r.Children.Count, Is.EqualTo(10));
+            }
+        }
 
         private const string KeyAttributesScript = @"
 local limit = tonumber(ARGV[2])
@@ -126,6 +177,7 @@ end
 
 return cjson.encode(keyAttrs)";
 
+#if !NO_DEFAULT_INTERFACE_IMPLEMENTATIONS
         [Test]
         public async Task Can_call_script_with_complex_response()
         {
@@ -133,6 +185,29 @@ return cjson.encode(keyAttrs)";
             {
                 var r = await redis.ExecCachedLuaAsync(KeyAttributesScript, sha1 =>
                     redis.ExecLuaShaAsStringAsync(sha1, "key:*", "10"));
+
+                r.Print();
+
+                var results = r.FromJson<List<SearchResult>>();
+
+                Assert.That(results.Count, Is.EqualTo(10));
+
+                var result = results[0];
+                Assert.That(result.Id.StartsWith("key:"));
+                Assert.That(result.Type, Is.EqualTo("string"));
+                Assert.That(result.Size, Is.GreaterThan("value:".Length));
+                Assert.That(result.Ttl, Is.EqualTo(-1));
+            }
+        }
+#endif
+
+        [Test]
+        public async Task Can_call_script_with_complex_response_longhand()
+        {
+            await using (var redis = new RedisClient().AsAsync())
+            {
+                var r = await redis.ExecCachedLuaAsync(KeyAttributesScript, sha1 =>
+                    redis.ExecLuaShaAsStringAsync(sha1, null, new[] { "key:*", "10" }));
 
                 r.Print();
 

@@ -465,7 +465,7 @@ namespace ServiceStack.Redis
             throw CreateResponseError("Unknown reply on multi-request: " + c + s);
         }
 
-        public async ValueTask<long> ReadLongAsync(CancellationToken cancellationToken)
+        private async ValueTask<long> ReadLongAsync(CancellationToken cancellationToken)
         {
             int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
             if (c == -1)
@@ -474,19 +474,8 @@ namespace ServiceStack.Redis
             return ParseLong(c, await ReadLineAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        public ValueTask<double> ReadDoubleAsync(CancellationToken cancellationToken)
-        {
-            var pending = ReadDataAsync(cancellationToken);
-            return pending.IsCompletedSuccessfully
-                ? new ValueTask<double>(PostProcess(pending.Result))
-                : Awaited(pending);
-
-            static async ValueTask<double> Awaited(ValueTask<byte[]> pending)
-                => PostProcess(await pending.ConfigureAwait(false));
-
-            static double PostProcess(byte[] bytes)
-                => bytes == null ? double.NaN : ParseDouble(bytes);
-        }
+        private ValueTask<double> ReadDoubleAsync(CancellationToken cancellationToken)
+            => ReadDataAsync(cancellationToken).Await(bytes => bytes == null ? double.NaN : ParseDouble(bytes));
 
         internal ValueTask ExpectOkAsync(CancellationToken cancellationToken)
             => ExpectWordAsync(OK, cancellationToken);
