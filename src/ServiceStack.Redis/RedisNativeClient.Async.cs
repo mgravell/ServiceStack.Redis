@@ -174,7 +174,7 @@ namespace ServiceStack.Redis
         {
             if (pending.IsCompletedSuccessfully)
             {
-                return new ValueTask<bool>(pending.Result == Success);
+                return (pending.Result == Success).AsValueTask();
             }
             else
             {
@@ -252,7 +252,7 @@ namespace ServiceStack.Redis
 
         private static ValueTask<bool> IsString(ValueTask<string> pending, string expected)
         {
-            return pending.IsCompletedSuccessfully ? new ValueTask<bool>(pending.Result == expected)
+            return pending.IsCompletedSuccessfully ? (pending.Result == expected).AsValueTask()
                 : Awaited(pending, expected);
 
             static async ValueTask<bool> Awaited(ValueTask<string> pending, string expected)
@@ -493,7 +493,7 @@ namespace ServiceStack.Redis
             AssertNotNull(luaBody, nameof(luaBody));
 
             byte[] buffer = Encoding.UTF8.GetBytes(luaBody);
-            return new ValueTask<string>(BitConverter.ToString(buffer.ToSha1Hash()).Replace("-", ""));
+            return BitConverter.ToString(buffer.ToSha1Hash()).Replace("-", "").AsValueTask();
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ScriptExistsAsync(byte[][] sha1Refs, CancellationToken cancellationToken)

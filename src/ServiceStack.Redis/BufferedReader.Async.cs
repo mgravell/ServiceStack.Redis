@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServiceStack.Redis.Internal;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,7 +8,7 @@ namespace ServiceStack.Redis
     internal sealed partial class BufferedReader
     {
         internal ValueTask<int> ReadByteAsync(in CancellationToken cancellationToken = default)
-        => _available > 0 ? new ValueTask<int>(ReadByteFromBuffer()) : ReadByteSlowAsync(cancellationToken);
+        => _available > 0 ? ReadByteFromBuffer().AsValueTask() : ReadByteSlowAsync(cancellationToken);
 
         private ValueTask<int> ReadByteSlowAsync(in CancellationToken cancellationToken)
         {
@@ -24,7 +25,7 @@ namespace ServiceStack.Redis
 #endif
 
             _available = pending.Result;
-            return new ValueTask<int>(_available > 0 ? ReadByteFromBuffer() : -1);
+            return (_available > 0 ? ReadByteFromBuffer() : -1).AsValueTask();
 
 #if ASYNC_MEMORY
             static async ValueTask<int> Awaited(BufferedReader @this, ValueTask<int> pending)
@@ -43,7 +44,7 @@ namespace ServiceStack.Redis
 
         internal ValueTask<int> ReadAsync(byte[] buffer, int offset, int count, in CancellationToken cancellationToken = default)
             => _available > 0
-            ? new ValueTask<int>(ReadFromBuffer(buffer, offset, count))
+            ? ReadFromBuffer(buffer, offset, count).AsValueTask()
             : ReadSlowAsync(buffer, offset, count, cancellationToken);
 
         private ValueTask<int> ReadSlowAsync(byte[] buffer, int offset, int count, in CancellationToken cancellationToken)
@@ -66,7 +67,7 @@ namespace ServiceStack.Redis
                 return Awaited(this, pending, buffer, offset, count);
 
             _available = pending.Result; // already checked status, this is fine
-            return new ValueTask<int>(_available > 0 ? ReadFromBuffer(buffer, offset, count) : 0);
+            return (_available > 0 ? ReadFromBuffer(buffer, offset, count) : 0).AsValueTask();
 
             static async ValueTask<int> Awaited(BufferedReader @this, ValueTask<int> pending, byte[] buffer, int offset, int count)
             {
@@ -79,7 +80,7 @@ namespace ServiceStack.Redis
                 return Awaited(this, pending, buffer, offset, count);
 
             _available = pending.Result; // already checked status, this is fine
-            return new ValueTask<int>(_available > 0 ? ReadFromBuffer(buffer, offset, count) : 0);
+            return (_available > 0 ? ReadFromBuffer(buffer, offset, count) : 0).AsValueTask();
             
             static async ValueTask<int> Awaited(BufferedReader @this, Task<int> pending, byte[] buffer, int offset, int count)
             {

@@ -11,6 +11,7 @@
 //
 
 using ServiceStack.Caching;
+using ServiceStack.Redis.Internal;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -26,10 +27,10 @@ namespace ServiceStack.Redis
         : IRedisClientsManagerAsync, ICacheClientAsync
     {
         private ValueTask<ICacheClientAsync> GetCacheClientAsync(in CancellationToken _)
-            => new ValueTask<ICacheClientAsync>(new RedisClientManagerCacheClient(this));
+            => new RedisClientManagerCacheClient(this).AsValueTask<ICacheClientAsync>();
 
         private ValueTask<ICacheClientAsync> GetReadOnlyCacheClientAsync(in CancellationToken _)
-            => new ValueTask<ICacheClientAsync>(ConfigureRedisClientAsync(this.GetReadOnlyClientImpl()));
+            => ConfigureRedisClientAsync(this.GetReadOnlyClientImpl()).AsValueTask<ICacheClientAsync>();
 
         private IRedisClientAsync ConfigureRedisClientAsync(IRedisClientAsync client)
             => client;
@@ -38,13 +39,13 @@ namespace ServiceStack.Redis
             => GetCacheClientAsync(cancellationToken);
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<IRedisClientAsync>(GetClientImpl());
+            => GetClientImpl().AsValueTask<IRedisClientAsync>();
 
         ValueTask<ICacheClientAsync> IRedisClientsManagerAsync.GetReadOnlyCacheClientAsync(CancellationToken cancellationToken)
             => GetReadOnlyCacheClientAsync(cancellationToken);
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetReadOnlyClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<IRedisClientAsync>(GetReadOnlyClientImpl());
+            => GetReadOnlyClientImpl().AsValueTask<IRedisClientAsync>();
 
         ValueTask IAsyncDisposable.DisposeAsync()
         {
@@ -100,7 +101,7 @@ namespace ServiceStack.Redis
             return await client.RemoveAsync(key, cancellationToken).ConfigureAwait(false);
         }
 
-       async ValueTask ICacheClientAsync.RemoveAllAsync(IEnumerable<string> keys, CancellationToken cancellationToken)
+        async ValueTask ICacheClientAsync.RemoveAllAsync(IEnumerable<string> keys, CancellationToken cancellationToken)
         {
             await using var client = await GetCacheClientAsync(cancellationToken).ConfigureAwait(false);
             await client.RemoveAllAsync(keys, cancellationToken).ConfigureAwait(false);

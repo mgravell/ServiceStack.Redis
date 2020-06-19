@@ -2,6 +2,7 @@
 //License: https://raw.github.com/ServiceStack/ServiceStack/master/license.txt
 
 using ServiceStack.Caching;
+using ServiceStack.Redis.Internal;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,15 +13,15 @@ namespace ServiceStack.Redis
         : IRedisClientsManagerAsync
     {
         ValueTask<ICacheClientAsync> IRedisClientsManagerAsync.GetCacheClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<ICacheClientAsync>(new RedisClientManagerCacheClient(this));
+            => new RedisClientManagerCacheClient(this).AsValueTask<ICacheClientAsync>();
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<IRedisClientAsync>(GetClient(true));
+            => GetClient(true).AsValueTask<IRedisClientAsync>();
 
         ValueTask<ICacheClientAsync> IRedisClientsManagerAsync.GetReadOnlyCacheClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<ICacheClientAsync>(new RedisClientManagerCacheClient(this) { ReadOnly = true });
+            => new RedisClientManagerCacheClient(this) { ReadOnly = true }.AsValueTask<ICacheClientAsync>();
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetReadOnlyClientAsync(CancellationToken cancellationToken)
-            => new ValueTask<IRedisClientAsync>(GetClient(true));
+            => GetClient(true).AsValueTask<IRedisClientAsync>();
     }
 }

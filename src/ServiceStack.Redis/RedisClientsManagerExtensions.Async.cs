@@ -1,5 +1,6 @@
 using ServiceStack.Caching;
 using ServiceStack.Redis.Generic;
+using ServiceStack.Redis.Internal;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -43,28 +44,28 @@ namespace ServiceStack.Redis
 		{
 			return redisManager is IRedisClientsManagerAsync asyncManager
 				? asyncManager.GetClientAsync(cancellationToken)
-				: new ValueTask<IRedisClientAsync>(redisManager.GetClient() as IRedisClientAsync ?? InvalidAsyncClient<IRedisClientAsync>(redisManager, nameof(redisManager.GetClient)));
+				: (redisManager.GetClient() as IRedisClientAsync ?? InvalidAsyncClient<IRedisClientAsync>(redisManager, nameof(redisManager.GetClient))).AsValueTask();
 		}
 
 		public static ValueTask<IRedisClientAsync> GetReadOnlyClientAsync(this IRedisClientsManager redisManager, CancellationToken cancellationToken = default)
 		{
 			return redisManager is IRedisClientsManagerAsync asyncManager
 				? asyncManager.GetReadOnlyClientAsync(cancellationToken)
-				: new ValueTask<IRedisClientAsync>(redisManager.GetReadOnlyClient() as IRedisClientAsync ?? InvalidAsyncClient<IRedisClientAsync>(redisManager, nameof(redisManager.GetReadOnlyClient)));
+				: (redisManager.GetReadOnlyClient() as IRedisClientAsync ?? InvalidAsyncClient<IRedisClientAsync>(redisManager, nameof(redisManager.GetReadOnlyClient))).AsValueTask();
 		}
 
 		public static ValueTask<ICacheClientAsync> GetCacheClientAsync(this IRedisClientsManager redisManager, CancellationToken cancellationToken = default)
 		{
 			return redisManager is IRedisClientsManagerAsync asyncManager
 				? asyncManager.GetCacheClientAsync(cancellationToken)
-				: new ValueTask<ICacheClientAsync>(redisManager.GetCacheClient() as ICacheClientAsync ?? InvalidAsyncClient<ICacheClientAsync>(redisManager, nameof(redisManager.GetCacheClient)));
+				: (redisManager.GetCacheClient() as ICacheClientAsync ?? InvalidAsyncClient<ICacheClientAsync>(redisManager, nameof(redisManager.GetCacheClient))).AsValueTask();
 		}
 
 		public static ValueTask<ICacheClientAsync> GetReadOnlyCacheClientAsync(this IRedisClientsManager redisManager, CancellationToken cancellationToken = default)
 		{
 			return redisManager is IRedisClientsManagerAsync asyncManager
 				? asyncManager.GetReadOnlyCacheClientAsync(cancellationToken)
-				: new ValueTask<ICacheClientAsync>(redisManager.GetReadOnlyCacheClient() as ICacheClientAsync ?? InvalidAsyncClient<ICacheClientAsync>(redisManager, nameof(redisManager.GetCacheClient)));
+				: (redisManager.GetReadOnlyCacheClient() as ICacheClientAsync ?? InvalidAsyncClient<ICacheClientAsync>(redisManager, nameof(redisManager.GetCacheClient))).AsValueTask();
 		}
 
 
