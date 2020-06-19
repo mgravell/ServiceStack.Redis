@@ -353,8 +353,9 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public void Can_AcquireLock()
         {
-            var key = PrefixedKey("AcquireLockKey");
-            var lockKey = PrefixedKey("Can_AcquireLock");
+            // guid here is to prevent competition between concurrent runtime tests
+            var key = PrefixedKey("AcquireLockKeyTimeOut:" + Guid.NewGuid());
+            var lockKey = PrefixedKey("Can_AcquireLock_TimeOut:" + Guid.NewGuid());
             Redis.IncrementValue(key); //1
 
             var asyncResults = 5.TimesAsync(i =>
@@ -384,8 +385,9 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public void Can_AcquireLock_TimeOut()
         {
-            var key = PrefixedKey("AcquireLockKeyTimeOut");
-            var lockKey = PrefixedKey("Can_AcquireLock_TimeOut");
+            // guid here is to prevent competition between concurrent runtime tests
+            var key = PrefixedKey("AcquireLockKeyTimeOut:" + Guid.NewGuid());
+            var lockKey = PrefixedKey("Can_AcquireLock_TimeOut:" + Guid.NewGuid());
             Redis.IncrementValue(key); //1
             var acquiredLock = Redis.AcquireLock(lockKey);
             var waitFor = TimeSpan.FromMilliseconds(1000);
