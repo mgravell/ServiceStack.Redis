@@ -47,7 +47,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.SetAsync(string key, byte[] value, bool exists, long expirySeconds, long expiryMilliseconds, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            value = value ?? TypeConstants.EmptyByteArray;
+            value ??= TypeConstants.EmptyByteArray;
 
             if (value.Length > OneGb)
                 throw new ArgumentException("value exceeds 1G", "value");
@@ -72,7 +72,7 @@ namespace ServiceStack.Redis
         ValueTask IRedisNativeClientAsync.SetAsync(string key, byte[] value, long expirySeconds, long expiryMilliseconds, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            value = value ?? TypeConstants.EmptyByteArray;
+            value ??= TypeConstants.EmptyByteArray;
 
             if (value.Length > OneGb)
                 throw new ArgumentException("value exceeds 1G", "value");
@@ -612,5 +612,22 @@ namespace ServiceStack.Redis
 
         ValueTask<byte[][]> IRedisNativeClientAsync.SMembersAsync(string setId, CancellationToken cancellationToken)
             => SendExpectMultiDataAsync(cancellationToken, Commands.SMembers, setId.ToUtf8Bytes());
+
+        ValueTask<long> IRedisNativeClientAsync.SAddAsync(string setId, byte[][] values, CancellationToken cancellationToken)
+        {
+            AssertNotNull(setId, nameof(setId));
+            AssertNotNull(values, nameof(values));
+            if (values.Length == 0)
+                throw new ArgumentException(nameof(values));
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.SAdd, setId.ToUtf8Bytes(), values);
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs);
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.SRemAsync(string setId, byte[] value, CancellationToken cancellationToken)
+        {
+            AssertSetIdAndValue(setId, value);
+            return SendExpectLongAsync(cancellationToken, Commands.SRem, setId.ToUtf8Bytes(), value);
+        }
     }
 }

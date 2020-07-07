@@ -202,7 +202,7 @@ namespace ServiceStack.Redis
                             throw new NotSupportedException("Pipeline is not supported.");
 
                         completePipelineFn(fn);
-                        return default(T);
+                        return default;
                     }
 
                     var result = default(T);
@@ -262,8 +262,7 @@ namespace ServiceStack.Redis
 
             if (cmdBuffer.Count > 0)
             {
-                if (OnBeforeFlush != null)
-                    OnBeforeFlush();
+                OnBeforeFlush?.Invoke();
 
                 if (!Env.IsMono && sslStream == null)
                 {
@@ -465,7 +464,7 @@ namespace ServiceStack.Redis
             throw CreateResponseError("Unknown reply on multi-request: " + c + s);
         }
 
-        private async ValueTask<long> ReadLongAsync(CancellationToken cancellationToken)
+        internal async ValueTask<long> ReadLongAsync(CancellationToken cancellationToken)
         {
             int c = await SafeReadByteAsync(cancellationToken).ConfigureAwait(false);
             if (c == -1)

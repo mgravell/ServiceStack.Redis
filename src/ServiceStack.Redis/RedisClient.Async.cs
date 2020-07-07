@@ -40,6 +40,13 @@ namespace ServiceStack.Redis
         // the explicit interface implementations; the JIT should make this a direct call
         private IRedisNativeClientAsync NativeAsync => this;
 
+        internal ValueTask RegisterTypeIdAsync<T>(T value, CancellationToken cancellationToken)
+        {
+            var typeIdsSetKey = GetTypeIdsSetKey<T>();
+            var id = value.GetId().ToString();
+
+            return RegisterTypeIdAsync(typeIdsSetKey, id, cancellationToken);
+        }
         internal ValueTask RegisterTypeIdAsync(string typeIdsSetKey, string id, CancellationToken cancellationToken)
         {
             if (this.Pipeline != null)
@@ -529,20 +536,71 @@ namespace ServiceStack.Redis
             var valueString = JsonSerializer.SerializeToString(entity);
 
             await AsAsync().SetValueAsync(urnKey, valueString, cancellationToken).ConfigureAwait(false);
-            RegisterTypeId(entity);
+            await RegisterTypeIdAsync(entity, cancellationToken).ConfigureAwait(false);
 
             return entity;
         }
 
         ValueTask IEntityStoreAsync.StoreAllAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken)
-            => _StoreAllAsync(entities, cancellationToken);
+            => StoreAllAsyncImpl(entities, cancellationToken);
 
-        internal async ValueTask _StoreAllAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken)
+        internal async ValueTask StoreAllAsyncImpl<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken)
         {
             if (PrepareStoreAll(entities, out var keys, out var values, out var entitiesList))
             {
                 await NativeAsync.MSetAsync(keys, values, cancellationToken);
-                RegisterTypeIds(entitiesList);
+                await RegisterTypeIdsAsync(entitiesList, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        internal ValueTask RegisterTypeIdsAsync<T>(IEnumerable<T> values, CancellationToken cancellationToken)
+        {
+            var typeIdsSetKey = GetTypeIdsSetKey<T>();
+            var ids = values.Map(x => x.GetId().ToString());
+
+            if (this.Pipeline != null)
+            {
+                var registeredTypeIdsWithinPipeline = GetRegisteredTypeIdsWithinPipeline(typeIdsSetKey);
+                ids.ForEach(x => registeredTypeIdsWithinPipeline.Add(x));
+                return default;
+            }
+            else
+            {
+                return AsAsync().AddRangeToSetAsync(typeIdsSetKey, ids, cancellationToken);
+            }
+        }
+
+        internal async ValueTask RemoveTypeIdsAsync<T>(T[] values, CancellationToken cancellationToken)
+        {
+            var typeIdsSetKey = GetTypeIdsSetKey<T>();
+            if (this.Pipeline != null)
+            {
+                var registeredTypeIdsWithinPipeline = GetRegisteredTypeIdsWithinPipeline(typeIdsSetKey);
+                values.Each(x => registeredTypeIdsWithinPipeline.Remove(x.GetId().ToString()));
+            }
+            else
+            {
+                foreach (var x in values)
+                {
+                    await AsAsync().RemoveItemFromSetAsync(typeIdsSetKey, x.GetId().ToString(), cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
+        internal async ValueTask RemoveTypeIdsAsync<T>(string[] ids, CancellationToken cancellationToken)
+        {
+            var typeIdsSetKey = GetTypeIdsSetKey<T>();
+            if (this.Pipeline != null)
+            {
+                var registeredTypeIdsWithinPipeline = GetRegisteredTypeIdsWithinPipeline(typeIdsSetKey);
+                ids.Each(x => registeredTypeIdsWithinPipeline.Remove(x));
+            }
+            else
+            {
+                foreach (var x in ids)
+                {
+                    await AsAsync().RemoveItemFromSetAsync(typeIdsSetKey, x, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
@@ -550,14 +608,14 @@ namespace ServiceStack.Redis
         {
             var urnKey = UrnKey(entity);
             await AsAsync().RemoveAsync(urnKey, cancellationToken).ConfigureAwait(false);
-            this.RemoveTypeIds(entity);
+            await this.RemoveTypeIdsAsync(new[] { entity }, cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask IEntityStoreAsync.DeleteByIdAsync<T>(object id, CancellationToken cancellationToken)
         {
             var urnKey = UrnKey<T>(id);
-            await AsAsync().RemoveAsync(urnKey, cancellationToken);
-            this.RemoveTypeIds<T>(id.ToString());
+            await AsAsync().RemoveAsync(urnKey, cancellationToken).ConfigureAwait(false);
+            await this.RemoveTypeIdsAsync<T>(new[] { id.ToString() }, cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask IEntityStoreAsync.DeleteByIdsAsync<T>(ICollection ids, CancellationToken cancellationToken)
@@ -567,7 +625,7 @@ namespace ServiceStack.Redis
             var idsList = ids.Cast<object>();
             var urnKeys = idsList.Map(UrnKey<T>);
             await AsAsync().RemoveEntryAsync(urnKeys.ToArray(), cancellationToken).ConfigureAwait(false);
-            this.RemoveTypeIds<T>(idsList.Map(x => x.ToString()).ToArray());
+            await this.RemoveTypeIdsAsync<T>(idsList.Map(x => x.ToString()).ToArray(), cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask IEntityStoreAsync.DeleteAllAsync<T>(CancellationToken cancellationToken)
@@ -653,6 +711,30 @@ namespace ServiceStack.Redis
             var multiDataList = await NativeAsync.SMembersAsync(setId, cancellationToken);
             return CreateHashSet(multiDataList);
         }
+
+        ValueTask IRedisClientAsync.AddRangeToSetAsync(string setId, List<string> items, CancellationToken cancellationToken)
+        {
+            if (AddRangeToSetNeedsSend(setId, items))
+            {
+                var uSetId = setId.ToUtf8Bytes();
+                var pipeline = CreatePipelineCommand();
+                foreach (var item in items)
+                {
+                    pipeline.WriteCommand(Commands.SAdd, uSetId, item.ToUtf8Bytes());
+                }
+                pipeline.Flush();
+
+                //the number of items after
+                return pipeline.ReadAllAsIntsAsync(cancellationToken).Await();
+            }
+            else
+            {
+                return default;
+            }
+        }
+
+        ValueTask IRedisClientAsync.RemoveItemFromSetAsync(string setId, string item, CancellationToken cancellationToken)
+            => NativeAsync.SRemAsync(setId, item.ToUtf8Bytes(), cancellationToken).Await();
     }
 }
  

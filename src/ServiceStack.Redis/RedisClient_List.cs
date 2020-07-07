@@ -91,7 +91,7 @@ namespace ServiceStack.Redis
             }
             pipeline.Flush();
 
-            //the number of items after 
+            //the number of items after
             var intResults = pipeline.ReadAllAsInts();
         }
 
@@ -113,7 +113,7 @@ namespace ServiceStack.Redis
             }
             pipeline.Flush();
 
-            //the number of items after 
+            //the number of items after
             var intResults = pipeline.ReadAllAsInts();
         }
 

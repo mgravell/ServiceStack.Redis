@@ -75,7 +75,7 @@ namespace ServiceStack.Redis.Generic
             if (PrepareStoreAll(entities, out var keys, out var values, out var entitiesList))
             {
                 await AsyncNative.MSetAsync(keys, values, cancellationToken).ConfigureAwait(false);
-                client.RegisterTypeIds(entitiesList);
+                await client.RegisterTypeIdsAsync(entitiesList, cancellationToken).ConfigureAwait(false);
             }
         }
 

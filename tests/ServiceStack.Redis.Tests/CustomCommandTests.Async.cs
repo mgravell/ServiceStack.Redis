@@ -21,7 +21,7 @@ namespace ServiceStack.Redis.Tests
 
             ret = await RedisAsync.CustomAsync("SET", "foo", 1);
             Assert.That(ret.Text, Is.EqualTo("OK"));
-            ret = await RedisAsync.CustomAsync(Commands.Set, "bar", "b");
+            _ = await RedisAsync.CustomAsync(Commands.Set, "bar", "b");
 
             ret = await RedisAsync.CustomAsync("GET", "foo");
             Assert.That(ret.Text, Is.EqualTo("1"));
@@ -60,7 +60,7 @@ namespace ServiceStack.Redis.Tests
 
             ret = await RedisAsync.CustomAsync(new object[] { "SET", "foo", 1 });
             Assert.That(ret.Text, Is.EqualTo("OK"));
-            ret = await RedisAsync.CustomAsync(new object[] { Commands.Set, "bar", "b" });
+            _ = await RedisAsync.CustomAsync(new object[] { Commands.Set, "bar", "b" });
 
             ret = await RedisAsync.CustomAsync(new object[] { "GET", "foo" });
             Assert.That(ret.Text, Is.EqualTo("1"));

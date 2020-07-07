@@ -13,6 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ServiceStack.Common;
 using ServiceStack.Model;
 using ServiceStack.Redis.Generic;
@@ -139,12 +140,29 @@ namespace ServiceStack.Redis
 
         public void AddRangeToSet(string setId, List<string> items)
         {
+            if (AddRangeToSetNeedsSend(setId, items))
+            {
+                var uSetId = setId.ToUtf8Bytes();
+                var pipeline = CreatePipelineCommand();
+                foreach (var item in items)
+                {
+                    pipeline.WriteCommand(Commands.SAdd, uSetId, item.ToUtf8Bytes());
+                }
+                pipeline.Flush();
+
+                //the number of items after
+                _ = pipeline.ReadAllAsInts();
+            }
+        }
+
+        bool AddRangeToSetNeedsSend(string setId, List<string> items)
+        {
             if (setId.IsNullOrEmpty())
                 throw new ArgumentNullException("setId");
             if (items == null)
                 throw new ArgumentNullException("items");
             if (items.Count == 0)
-                return;
+                return false;
 
             if (this.Transaction != null || this.Pipeline != null)
             {
@@ -163,19 +181,11 @@ namespace ServiceStack.Redis
                     var item = items[i];
                     queueable.QueueCommand(c => c.AddItemToSet(setId, item));
                 }
+                return false;
             }
             else 
             {
-                var uSetId = setId.ToUtf8Bytes();
-                var pipeline = CreatePipelineCommand();
-                foreach (var item in items)
-                {
-                    pipeline.WriteCommand(Commands.SAdd, uSetId, item.ToUtf8Bytes());
-                }
-                pipeline.Flush();
-
-                //the number of items after 
-                var intResults = pipeline.ReadAllAsInts();
+                return true;
             }
         }
 

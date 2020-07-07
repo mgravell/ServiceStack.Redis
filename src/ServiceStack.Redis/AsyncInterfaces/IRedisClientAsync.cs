@@ -216,8 +216,8 @@ namespace ServiceStack.Redis
 
         ValueTask<HashSet<string>> GetAllItemsFromSetAsync(string setId, CancellationToken cancellationToken = default);
         ValueTask AddItemToSetAsync(string setId, string item, CancellationToken cancellationToken = default);
-        //ValueTask AddRangeToSetAsync(string setId, List<string> items, CancellationToken cancellationToken = default);
-        //ValueTask RemoveItemFromSetAsync(string setId, string item, CancellationToken cancellationToken = default);
+        ValueTask AddRangeToSetAsync(string setId, List<string> items, CancellationToken cancellationToken = default);
+        ValueTask RemoveItemFromSetAsync(string setId, string item, CancellationToken cancellationToken = default);
         ValueTask<string> PopItemFromSetAsync(string setId, CancellationToken cancellationToken = default);
         ValueTask<List<string>> PopItemsFromSetAsync(string setId, int count, CancellationToken cancellationToken = default);
         //ValueTask MoveBetweenSetsAsync(string fromSetId, string toSetId, string item, CancellationToken cancellationToken = default);

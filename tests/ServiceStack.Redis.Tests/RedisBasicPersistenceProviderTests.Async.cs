@@ -30,14 +30,14 @@ namespace ServiceStack.Redis.Tests
             //Thanking R# for the timesaver
             public bool Equals(TestModel other)
             {
-                if (ReferenceEquals(null, other)) return false;
+                if (other is null) return false;
                 if (ReferenceEquals(this, other)) return true;
                 return other.Id.Equals(Id) && Equals(other.Name, Name) && other.Age == Age;
             }
 
             public override bool Equals(object obj)
             {
-                if (ReferenceEquals(null, obj)) return false;
+                if (obj is null) return false;
                 if (ReferenceEquals(this, obj)) return true;
                 if (obj.GetType() != typeof(TestModel)) return false;
                 return Equals((TestModel)obj);
@@ -216,10 +216,12 @@ namespace ServiceStack.Redis.Tests
             }.Init();
 
             var type = typeof(TestModel).FullName;
+            RedisRaw.DebugAllowSync = true; // not reasonable to allow async from Lisp
             context.EvaluateCode($"redis.call('DeleteAll<{type}>') |> return");
             context.EvaluateCode($"redis.call('As<{type}>').call('DeleteAll') |> return");
             context.RenderLisp($"(call redis \"DeleteAll<{type}>\")");
             context.RenderLisp($"(call (call redis \"As<{type}>\") \"DeleteAll\")");
+            RedisRaw.DebugAllowSync = false;
 
             var allModels = await RedisAsync.As<TestModel>().GetAllAsync();
             Assert.That(allModels, Is.Empty);
