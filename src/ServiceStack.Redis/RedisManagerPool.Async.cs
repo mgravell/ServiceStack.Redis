@@ -23,5 +23,11 @@ namespace ServiceStack.Redis
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetReadOnlyClientAsync(CancellationToken cancellationToken)
             => GetClient(true).AsValueTask<IRedisClientAsync>();
+
+        ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            Dispose();
+            return default;
+        }
     }
 }

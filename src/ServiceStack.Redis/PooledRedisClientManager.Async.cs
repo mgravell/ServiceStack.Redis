@@ -12,6 +12,7 @@
 
 using ServiceStack.Caching;
 using ServiceStack.Redis.Internal;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +32,12 @@ namespace ServiceStack.Redis
 
         ValueTask<IRedisClientAsync> IRedisClientsManagerAsync.GetReadOnlyClientAsync(CancellationToken cancellationToken)
             => GetReadOnlyClient(true).AsValueTask<IRedisClientAsync>();
+
+        ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            Dispose();
+            return default;
+        }
     }
 
 }

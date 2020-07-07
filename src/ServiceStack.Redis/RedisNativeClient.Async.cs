@@ -23,6 +23,12 @@ namespace ServiceStack.Redis
             static void Throw(string name) => throw new ArgumentNullException(name);
         }
 
+        ValueTask IAsyncDisposable.DisposeAsync()
+        {
+            Dispose();
+            return default;
+        }
+
         ValueTask<byte[][]> IRedisNativeClientAsync.TimeAsync(CancellationToken cancellationToken)
             => SendExpectMultiDataAsync(cancellationToken, Commands.Time);
 

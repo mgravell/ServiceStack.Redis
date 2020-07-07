@@ -17,7 +17,7 @@ using ServiceStack.Caching;
 
 namespace ServiceStack.Redis
 {
-    public interface IRedisClientsManagerAsync : IDisposable
+    public interface IRedisClientsManagerAsync : IAsyncDisposable
     {
         /// <summary>
         /// Returns a Read/Write client (The default) using the hosts defined in ReadWriteHosts
