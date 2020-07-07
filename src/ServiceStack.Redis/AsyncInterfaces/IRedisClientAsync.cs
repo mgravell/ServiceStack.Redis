@@ -54,7 +54,6 @@ namespace ServiceStack.Redis
 
         /* non-obvious changes from IRedisClient:
         - Db is read-only; added ChangeDbAsync for setting
-        - added GetTimeToLiveAsync - not available on the interface
         - sync API is Save (foreground) and SaveAsync (background); renamed here to ForegroundSaveAsync and BackgroundSaveAsync
           to avoid overload problems and accidental swaps from bg to fg when migrating to async API
         - RewriteAppendOnlyFileAsync becomes BackgroundRewriteAppendOnlyFileAsync for consistency with the above
@@ -145,11 +144,11 @@ namespace ServiceStack.Redis
         ValueTask<bool> ContainsKeyAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<bool> RemoveEntryAsync(string[] keys, CancellationToken cancellationToken = default);
         ValueTask<long> IncrementValueAsync(string key, CancellationToken cancellationToken = default);
-        //ValueTask<long> IncrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
-        //ValueTask<long> IncrementValueByAsync(string key, long count, CancellationToken cancellationToken = default);
-        //double IncrementValueByAsync(string key, double count, CancellationToken cancellationToken = default);
-        //ValueTask<long> DecrementValueAsync(string key, CancellationToken cancellationToken = default);
-        //ValueTask<long> DecrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
+        ValueTask<long> IncrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
+        ValueTask<long> IncrementValueByAsync(string key, long count, CancellationToken cancellationToken = default);
+        ValueTask<double> IncrementValueByAsync(string key, double count, CancellationToken cancellationToken = default);
+        ValueTask<long> DecrementValueAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<long> DecrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
         ValueTask<List<string>> SearchKeysAsync(string pattern, CancellationToken cancellationToken = default);
 
         ValueTask<string> TypeAsync(string key, CancellationToken cancellationToken = default);
@@ -158,7 +157,6 @@ namespace ServiceStack.Redis
         ValueTask<string> GetRandomKeyAsync(CancellationToken cancellationToken = default);
         ValueTask<bool> ExpireEntryInAsync(string key, TimeSpan expireIn, CancellationToken cancellationToken = default);
         ValueTask<bool> ExpireEntryAtAsync(string key, DateTime expireAt, CancellationToken cancellationToken = default);
-        ValueTask<TimeSpan?> GetTimeToLiveAsync(string key, CancellationToken cancellationToken = default);
         //List<string> GetSortedEntryValuesAsync(string key, int startingFrom, int endingAt, CancellationToken cancellationToken = default);
 
         ////Store entities without registering entity ids

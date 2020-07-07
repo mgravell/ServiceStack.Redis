@@ -65,9 +65,6 @@ namespace ServiceStack.Redis
         ValueTask<DateTime> IRedisClientAsync.GetServerTimeAsync(CancellationToken cancellationToken)
             => NativeAsync.TimeAsync(cancellationToken).Await(parts => ParseTimeResult(parts));
 
-        ValueTask<long> IRedisClientAsync.IncrementValueAsync(string key, CancellationToken cancellationToken)
-            => NativeAsync.IncrAsync(key, cancellationToken);
-
         ValueTask<IRedisPipelineAsync> IRedisClientAsync.CreatePipelineAsync(CancellationToken cancellationToken)
             => new RedisAllPurposePipeline(this).AsValueTask<IRedisPipelineAsync>();
 
@@ -144,7 +141,7 @@ namespace ServiceStack.Redis
         }
 
         ValueTask<RedisKeyType> IRedisClientAsync.GetEntryTypeAsync(string key, CancellationToken cancellationToken)
-            => NativeAsync.TypeAsync(key, cancellationToken).Await((val,state) => state.ParseEntryType(val), this);
+            => NativeAsync.TypeAsync(key, cancellationToken).Await((val, state) => state.ParseEntryType(val), this);
 
         ValueTask IRedisClientAsync.AddItemToSetAsync(string setId, string item, CancellationToken cancellationToken)
             => NativeAsync.SAddAsync(setId, item.ToUtf8Bytes(), cancellationToken).Await();
@@ -207,7 +204,7 @@ namespace ServiceStack.Redis
             ? NativeAsync.PExpireAtAsync(key, ConvertToServerDate(expireAt).ToUnixTimeMs(), cancellationToken)
             : NativeAsync.ExpireAtAsync(key, ConvertToServerDate(expireAt).ToUnixTime(), cancellationToken);
 
-        ValueTask<TimeSpan?> IRedisClientAsync.GetTimeToLiveAsync(string key, CancellationToken cancellationToken)
+        ValueTask<TimeSpan?> ICacheClientExtendedAsync.GetTimeToLiveAsync(string key, CancellationToken cancellationToken)
             => NativeAsync.TtlAsync(key, cancellationToken).Await(ttlSecs => ParseTimeToLiveResult(ttlSecs));
 
         ValueTask<bool> IRedisClientAsync.PingAsync(CancellationToken cancellationToken)
@@ -250,7 +247,7 @@ namespace ServiceStack.Redis
             return NativeAsync.MGetAsync(keys.ToArray(), cancellationToken).Await(value => ParseGetValuesResult<T>(value));
         }
 
-       ValueTask<Dictionary<string, string>> IRedisClientAsync.GetValuesMapAsync(List<string> keys, CancellationToken cancellationToken)
+        ValueTask<Dictionary<string, string>> IRedisClientAsync.GetValuesMapAsync(List<string> keys, CancellationToken cancellationToken)
         {
             if (keys == null) throw new ArgumentNullException(nameof(keys));
             if (keys.Count == 0) return new Dictionary<string, string>().AsValueTask();
@@ -426,9 +423,6 @@ namespace ServiceStack.Redis
         ValueTask<bool> ICacheClientAsync.RemoveAsync(string key, CancellationToken cancellationToken)
             => IsSuccess(NativeAsync.DelAsync(key, cancellationToken));
 
-        ValueTask<TimeSpan?> ICacheClientExtendedAsync.GetTimeToLiveAsync(string key, CancellationToken cancellationToken)
-            => NativeAsync.TtlAsync(key, cancellationToken).Await(val => ParseTimeToLiveResult(val));
-
         IAsyncEnumerable<string> ICacheClientExtendedAsync.GetKeysByPatternAsync(string pattern, CancellationToken cancellationToken)
             => AsAsync().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken);
 
@@ -442,7 +436,7 @@ namespace ServiceStack.Redis
         {
             List<string> buffer = null;
             const int BATCH_SIZE = 1024;
-            await foreach(var key in AsAsync().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false))
+            await foreach (var key in AsAsync().ScanAllKeysAsync(pattern, cancellationToken: cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 (buffer ??= new List<string>()).Add(key);
                 if (buffer.Count == BATCH_SIZE)
@@ -464,45 +458,53 @@ namespace ServiceStack.Redis
             => ExecAsync(r => r.RemoveEntryAsync(keys.ToArray(), cancellationToken)).Await();
 
         ValueTask<long> ICacheClientAsync.IncrementAsync(string key, uint amount, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => ExecAsync(r => r.IncrementValueByAsync(key, (int)amount, cancellationToken));
 
         ValueTask<long> ICacheClientAsync.DecrementAsync(string key, uint amount, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => ExecAsync(r => r.DecrementValueByAsync(key, (int)amount, cancellationToken));
 
 
         ValueTask<bool> ICacheClientAsync.AddAsync<T>(string key, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => ExecAsync(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), exists: false, cancellationToken: cancellationToken));
 
         ValueTask<bool> ICacheClientAsync.ReplaceAsync<T>(string key, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => ExecAsync(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), exists: true, cancellationToken: cancellationToken));
 
         ValueTask<bool> ICacheClientAsync.AddAsync<T>(string key, T value, DateTime expiresAt, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotInTransaction();
+
+            return ExecAsync(async r =>
+            {
+                if (await r.AddAsync(key, value, cancellationToken).ConfigureAwait(false))
+                {
+                    await r.ExpireEntryAtAsync(key, ConvertToServerDate(expiresAt), cancellationToken).ConfigureAwait(false);
+                    return true;
+                }
+                return false;
+            });
         }
 
         ValueTask<bool> ICacheClientAsync.ReplaceAsync<T>(string key, T value, DateTime expiresAt, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotInTransaction();
+
+            return ExecAsync(async r =>
+            {
+                if (await r.ReplaceAsync(key, value, cancellationToken).ConfigureAwait(false))
+                {
+                    await r.ExpireEntryAtAsync(key, ConvertToServerDate(expiresAt), cancellationToken).ConfigureAwait(false);
+                    return true;
+                }
+                return false;
+            });
         }
 
         ValueTask<bool> ICacheClientAsync.AddAsync<T>(string key, T value, TimeSpan expiresIn, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => ExecAsync(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), exists: false, cancellationToken: cancellationToken));
 
         ValueTask<bool> ICacheClientAsync.ReplaceAsync<T>(string key, T value, TimeSpan expiresIn, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => ExecAsync(r => ((IRedisNativeClientAsync)r).SetAsync(key, ToBytes(value), exists: true, cancellationToken: cancellationToken));
 
         ValueTask<long> IRedisClientAsync.DbSizeAsync(CancellationToken cancellationToken)
             => NativeAsync.DbSizeAsync(cancellationToken);
@@ -735,6 +737,23 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisClientAsync.RemoveItemFromSetAsync(string setId, string item, CancellationToken cancellationToken)
             => NativeAsync.SRemAsync(setId, item.ToUtf8Bytes(), cancellationToken).Await();
+
+        ValueTask<long> IRedisClientAsync.IncrementValueByAsync(string key, int count, CancellationToken cancellationToken)
+            => NativeAsync.IncrByAsync(key, count, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.IncrementValueByAsync(string key, long count, CancellationToken cancellationToken)
+            => NativeAsync.IncrByAsync(key, count, cancellationToken);
+
+        ValueTask<double> IRedisClientAsync.IncrementValueByAsync(string key, double count, CancellationToken cancellationToken)
+            => NativeAsync.IncrByFloatAsync(key, count, cancellationToken);
+        ValueTask<long> IRedisClientAsync.IncrementValueAsync(string key, CancellationToken cancellationToken)
+            => NativeAsync.IncrAsync(key, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.DecrementValueAsync(string key, CancellationToken cancellationToken)
+            => NativeAsync.DecrAsync(key, cancellationToken);
+
+        ValueTask<long> IRedisClientAsync.DecrementValueByAsync(string key, int count, CancellationToken cancellationToken)
+            => NativeAsync.DecrByAsync(key, count, cancellationToken);
     }
 }
  

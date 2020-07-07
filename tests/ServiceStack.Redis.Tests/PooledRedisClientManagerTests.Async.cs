@@ -7,9 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using ServiceStack.Text;
-#if NETCORE
-using System.Threading.Tasks;
-#endif
 
 namespace ServiceStack.Redis.Tests
 {

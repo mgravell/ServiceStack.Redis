@@ -32,12 +32,6 @@ namespace ServiceStack.Redis
         ValueTask<byte[][]> IRedisNativeClientAsync.TimeAsync(CancellationToken cancellationToken)
             => SendExpectMultiDataAsync(cancellationToken, Commands.Time);
 
-        ValueTask<long> IRedisNativeClientAsync.IncrAsync(string key, CancellationToken cancellationToken)
-        {
-            AssertNotNull(key);
-            return SendExpectLongAsync(cancellationToken, Commands.Incr, key.ToUtf8Bytes());
-        }
-
         ValueTask<long> IRedisNativeClientAsync.ExistsAsync(string key, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
@@ -628,6 +622,36 @@ namespace ServiceStack.Redis
         {
             AssertSetIdAndValue(setId, value);
             return SendExpectLongAsync(cancellationToken, Commands.SRem, setId.ToUtf8Bytes(), value);
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.IncrByAsync(string key, long count, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.IncrBy, key.ToUtf8Bytes(), count.ToUtf8Bytes());
+        }
+
+        ValueTask<double> IRedisNativeClientAsync.IncrByFloatAsync(string key, double incrBy, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectDoubleAsync(cancellationToken, Commands.IncrByFloat, key.ToUtf8Bytes(), incrBy.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.IncrAsync(string key, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.Incr, key.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.DecrAsync(string key, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.Decr, key.ToUtf8Bytes());
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.DecrByAsync(string key, long count, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.DecrBy, key.ToUtf8Bytes(), count.ToUtf8Bytes());
         }
     }
 }

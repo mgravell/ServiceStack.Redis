@@ -92,10 +92,10 @@ namespace ServiceStack.Redis
         ValueTask<long> DelAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> DelAsync(string[] keys, CancellationToken cancellationToken = default);
         ValueTask<long> IncrAsync(string key, CancellationToken cancellationToken = default);
-        //ValueTask<long> IncrByAsync(string key, int incrBy, CancellationToken cancellationToken = default);
-        //ValueTask<double>  IncrByFloatAsync(string key, double incrBy, CancellationToken cancellationToken = default);
-        //ValueTask<long> DecrAsync(string key, CancellationToken cancellationToken = default);
-        //ValueTask<long> DecrByAsync(string key, int decrBy, CancellationToken cancellationToken = default);
+        ValueTask<long> IncrByAsync(string key, long incrBy, CancellationToken cancellationToken = default);
+        ValueTask<double> IncrByFloatAsync(string key, double incrBy, CancellationToken cancellationToken = default);
+        ValueTask<long> DecrAsync(string key, CancellationToken cancellationToken = default);
+        ValueTask<long> DecrByAsync(string key, long decrBy, CancellationToken cancellationToken = default);
         ValueTask<long> AppendAsync(string key, byte[] value, CancellationToken cancellationToken = default);
         ValueTask<byte[]> GetRangeAsync(string key, int fromIndex, int toIndex, CancellationToken cancellationToken = default);
         ValueTask<long> SetRangeAsync(string key, int offset, byte[] value, CancellationToken cancellationToken = default);
