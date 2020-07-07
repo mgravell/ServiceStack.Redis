@@ -71,19 +71,15 @@ namespace ServiceStack.Redis
 
 		public static async ValueTask ExecAsync(this IRedisClientsManager redisManager, Func<IRedisClientAsync, ValueTask> lambda)
 		{
-			await using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
-			{
-				await lambda(redis).ConfigureAwait(false);
-			}
-		}
+            await using var redis = await redisManager.GetClientAsync().ConfigureAwait(false);
+            await lambda(redis).ConfigureAwait(false);
+        }
 
 		public static async ValueTask<T> ExecAsync<T>(this IRedisClientsManager redisManager, Func<IRedisClientAsync, ValueTask<T>> lambda)
 		{
-			await using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
-			{
-				return await lambda(redis).ConfigureAwait(false);
-			}
-		}
+            await using var redis = await redisManager.GetClientAsync().ConfigureAwait(false);
+            return await lambda(redis).ConfigureAwait(false);
+        }
 
 		//public static void ExecTrans(this IRedisClientsManager redisManager, Action<IRedisTransaction> lambda)
 		//{
@@ -98,35 +94,27 @@ namespace ServiceStack.Redis
 
 		public static async ValueTask ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IRedisTypedClientAsync<T>, ValueTask> lambda)
 		{
-			await using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
-			{
-				await lambda(redis.As<T>()).ConfigureAwait(false);
-			}
-		}
+            await using var redis = await redisManager.GetClientAsync().ConfigureAwait(false);
+            await lambda(redis.As<T>()).ConfigureAwait(false);
+        }
 
 		public static async ValueTask<T> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IRedisTypedClientAsync<T>, ValueTask<T>> lambda)
 		{
-			await using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
-			{
-				return await lambda(redis.As<T>()).ConfigureAwait(false);
-			}
-		}
+            await using var redis = await redisManager.GetClientAsync().ConfigureAwait(false);
+            return await lambda(redis.As<T>()).ConfigureAwait(false);
+        }
 
 		public static async ValueTask<IList<T>> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IRedisTypedClientAsync<T>, ValueTask<IList<T>>> lambda)
 		{
-			await using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
-			{
-				return await lambda(redis.As<T>()).ConfigureAwait(false);
-			}
-		}
+            await using var redis = await redisManager.GetClientAsync().ConfigureAwait(false);
+            return await lambda(redis.As<T>()).ConfigureAwait(false);
+        }
 
 		public static async ValueTask<List<T>> ExecAsAsync<T>(this IRedisClientsManager redisManager, Func<IRedisTypedClientAsync<T>, ValueTask<List<T>>> lambda)
 		{
-			await using (var redis = await redisManager.GetClientAsync().ConfigureAwait(false))
-			{
-				return await lambda(redis.As<T>()).ConfigureAwait(false);
-			}
-		}
+            await using var redis = await redisManager.GetClientAsync().ConfigureAwait(false);
+            return await lambda(redis.As<T>()).ConfigureAwait(false);
+        }
 	}
 
 }

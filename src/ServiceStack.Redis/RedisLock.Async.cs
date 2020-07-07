@@ -41,7 +41,7 @@ namespace ServiceStack.Redis
         private async ValueTask AcquireAsync(TimeSpan? timeOut, CancellationToken cancellationToken)
         {
             var redisClient = (IRedisClientAsync)untypedClient;
-            await RetryUntilTrue(
+            await RetryUntilTrue( // .ConfigureAwait(false) is below
                 async ct =>
                     {
                         //This pattern is taken from the redis command for SETNX http://redis.io/commands/setnx

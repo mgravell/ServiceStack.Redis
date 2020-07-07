@@ -396,7 +396,7 @@ namespace ServiceStack.Redis.Tests
             var key = PrefixedKey("AcquireLockKeyTimeOut:" + Guid.NewGuid());
             var lockKey = PrefixedKey("Can_AcquireLock_TimeOut:" + Guid.NewGuid());
             await RedisAsync.IncrementValueAsync(key); //1
-            var acquiredLock = await RedisAsync.AcquireLockAsync(lockKey);
+            _ = await RedisAsync.AcquireLockAsync(lockKey);
             var waitFor = TimeSpan.FromMilliseconds(1000);
             var now = DateTime.Now;
 

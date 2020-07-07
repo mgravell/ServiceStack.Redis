@@ -126,7 +126,7 @@ namespace ServiceStack.Redis
             ScanResult ret = default;
             while (true)
             {
-                ret = await (pattern != null
+                ret = await (pattern != null // note ConfigureAwait is handled below
                     ? NativeAsync.ScanAsync(ret?.Cursor ?? 0, pageSize, match: pattern, cancellationToken: cancellationToken)
                     : NativeAsync.ScanAsync(ret?.Cursor ?? 0, pageSize, cancellationToken: cancellationToken)
                     ).ConfigureAwait(false);
@@ -550,7 +550,7 @@ namespace ServiceStack.Redis
         {
             if (PrepareStoreAll(entities, out var keys, out var values, out var entitiesList))
             {
-                await NativeAsync.MSetAsync(keys, values, cancellationToken);
+                await NativeAsync.MSetAsync(keys, values, cancellationToken).ConfigureAwait(false);
                 await RegisterTypeIdsAsync(entitiesList, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -710,7 +710,7 @@ namespace ServiceStack.Redis
 
         async ValueTask<HashSet<string>> IRedisClientAsync.GetAllItemsFromSetAsync(string setId, CancellationToken cancellationToken)
         {
-            var multiDataList = await NativeAsync.SMembersAsync(setId, cancellationToken);
+            var multiDataList = await NativeAsync.SMembersAsync(setId, cancellationToken).ConfigureAwait(false);
             return CreateHashSet(multiDataList);
         }
 

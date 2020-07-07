@@ -83,7 +83,7 @@ namespace ServiceStack.Redis.Generic
         {
             var urnKey = client.UrnKey(entity);
             await AsyncClient.RemoveEntryAsync(new[] { urnKey }, cancellationToken).ConfigureAwait(false);
-            await client.RemoveTypeIdsAsync(new[] { entity },  cancellationToken);
+            await client.RemoveTypeIdsAsync(new[] { entity },  cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask IEntityStoreAsync<T>.DeleteByIdAsync(object id, CancellationToken cancellationToken)
@@ -91,7 +91,7 @@ namespace ServiceStack.Redis.Generic
             var urnKey = client.UrnKey<T>(id);
 
             await AsyncClient.RemoveEntryAsync(new[] { urnKey }, cancellationToken).ConfigureAwait(false);
-            await client.RemoveTypeIdsAsync<T>(new[] { id.ToString() }, cancellationToken);
+            await client.RemoveTypeIdsAsync<T>(new[] { id.ToString() }, cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask IEntityStoreAsync<T>.DeleteByIdsAsync(IEnumerable ids, CancellationToken cancellationToken)

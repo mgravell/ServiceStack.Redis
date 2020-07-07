@@ -89,7 +89,7 @@ namespace ServiceStack.Redis.Pipeline
                     case Func<CancellationToken, ValueTask<byte[][]>> MultiBytesReadCommandAsync:
                         var multiBytes = await MultiBytesReadCommandAsync(cancellationToken).ConfigureAwait(false);
                         OnSuccessMultiBytesCallback?.Invoke(multiBytes);
-                        OnSuccessMultiStringCallback?.Invoke(multiBytes != null ? multiBytes.ToStringList() : null);
+                        OnSuccessMultiStringCallback?.Invoke(multiBytes?.ToStringList());
                         OnSuccessMultiTypeCallback?.Invoke(multiBytes.ToStringList());
                         OnSuccessDictionaryStringCallback?.Invoke(multiBytes.ToStringDictionary());
                         break;
