@@ -152,7 +152,7 @@ namespace ServiceStack.Redis
         //ValueTask<byte[]> BRPopLPushAsync(string fromListId, string toListId, int timeOutSecs, CancellationToken cancellationToken = default);
 
         ////Redis Set operations
-        //ValueTask<byte[][]> SMembersAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> SMembersAsync(string setId, CancellationToken cancellationToken = default);
         ValueTask<long> SAddAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
         //ValueTask<long> SAddAsync(string setId, byte[][] value, CancellationToken cancellationToken = default);
         //ValueTask<long> SRemAsync(string setId, byte[] value, CancellationToken cancellationToken = default);

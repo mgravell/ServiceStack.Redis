@@ -735,42 +735,69 @@ namespace ServiceStack.Redis
         //Without the Generic Constraints
         internal void _StoreAll<TEntity>(IEnumerable<TEntity> entities)
         {
-            if (entities == null) return;
+            if (PrepareStoreAll(entities, out var keys, out var values, out var entitiesList))
+            {
+                base.MSet(keys, values);
+                RegisterTypeIds(entitiesList);
+            }
+        }
 
-            var entitiesList = entities.ToList();
+        private bool PrepareStoreAll<TEntity>(IEnumerable<TEntity> entities, out byte[][] keys, out byte[][] values, out List<TEntity> entitiesList)
+        {
+            if (entities == null)
+            {
+                entitiesList = default;
+                keys = values = default;
+                return false;
+            }
+
+            entitiesList = entities.ToList();
             var len = entitiesList.Count;
-            if (len == 0) return;
+            if (len == 0)
+            {
+                keys = values = default;
+                return false;
+            }
 
-            var keys = new byte[len][];
-            var values = new byte[len][];
+            keys = new byte[len][];
+            values = new byte[len][];
 
             for (var i = 0; i < len; i++)
             {
                 keys[i] = UrnKey(entitiesList[i]).ToUtf8Bytes();
                 values[i] = SerializeToUtf8Bytes(entitiesList[i]);
             }
-
-            base.MSet(keys, values);
-            RegisterTypeIds(entitiesList);
+            return true;
         }
 
         public void WriteAll<TEntity>(IEnumerable<TEntity> entities)
         {
-            if (entities == null) return;
+            if (PrepareWriteAll(entities, out var keys, out var values))
+            {
+                base.MSet(keys, values);
+            }
+        }
+
+        private bool PrepareWriteAll<TEntity>(IEnumerable<TEntity> entities, out byte[][] keys, out byte[][] values)
+        {
+            if (entities == null)
+            {
+                keys = values = default;
+                return false;
+            }
 
             var entitiesList = entities.ToList();
             var len = entitiesList.Count;
 
-            var keys = new byte[len][];
-            var values = new byte[len][];
+            keys = new byte[len][];
+            values = new byte[len][];
 
             for (var i = 0; i < len; i++)
             {
                 keys[i] = UrnKey(entitiesList[i]).ToUtf8Bytes();
                 values[i] = SerializeToUtf8Bytes(entitiesList[i]);
             }
-
-            base.MSet(keys, values);
+            return true;
         }
 
         public static byte[] SerializeToUtf8Bytes<T>(T value)

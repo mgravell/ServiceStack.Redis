@@ -162,7 +162,7 @@ namespace ServiceStack.Redis
         //List<string> GetSortedEntryValuesAsync(string key, int startingFrom, int endingAt, CancellationToken cancellationToken = default);
 
         ////Store entities without registering entity ids
-        //ValueTask WriteAll<TEntity>Async(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
+        ValueTask WriteAllAsync<TEntity>(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
 
         ////Scan APIs
         IAsyncEnumerable<string> ScanAllKeysAsync(string pattern = null, int pageSize = 1000, CancellationToken cancellationToken = default);
@@ -214,7 +214,7 @@ namespace ServiceStack.Redis
 
         //#region Set operations
 
-        //HashSet<string> GetAllItemsFromSetAsync(string setId, CancellationToken cancellationToken = default);
+        ValueTask<HashSet<string>> GetAllItemsFromSetAsync(string setId, CancellationToken cancellationToken = default);
         ValueTask AddItemToSetAsync(string setId, string item, CancellationToken cancellationToken = default);
         //ValueTask AddRangeToSetAsync(string setId, List<string> items, CancellationToken cancellationToken = default);
         //ValueTask RemoveItemFromSetAsync(string setId, string item, CancellationToken cancellationToken = default);

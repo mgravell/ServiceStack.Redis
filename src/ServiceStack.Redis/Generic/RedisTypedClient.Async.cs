@@ -45,24 +45,38 @@ namespace ServiceStack.Redis.Generic
             return AsAsync().GetValueAsync(key, cancellationToken);
         }
 
-        ValueTask<IList<T>> IEntityStoreAsync<T>.GetByIdsAsync(IEnumerable ids, CancellationToken cancellationToken)
+        async ValueTask<IList<T>> IEntityStoreAsync<T>.GetByIdsAsync(IEnumerable ids, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (ids != null)
+            {
+                var urnKeys = ids.Map(x => client.UrnKey<T>(x));
+                if (urnKeys.Count != 0)
+                    return await AsAsync().GetValuesAsync(urnKeys, cancellationToken).ConfigureAwait(false);
+            }
+
+            return new List<T>();
         }
 
-        ValueTask<IList<T>> IEntityStoreAsync<T>.GetAllAsync(CancellationToken cancellationToken)
+        async ValueTask<IList<T>> IEntityStoreAsync<T>.GetAllAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var allKeys = await AsyncClient.GetAllItemsFromSetAsync(this.TypeIdsSetKey, cancellationToken).ConfigureAwait(false);
+            return await AsAsync().GetByIdsAsync(allKeys.ToArray(), cancellationToken).ConfigureAwait(false);
         }
 
-        ValueTask<T> IEntityStoreAsync<T>.StoreAsync(T entity, CancellationToken cancellationToken)
+        async ValueTask<T> IEntityStoreAsync<T>.StoreAsync(T entity, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var urnKey = client.UrnKey(entity);
+            await AsAsync().SetValueAsync(urnKey, entity, cancellationToken).ConfigureAwait(false);
+            return entity;
         }
 
-        ValueTask IEntityStoreAsync<T>.StoreAllAsync(IEnumerable<T> entities, CancellationToken cancellationToken)
+        async ValueTask IEntityStoreAsync<T>.StoreAllAsync(IEnumerable<T> entities, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (PrepareStoreAll(entities, out var keys, out var values, out var entitiesList))
+            {
+                await AsyncNative.MSetAsync(keys, values, cancellationToken).ConfigureAwait(false);
+                client.RegisterTypeIds(entitiesList);
+            }
         }
 
         ValueTask IEntityStoreAsync<T>.DeleteAsync(T entity, CancellationToken cancellationToken)
@@ -80,9 +94,23 @@ namespace ServiceStack.Redis.Generic
             throw new NotImplementedException();
         }
 
-        ValueTask IEntityStoreAsync<T>.DeleteAllAsync(CancellationToken cancellationToken)
+        async ValueTask IEntityStoreAsync<T>.DeleteAllAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var ids = await AsyncClient.GetAllItemsFromSetAsync(this.TypeIdsSetKey, cancellationToken).ConfigureAwait(false);
+            var urnKeys = ids.Map(t => client.UrnKey<T>(t));
+            if (urnKeys.Count > 0)
+            {
+                await AsyncClient.RemoveEntryAsync(urnKeys.ToArray(), cancellationToken).ConfigureAwait(false);
+                await AsyncClient.RemoveEntryAsync(new[] { this.TypeIdsSetKey }, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        async ValueTask<List<T>> IRedisTypedClientAsync<T>.GetValuesAsync(List<string> keys, CancellationToken cancellationToken)
+        {
+            if (keys.IsNullOrEmpty()) return new List<T>();
+
+            var resultBytesArray = await AsyncNative.MGetAsync(keys.ToArray(), cancellationToken).ConfigureAwait(false);
+            return ProcessGetValues(resultBytesArray);
         }
     }
 }

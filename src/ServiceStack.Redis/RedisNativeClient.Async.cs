@@ -609,5 +609,8 @@ namespace ServiceStack.Redis
             var cmdArgs = MergeCommandWithArgs(Commands.EvalSha, sha1.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
             return SendExpectDataAsync(cancellationToken, cmdArgs).AwaitFromUtf8Bytes();
         }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SMembersAsync(string setId, CancellationToken cancellationToken)
+            => SendExpectMultiDataAsync(cancellationToken, Commands.SMembers, setId.ToUtf8Bytes());
     }
 }

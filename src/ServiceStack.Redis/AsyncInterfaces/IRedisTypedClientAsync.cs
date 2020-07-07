@@ -77,7 +77,7 @@ namespace ServiceStack.Redis.Generic
         //void FlushDb();
         //void FlushAll();
         //T[] SearchKeys(string pattern);
-        //List<T> GetValues(List<string> keys);
+        ValueTask<List<T>> GetValuesAsync(List<string> keys, CancellationToken cancellationToken = default);
         //List<T> GetSortedEntryValues(IRedisSet<T> fromSet, int startingFrom, int endingAt);
 
         //void StoreAsHash(T entity);
