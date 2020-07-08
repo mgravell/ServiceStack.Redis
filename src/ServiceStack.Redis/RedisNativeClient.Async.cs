@@ -7,6 +7,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceStack.Redis.Internal;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Globalization;
 
 namespace ServiceStack.Redis
 {
@@ -22,6 +25,8 @@ namespace ServiceStack.Redis
             if (obj is null) Throw(name);
             static void Throw(string name) => throw new ArgumentNullException(name);
         }
+
+        private IRedisNativeClientAsync AsAsync() => this;
 
         ValueTask IAsyncDisposable.DisposeAsync()
         {
@@ -84,7 +89,7 @@ namespace ServiceStack.Redis
             {
                 args = new[] { Commands.Set, key.ToUtf8Bytes(), value };
             }
-            
+
             return SendExpectSuccessAsync(cancellationToken, args);
         }
 
@@ -655,539 +660,716 @@ namespace ServiceStack.Redis
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ConfigGetAsync(string pattern, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectMultiDataAsync(cancellationToken, Commands.Config, Commands.Get, pattern.ToUtf8Bytes());
 
         ValueTask IRedisNativeClientAsync.ConfigSetAsync(string item, byte[] value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectSuccessAsync(cancellationToken, Commands.Config, Commands.Set, item.ToUtf8Bytes(), value);
 
         ValueTask IRedisNativeClientAsync.ConfigResetStatAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectSuccessAsync(cancellationToken, Commands.Config, Commands.ResetStat);
 
         ValueTask IRedisNativeClientAsync.ConfigRewriteAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectSuccessAsync(cancellationToken, Commands.Config, Commands.Rewrite);
 
         ValueTask IRedisNativeClientAsync.DebugSegfaultAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectSuccessAsync(cancellationToken, Commands.Debug, Commands.Segfault);
 
         ValueTask<byte[]> IRedisNativeClientAsync.DumpAsync(string key, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key);
+            return SendExpectDataAsync(cancellationToken, Commands.Dump, key.ToUtf8Bytes());
         }
 
         ValueTask<byte[]> IRedisNativeClientAsync.RestoreAsync(string key, long expireMs, byte[] dumpValue, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key);
+            return SendExpectDataAsync(cancellationToken, Commands.Restore, key.ToUtf8Bytes(), expireMs.ToUtf8Bytes(), dumpValue);
         }
 
         ValueTask IRedisNativeClientAsync.MigrateAsync(string host, int port, string key, int destinationDb, long timeoutMs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key);
+            return SendExpectSuccessAsync(cancellationToken, Commands.Migrate, host.ToUtf8Bytes(), port.ToUtf8Bytes(), key.ToUtf8Bytes(), destinationDb.ToUtf8Bytes(), timeoutMs.ToUtf8Bytes());
         }
 
         ValueTask<bool> IRedisNativeClientAsync.MoveAsync(string key, int db, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key);
+            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.Move, key.ToUtf8Bytes(), db.ToUtf8Bytes()));
         }
 
         ValueTask<long> IRedisNativeClientAsync.ObjectIdleTimeAsync(string key, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.Object, Commands.IdleTime, key.ToUtf8Bytes());
         }
 
-        ValueTask<RedisText> IRedisNativeClientAsync.RoleAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        async ValueTask<RedisText> IRedisNativeClientAsync.RoleAsync(CancellationToken cancellationToken)
+            => (await SendExpectComplexResponseAsync(cancellationToken, Commands.Role).ConfigureAwait(false)).ToRedisText();
 
         ValueTask<RedisData> IRedisNativeClientAsync.RawCommandAsync(object[] cmdWithArgs, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectComplexResponseAsync(cancellationToken, PrepareRawCommand(cmdWithArgs));
 
         ValueTask<RedisData> IRedisNativeClientAsync.RawCommandAsync(byte[][] cmdWithBinaryArgs, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectComplexResponseAsync(cancellationToken, cmdWithBinaryArgs);
 
         ValueTask<string> IRedisNativeClientAsync.ClientGetNameAsync(CancellationToken cancellationToken)
+            => SendExpectStringAsync(cancellationToken, Commands.Client, Commands.GetName);
+
+        ValueTask IRedisNativeClientAsync.ClientSetNameAsync(string name, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            ClientValidateName(name);
+            return SendExpectSuccessAsync(cancellationToken, Commands.Client, Commands.SetName, name.ToUtf8Bytes());
         }
 
-        ValueTask IRedisNativeClientAsync.ClientSetNameAsync(string client, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        ValueTask IRedisNativeClientAsync.ClientKillAsync(string host, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        ValueTask IRedisNativeClientAsync.ClientKillAsync(string clientAddr, CancellationToken cancellationToken)
+            => SendExpectSuccessAsync(cancellationToken, Commands.Client, Commands.Kill, clientAddr.ToUtf8Bytes());
 
         ValueTask<long> IRedisNativeClientAsync.ClientKillAsync(string addr, string id, string type, string skipMe, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectLongAsync(cancellationToken, ClientKillPerpareArgs(addr, id, type, skipMe));
 
         ValueTask<byte[]> IRedisNativeClientAsync.ClientListAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectDataAsync(cancellationToken, Commands.Client, Commands.List);
 
         ValueTask IRedisNativeClientAsync.ClientPauseAsync(int timeOutMs, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectSuccessAsync(cancellationToken, Commands.Client, Commands.Pause, timeOutMs.ToUtf8Bytes());
 
         ValueTask<bool> IRedisNativeClientAsync.MSetNxAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var keysAndValues = MergeCommandWithKeysAndValues(Commands.MSet, keys, values);
+            return IsSuccess(SendExpectLongAsync(cancellationToken, keysAndValues));
         }
 
         ValueTask<bool> IRedisNativeClientAsync.MSetNxAsync(string[] keys, byte[][] values, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsAsync().MSetNxAsync(keys.ToMultiByteArray(), values, cancellationToken);
 
         ValueTask<byte[]> IRedisNativeClientAsync.GetSetAsync(string key, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            GetSetAssertArgs(key, ref value);
+            return SendExpectDataAsync(cancellationToken, Commands.GetSet, key.ToUtf8Bytes(), value);
         }
 
-        ValueTask<byte[][]> IRedisNativeClientAsync.MGetAsync(byte[][] keysAndArgs, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        ValueTask<byte[][]> IRedisNativeClientAsync.MGetAsync(byte[][] keys, CancellationToken cancellationToken)
+            => SendExpectMultiDataAsync(cancellationToken, MGetPrepareArgs(keys));
 
         ValueTask<ScanResult> IRedisNativeClientAsync.SScanAsync(string setId, ulong cursor, int count, string match, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (match == null)
+            {
+                return SendExpectScanResultAsync(cancellationToken, Commands.SScan,
+                    setId.ToUtf8Bytes(), cursor.ToUtf8Bytes(),
+                    Commands.Count, count.ToUtf8Bytes());
+            }
+
+            return SendExpectScanResultAsync(cancellationToken, Commands.SScan,
+                setId.ToUtf8Bytes(), cursor.ToUtf8Bytes(),
+                Commands.Match, match.ToUtf8Bytes(),
+                Commands.Count, count.ToUtf8Bytes());
         }
 
         ValueTask<ScanResult> IRedisNativeClientAsync.ZScanAsync(string setId, ulong cursor, int count, string match, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (match == null)
+            {
+                return SendExpectScanResultAsync(cancellationToken, Commands.ZScan,
+                    setId.ToUtf8Bytes(), cursor.ToUtf8Bytes(),
+                    Commands.Count, count.ToUtf8Bytes());
+            }
+
+            return SendExpectScanResultAsync(cancellationToken, Commands.ZScan,
+                setId.ToUtf8Bytes(), cursor.ToUtf8Bytes(),
+                Commands.Match, match.ToUtf8Bytes(),
+                Commands.Count, count.ToUtf8Bytes());
         }
 
         ValueTask<ScanResult> IRedisNativeClientAsync.HScanAsync(string hashId, ulong cursor, int count, string match, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (match == null)
+            {
+                return SendExpectScanResultAsync(cancellationToken, Commands.HScan,
+                    hashId.ToUtf8Bytes(), cursor.ToUtf8Bytes(),
+                    Commands.Count, count.ToUtf8Bytes());
+            }
+
+            return SendExpectScanResultAsync(cancellationToken, Commands.HScan,
+                hashId.ToUtf8Bytes(), cursor.ToUtf8Bytes(),
+                Commands.Match, match.ToUtf8Bytes(),
+                Commands.Count, count.ToUtf8Bytes());
         }
 
         ValueTask<bool> IRedisNativeClientAsync.PfAddAsync(string key, byte[][] elements, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = MergeCommandWithArgs(Commands.PfAdd, key.ToUtf8Bytes(), elements);
+            return IsSuccess(SendExpectLongAsync(cancellationToken, cmdWithArgs));
         }
 
         ValueTask<long> IRedisNativeClientAsync.PfCountAsync(string key, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = MergeCommandWithArgs(Commands.PfCount, key.ToUtf8Bytes());
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask IRedisNativeClientAsync.PfMergeAsync(string toKeyId, string[] fromKeys, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var fromKeyBytes = fromKeys.Map(x => x.ToUtf8Bytes()).ToArray();
+            var cmdWithArgs = MergeCommandWithArgs(Commands.PfMerge, toKeyId.ToUtf8Bytes(), fromKeyBytes);
+            return SendExpectSuccessAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.SortAsync(string listOrSetId, SortOptions sortOptions, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectMultiDataAsync(cancellationToken, SortPrepareArgs(listOrSetId, sortOptions));
 
         ValueTask<byte[][]> IRedisNativeClientAsync.LRangeAsync(string listId, int startingFrom, int endingAt, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectMultiDataAsync(cancellationToken, Commands.LRange, listId.ToUtf8Bytes(), startingFrom.ToUtf8Bytes(), endingAt.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.RPushXAsync(string listId, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertListIdAndValue(listId, value);
+            return SendExpectLongAsync(cancellationToken, Commands.RPush, listId.ToUtf8Bytes(), value);
         }
 
         ValueTask<long> IRedisNativeClientAsync.LPushAsync(string listId, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertListIdAndValue(listId, value);
+            return SendExpectLongAsync(cancellationToken, Commands.LPush, listId.ToUtf8Bytes(), value);
         }
 
         ValueTask<long> IRedisNativeClientAsync.LPushXAsync(string listId, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertListIdAndValue(listId, value);
+            return SendExpectLongAsync(cancellationToken, Commands.LPushX, listId.ToUtf8Bytes(), value);
         }
 
         ValueTask IRedisNativeClientAsync.LTrimAsync(string listId, int keepStartingFrom, int keepEndingAt, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectSuccessAsync(cancellationToken, Commands.LTrim, listId.ToUtf8Bytes(), keepStartingFrom.ToUtf8Bytes(), keepEndingAt.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.LRemAsync(string listId, int removeNoOfMatches, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectLongAsync(cancellationToken, Commands.LRem, listId.ToUtf8Bytes(), removeNoOfMatches.ToUtf8Bytes(), value);
         }
 
         ValueTask<byte[]> IRedisNativeClientAsync.LIndexAsync(string listId, int listIndex, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectDataAsync(cancellationToken, Commands.LIndex, listId.ToUtf8Bytes(), listIndex.ToUtf8Bytes());
         }
 
         ValueTask IRedisNativeClientAsync.LInsertAsync(string listId, bool insertBefore, byte[] pivot, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            var position = insertBefore ? Commands.Before : Commands.After;
+            return SendExpectSuccessAsync(cancellationToken, Commands.LInsert, listId.ToUtf8Bytes(), position, pivot, value);
         }
 
         ValueTask IRedisNativeClientAsync.LSetAsync(string listId, int listIndex, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectSuccessAsync(cancellationToken, Commands.LSet, listId.ToUtf8Bytes(), listIndex.ToUtf8Bytes(), value);
         }
 
         ValueTask<byte[]> IRedisNativeClientAsync.LPopAsync(string listId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectDataAsync(cancellationToken, Commands.LPop, listId.ToUtf8Bytes());
         }
 
         ValueTask<byte[]> IRedisNativeClientAsync.RPopAsync(string listId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectDataAsync(cancellationToken, Commands.RPop, listId.ToUtf8Bytes());
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.BLPopAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectMultiDataAsync(cancellationToken, Commands.BLPop, listId.ToUtf8Bytes(), timeOutSecs.ToUtf8Bytes());
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.BLPopAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listIds, nameof(listIds));
+            var args = new List<byte[]> { Commands.BLPop };
+            args.AddRange(listIds.Select(listId => listId.ToUtf8Bytes()));
+            args.Add(timeOutSecs.ToUtf8Bytes());
+            return SendExpectMultiDataAsync(cancellationToken, args.ToArray());
         }
 
-        ValueTask<byte[]> IRedisNativeClientAsync.BLPopValueAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
+        async ValueTask<byte[]> IRedisNativeClientAsync.BLPopValueAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var blockingResponse = await AsAsync().BLPopAsync(new[] { listId }, timeOutSecs, cancellationToken).ConfigureAwait(false);
+            return blockingResponse.Length == 0
+                ? null
+                : blockingResponse[1];
         }
 
-        ValueTask<byte[][]> IRedisNativeClientAsync.BLPopValueAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
+        async ValueTask<byte[][]> IRedisNativeClientAsync.BLPopValueAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var blockingResponse = await AsAsync().BLPopAsync(listIds, timeOutSecs, cancellationToken).ConfigureAwait(false);
+            return blockingResponse.Length == 0
+                ? null
+                : blockingResponse;
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.BRPopAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listId, nameof(listId));
+            return SendExpectMultiDataAsync(cancellationToken, Commands.BRPop, listId.ToUtf8Bytes(), timeOutSecs.ToUtf8Bytes());
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.BRPopAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(listIds, nameof(listIds));
+            var args = new List<byte[]> { Commands.BRPop };
+            args.AddRange(listIds.Select(listId => listId.ToUtf8Bytes()));
+            args.Add(timeOutSecs.ToUtf8Bytes());
+            return SendExpectMultiDataAsync(cancellationToken, args.ToArray());
         }
 
         ValueTask<byte[]> IRedisNativeClientAsync.RPopLPushAsync(string fromListId, string toListId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(fromListId, nameof(fromListId));
+            AssertNotNull(toListId, nameof(toListId));
+            return SendExpectDataAsync(cancellationToken, Commands.RPopLPush, fromListId.ToUtf8Bytes(), toListId.ToUtf8Bytes());
         }
 
-        ValueTask<byte[]> IRedisNativeClientAsync.BRPopValueAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
+        async ValueTask<byte[]> IRedisNativeClientAsync.BRPopValueAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var blockingResponse = await AsAsync().BRPopAsync(new[] { listId }, timeOutSecs, cancellationToken).ConfigureAwait(false);
+            return blockingResponse.Length == 0
+                ? null
+                : blockingResponse[1];
         }
 
-        ValueTask<byte[][]> IRedisNativeClientAsync.BRPopValueAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
+        async ValueTask<byte[][]> IRedisNativeClientAsync.BRPopValueAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var blockingResponse = await AsAsync().BRPopAsync(listIds, timeOutSecs, cancellationToken).ConfigureAwait(false);
+            return blockingResponse.Length == 0
+                ? null
+                : blockingResponse;
         }
 
-        ValueTask<byte[]> IRedisNativeClientAsync.BRPopLPushAsync(string fromListId, string toListId, int timeOutSecs, CancellationToken cancellationToken)
+        async ValueTask<byte[]> IRedisNativeClientAsync.BRPopLPushAsync(string fromListId, string toListId, int timeOutSecs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(fromListId, nameof(fromListId));
+            AssertNotNull(toListId, nameof(toListId));
+            byte[][] result = await SendExpectMultiDataAsync(cancellationToken, Commands.BRPopLPush, fromListId.ToUtf8Bytes(), toListId.ToUtf8Bytes(), timeOutSecs.ToUtf8Bytes());
+            return result.Length == 0 ? null : result[1];
         }
 
         ValueTask IRedisNativeClientAsync.SMoveAsync(string fromSetId, string toSetId, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(fromSetId, nameof(fromSetId));
+            AssertNotNull(toSetId, nameof(toSetId));
+            return SendExpectSuccessAsync(cancellationToken, Commands.SMove, fromSetId.ToUtf8Bytes(), toSetId.ToUtf8Bytes(), value);
         }
 
         ValueTask<long> IRedisNativeClientAsync.SIsMemberAsync(string setId, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectLongAsync(cancellationToken, Commands.SIsMember, setId.ToUtf8Bytes(), value);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.SInterAsync(string[] setIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = MergeCommandWithArgs(Commands.SInter, setIds);
+            return SendExpectMultiDataAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask IRedisNativeClientAsync.SInterStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var setIdsList = new List<string>(setIds);
+            setIdsList.Insert(0, intoSetId);
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.SInterStore, setIdsList.ToArray());
+            return SendExpectSuccessAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.SUnionAsync(string[] setIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = MergeCommandWithArgs(Commands.SUnion, setIds);
+            return SendExpectMultiDataAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask IRedisNativeClientAsync.SUnionStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var setIdsList = new List<string>(setIds);
+            setIdsList.Insert(0, intoSetId);
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.SUnionStore, setIdsList.ToArray());
+            return SendExpectSuccessAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.SDiffAsync(string fromSetId, string[] withSetIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var setIdsList = new List<string>(withSetIds);
+            setIdsList.Insert(0, fromSetId);
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.SDiff, setIdsList.ToArray());
+            return SendExpectMultiDataAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask IRedisNativeClientAsync.SDiffStoreAsync(string intoSetId, string fromSetId, string[] withSetIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var setIdsList = new List<string>(withSetIds);
+            setIdsList.Insert(0, fromSetId);
+            setIdsList.Insert(0, intoSetId);
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.SDiffStore, setIdsList.ToArray());
+            return SendExpectSuccessAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<byte[]> IRedisNativeClientAsync.SRandMemberAsync(string setId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectDataAsync(cancellationToken, Commands.SRandMember, setId.ToUtf8Bytes());
 
         ValueTask<long> IRedisNativeClientAsync.ZRemAsync(string setId, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertSetIdAndValue(setId, value);
+            return SendExpectLongAsync(cancellationToken, Commands.ZRem, setId.ToUtf8Bytes(), value);
         }
 
         ValueTask<long> IRedisNativeClientAsync.ZRemAsync(string setId, byte[][] values, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(setId, nameof(setId));
+            AssertNotNull(values, nameof(values));
+            if (values.Length == 0)
+                throw new ArgumentException("values");
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.ZRem, setId.ToUtf8Bytes(), values);
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<double> IRedisNativeClientAsync.ZIncrByAsync(string setId, double incrBy, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertSetIdAndValue(setId, value);
+            return SendExpectDoubleAsync(cancellationToken, Commands.ZIncrBy, setId.ToUtf8Bytes(), incrBy.ToFastUtf8Bytes(), value);
         }
 
         ValueTask<double> IRedisNativeClientAsync.ZIncrByAsync(string setId, long incrBy, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertSetIdAndValue(setId, value);
+            return SendExpectDoubleAsync(cancellationToken, Commands.ZIncrBy, setId.ToUtf8Bytes(), incrBy.ToUtf8Bytes(), value);
         }
 
         ValueTask<long> IRedisNativeClientAsync.ZRankAsync(string setId, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertSetIdAndValue(setId, value);
+            return SendExpectLongAsync(cancellationToken, Commands.ZRank, setId.ToUtf8Bytes(), value);
         }
 
         ValueTask<long> IRedisNativeClientAsync.ZRevRankAsync(string setId, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertSetIdAndValue(setId, value);
+            return SendExpectLongAsync(cancellationToken, Commands.ZRevRank, setId.ToUtf8Bytes(), value);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeAsync(string setId, int min, int max, CancellationToken cancellationToken)
+            => SendExpectMultiDataAsync(cancellationToken, Commands.ZRange, setId.ToUtf8Bytes(), min.ToUtf8Bytes(), max.ToUtf8Bytes());
+
+        private ValueTask<byte[][]> GetRangeAsync(byte[] commandBytes, string setId, int min, int max, bool withScores, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var args = GetRangeArgs(commandBytes, setId, min, max, withScores);
+            return SendExpectMultiDataAsync(cancellationToken, args);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeWithScoresAsync(string setId, int min, int max, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => GetRangeAsync(Commands.ZRange, setId, min, max, true, cancellationToken);
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeAsync(string setId, int min, int max, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => GetRangeAsync(Commands.ZRevRange, setId, min, max, false, cancellationToken);
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeWithScoresAsync(string setId, int min, int max, CancellationToken cancellationToken)
+            => GetRangeAsync(Commands.ZRevRange, setId, min, max, true, cancellationToken);
+
+        private ValueTask<byte[][]> GetRangeByScoreAsync(byte[] commandBytes,
+            string setId, double min, double max, int? skip, int? take, bool withScores, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var args = GetRangeByScoreArgs(commandBytes, setId, min, max, skip, take, withScores);
+            return SendExpectMultiDataAsync(cancellationToken, args);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByScoreAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => GetRangeByScoreAsync(Commands.ZRangeByScore, setId, min, max, skip, take, false, cancellationToken);
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByScoreAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => GetRangeByScoreAsync(Commands.ZRangeByScore, setId, min, max, skip, take, false, cancellationToken);
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByScoreWithScoresAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => GetRangeByScoreAsync(Commands.ZRangeByScore, setId, min, max, skip, take, true, cancellationToken);
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByScoreWithScoresAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => GetRangeByScoreAsync(Commands.ZRangeByScore, setId, min, max, skip, take, true, cancellationToken);
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeByScoreAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            //Note: http://redis.io/commands/zrevrangebyscore has max, min in the wrong other
+            return GetRangeByScoreAsync(Commands.ZRevRangeByScore, setId, max, min, skip, take, false, cancellationToken);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeByScoreAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            //Note: http://redis.io/commands/zrevrangebyscore has max, min in the wrong other
+            return GetRangeByScoreAsync(Commands.ZRevRangeByScore, setId, max, min, skip, take, false, cancellationToken);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeByScoreWithScoresAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            //Note: http://redis.io/commands/zrevrangebyscore has max, min in the wrong other
+            return GetRangeByScoreAsync(Commands.ZRevRangeByScore, setId, max, min, skip, take, true, cancellationToken);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeByScoreWithScoresAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            //Note: http://redis.io/commands/zrevrangebyscore has max, min in the wrong other
+            return GetRangeByScoreAsync(Commands.ZRevRangeByScore, setId, max, min, skip, take, true, cancellationToken);
         }
 
         ValueTask<long> IRedisNativeClientAsync.ZRemRangeByRankAsync(string setId, int min, int max, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectLongAsync(cancellationToken, Commands.ZRemRangeByRank, setId.ToUtf8Bytes(),
+                min.ToUtf8Bytes(), max.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.ZRemRangeByScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectLongAsync(cancellationToken, Commands.ZRemRangeByScore, setId.ToUtf8Bytes(),
+                fromScore.ToFastUtf8Bytes(), toScore.ToFastUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.ZRemRangeByScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(setId, nameof(setId));
+            return SendExpectLongAsync(cancellationToken, Commands.ZRemRangeByScore, setId.ToUtf8Bytes(),
+                fromScore.ToUtf8Bytes(), toScore.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.ZUnionStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var setIdsList = new List<string>(setIds);
+            setIdsList.Insert(0, setIds.Length.ToString());
+            setIdsList.Insert(0, intoSetId);
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.ZUnionStore, setIdsList.ToArray());
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<long> IRedisNativeClientAsync.ZInterStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var setIdsList = new List<string>(setIds);
+            setIdsList.Insert(0, setIds.Length.ToString());
+            setIdsList.Insert(0, intoSetId);
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.ZInterStore, setIdsList.ToArray());
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask IRedisNativeClientAsync.HMSetAsync(string hashId, byte[][] keys, byte[][] values, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(hashId, nameof(hashId));
+            var cmdArgs = MergeCommandWithKeysAndValues(Commands.HMSet, hashId.ToUtf8Bytes(), keys, values);
+            return SendExpectSuccessAsync(cancellationToken, cmdArgs);
         }
 
         ValueTask<long> IRedisNativeClientAsync.HSetNXAsync(string hashId, byte[] key, byte[] value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertHashIdAndKey(hashId, key);
+            return SendExpectLongAsync(cancellationToken, Commands.HSetNx, hashId.ToUtf8Bytes(), key, value);
         }
 
         ValueTask<long> IRedisNativeClientAsync.HIncrbyAsync(string hashId, byte[] key, int incrementBy, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertHashIdAndKey(hashId, key);
+            return SendExpectLongAsync(cancellationToken, Commands.HIncrBy, hashId.ToUtf8Bytes(), key, incrementBy.ToString().ToUtf8Bytes());
         }
 
         ValueTask<double> IRedisNativeClientAsync.HIncrbyFloatAsync(string hashId, byte[] key, double incrementBy, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertHashIdAndKey(hashId, key);
+            return SendExpectDoubleAsync(cancellationToken, Commands.HIncrByFloat, hashId.ToUtf8Bytes(), key, incrementBy.ToString(CultureInfo.InvariantCulture).ToUtf8Bytes());
         }
 
         ValueTask<byte[]> IRedisNativeClientAsync.HGetAsync(string hashId, byte[] key, CancellationToken cancellationToken)
+            => HGetAsync(hashId.ToUtf8Bytes(), key, cancellationToken);
+
+        private ValueTask<byte[]> HGetAsync(byte[] hashId, byte[] key, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertHashIdAndKey(hashId, key);
+            return SendExpectDataAsync(cancellationToken, Commands.HGet, hashId, key);
         }
 
-        ValueTask<byte[][]> IRedisNativeClientAsync.HMGetAsync(string hashId, byte[][] keysAndArgs, CancellationToken cancellationToken)
+        ValueTask<byte[][]> IRedisNativeClientAsync.HMGetAsync(string hashId, byte[][] keys, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(hashId, nameof(hashId));
+            if (keys.Length == 0)
+                throw new ArgumentNullException(nameof(keys));
+
+            var cmdArgs = MergeCommandWithArgs(Commands.HMGet, hashId.ToUtf8Bytes(), keys);
+            return SendExpectMultiDataAsync(cancellationToken, cmdArgs);
         }
 
         ValueTask<long> IRedisNativeClientAsync.HDelAsync(string hashId, byte[] key, CancellationToken cancellationToken)
+            => HDelAsync(hashId.ToUtf8Bytes(), key, cancellationToken);
+
+        private ValueTask<long> HDelAsync(byte[] hashId, byte[] key, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertHashIdAndKey(hashId, key);
+            return SendExpectLongAsync(cancellationToken, Commands.HDel, hashId, key);
         }
 
         ValueTask<long> IRedisNativeClientAsync.HExistsAsync(string hashId, byte[] key, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertHashIdAndKey(hashId, key);
+            return SendExpectLongAsync(cancellationToken, Commands.HExists, hashId.ToUtf8Bytes(), key);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.HKeysAsync(string hashId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(hashId, nameof(hashId));
+            return SendExpectMultiDataAsync(cancellationToken, Commands.HKeys, hashId.ToUtf8Bytes());
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.HValsAsync(string hashId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(hashId, nameof(hashId));
+            return SendExpectMultiDataAsync(cancellationToken, Commands.HVals, hashId.ToUtf8Bytes());
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.HGetAllAsync(string hashId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(hashId, nameof(hashId));
+            return SendExpectMultiDataAsync(cancellationToken, Commands.HGetAll, hashId.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.GeoAddAsync(string key, double longitude, double latitude, string member, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key, nameof(key));
+            AssertNotNull(member, nameof(member));
+            return SendExpectLongAsync(cancellationToken, Commands.GeoAdd, key.ToUtf8Bytes(), longitude.ToUtf8Bytes(), latitude.ToUtf8Bytes(), member.ToUtf8Bytes());
         }
 
         ValueTask<long> IRedisNativeClientAsync.GeoAddAsync(string key, RedisGeo[] geoPoints, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = GeoAddPrepareArgs(key, geoPoints);
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<double> IRedisNativeClientAsync.GeoDistAsync(string key, string fromMember, string toMember, string unit, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key, nameof(key));
+
+            return unit == null
+                ? SendExpectDoubleAsync(cancellationToken, Commands.GeoDist, key.ToUtf8Bytes(), fromMember.ToUtf8Bytes(), toMember.ToUtf8Bytes())
+                : SendExpectDoubleAsync(cancellationToken, Commands.GeoDist, key.ToUtf8Bytes(), fromMember.ToUtf8Bytes(), toMember.ToUtf8Bytes(), unit.ToUtf8Bytes());
         }
 
-        ValueTask<string[]> IRedisNativeClientAsync.GeoHashAsync(string key, string[] members, CancellationToken cancellationToken)
+        async ValueTask<string[]> IRedisNativeClientAsync.GeoHashAsync(string key, string[] members, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key, nameof(key));
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.GeoHash, key.ToUtf8Bytes(), members.Map(x => x.ToUtf8Bytes()).ToArray());
+            var result = await SendExpectMultiDataAsync(cancellationToken, cmdWithArgs).ConfigureAwait(false);
+            return result.ToStringArray();
         }
 
-        ValueTask<List<RedisGeo>> IRedisNativeClientAsync.GeoPosAsync(string key, string[] members, CancellationToken cancellationToken)
+        async ValueTask<List<RedisGeo>> IRedisNativeClientAsync.GeoPosAsync(string key, string[] members, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            AssertNotNull(key, nameof(key));
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.GeoPos, key.ToUtf8Bytes(), members.Map(x => x.ToUtf8Bytes()).ToArray());
+            var data = await SendExpectComplexResponseAsync(cancellationToken, cmdWithArgs).ConfigureAwait(false);
+            return GeoPosParseResult(members, data);
         }
 
-        ValueTask<List<RedisGeoResult>> IRedisNativeClientAsync.GeoRadiusAsync(string key, double longitude, double latitude, double radius, string unit, bool withCoords, bool withDist, bool withHash, int? count, bool? asc, CancellationToken cancellationToken)
+        async ValueTask<List<RedisGeoResult>> IRedisNativeClientAsync.GeoRadiusAsync(string key, double longitude, double latitude, double radius, string unit, bool withCoords, bool withDist, bool withHash, int? count, bool? asc, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = GeoRadiusPrepareArgs(key, longitude, latitude, radius, unit,
+                withCoords, withDist, withHash, count, asc);
+
+            var to = new List<RedisGeoResult>();
+
+            if (!(withCoords || withDist || withHash))
+            {
+                var members = (await SendExpectMultiDataAsync(cancellationToken, cmdWithArgs).ConfigureAwait(false)).ToStringArray();
+                foreach (var member in members)
+                {
+                    to.Add(new RedisGeoResult { Member = member });
+                }
+            }
+            else
+            {
+                var data = await SendExpectComplexResponseAsync(cancellationToken, cmdWithArgs).ConfigureAwait(false);
+                GetRadiusParseResult(unit, withCoords, withDist, withHash, to, data);
+            }
+
+            return to;
         }
 
-        ValueTask<List<RedisGeoResult>> IRedisNativeClientAsync.GeoRadiusByMemberAsync(string key, string member, double radius, string unit, bool withCoords, bool withDist, bool withHash, int? count, bool? asc, CancellationToken cancellationToken)
+        async ValueTask<List<RedisGeoResult>> IRedisNativeClientAsync.GeoRadiusByMemberAsync(string key, string member, double radius, string unit, bool withCoords, bool withDist, bool withHash, int? count, bool? asc, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = GeoRadiusByMemberPrepareArgs(key, member, radius, unit, withCoords, withDist, withHash, count, asc);
+
+            var to = new List<RedisGeoResult>();
+
+            if (!(withCoords || withDist || withHash))
+            {
+                var members = (await SendExpectMultiDataAsync(cancellationToken, cmdWithArgs).ConfigureAwait(false)).ToStringArray();
+                foreach (var x in members)
+                {
+                    to.Add(new RedisGeoResult { Member = x });
+                }
+            }
+            else
+            {
+                var data = await SendExpectComplexResponseAsync(cancellationToken, cmdWithArgs).ConfigureAwait(false);
+                GeoRadiusByMemberParseResult(unit, withCoords, withDist, withHash, to, data);
+            }
+
+            return to;
         }
 
         ValueTask<long> IRedisNativeClientAsync.PublishAsync(string toChannel, byte[] message, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => SendExpectLongAsync(cancellationToken, Commands.Publish, toChannel.ToUtf8Bytes(), message);
 
         ValueTask<byte[][]> IRedisNativeClientAsync.SubscribeAsync(string[] toChannels, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (toChannels.Length == 0)
+                throw new ArgumentNullException(nameof(toChannels));
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.Subscribe, toChannels);
+            return SendExpectMultiDataAsync(cancellationToken, cmdWithArgs);
         }
 
-        ValueTask<byte[][]> IRedisNativeClientAsync.UnSubscribeAsync(string[] toChannels, CancellationToken cancellationToken)
+        ValueTask<byte[][]> IRedisNativeClientAsync.UnSubscribeAsync(string[] fromChannels, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = MergeCommandWithArgs(Commands.UnSubscribe, fromChannels);
+            return SendExpectMultiDataAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.PSubscribeAsync(string[] toChannelsMatchingPatterns, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (toChannelsMatchingPatterns.Length == 0)
+                throw new ArgumentNullException(nameof(toChannelsMatchingPatterns));
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.PSubscribe, toChannelsMatchingPatterns);
+            return SendExpectMultiDataAsync(cancellationToken, cmdWithArgs);
         }
 
-        ValueTask<byte[][]> IRedisNativeClientAsync.PUnSubscribeAsync(string[] toChannelsMatchingPatterns, CancellationToken cancellationToken)
+        ValueTask<byte[][]> IRedisNativeClientAsync.PUnSubscribeAsync(string[] fromChannelsMatchingPatterns, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var cmdWithArgs = MergeCommandWithArgs(Commands.PUnSubscribe, fromChannelsMatchingPatterns);
+            return SendExpectMultiDataAsync(cancellationToken, cmdWithArgs);
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.ReceiveMessagesAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => ReadMultiDataAsync(cancellationToken);
 
         IRedisSubscriptionAsync IRedisNativeClientAsync.CreateSubscriptionAsync()
             => new RedisSubscription(this);
