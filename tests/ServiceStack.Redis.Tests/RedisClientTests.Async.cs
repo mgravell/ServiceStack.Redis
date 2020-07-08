@@ -402,12 +402,10 @@ namespace ServiceStack.Redis.Tests
 
             try
             {
-                await using (var client = ForAsyncOnly(new RedisClient(TestConfig.SingleHost)))
+                await using var client = ForAsyncOnly(new RedisClient(TestConfig.SingleHost));
+                await using (await client.AcquireLockAsync(lockKey, waitFor))
                 {
-                    await using (await client.AcquireLockAsync(lockKey, waitFor))
-                    {
-                        await client.IncrementValueAsync(key); //2
-                    }
+                    await client.IncrementValueAsync(key); //2
                 }
             }
             catch (TimeoutException)
@@ -540,9 +538,11 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_store_Dictionary_as_objects()
         {
-            var map = new Dictionary<string, object>();
-            map["key_a"] = "123";
-            map["key_b"] = null;
+            var map = new Dictionary<string, object>
+            {
+                ["key_a"] = "123",
+                ["key_b"] = null
+            };
 
             await using var client = ForAsyncOnly(RedisClient.New());
             await client.SetAllAsync(map);
@@ -555,9 +555,11 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_store_Dictionary_as_bytes()
         {
-            var map = new Dictionary<string, byte[]>();
-            map["key_a"] = "123".ToUtf8Bytes();
-            map["key_b"] = null;
+            var map = new Dictionary<string, byte[]>
+            {
+                ["key_a"] = "123".ToUtf8Bytes(),
+                ["key_b"] = null
+            };
 
             await using var client = ForAsyncOnly(RedisClient.New());
             await client.SetAllAsync(map);

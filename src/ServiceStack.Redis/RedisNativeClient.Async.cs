@@ -653,5 +653,543 @@ namespace ServiceStack.Redis
             AssertNotNull(key);
             return SendExpectLongAsync(cancellationToken, Commands.DecrBy, key.ToUtf8Bytes(), count.ToUtf8Bytes());
         }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ConfigGetAsync(string pattern, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.ConfigSetAsync(string item, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.ConfigResetStatAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.ConfigRewriteAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.DebugSegfaultAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.DumpAsync(string key, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.RestoreAsync(string key, long expireMs, byte[] dumpValue, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.MigrateAsync(string host, int port, string key, int destinationDb, long timeoutMs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> IRedisNativeClientAsync.MoveAsync(string key, int db, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ObjectIdleTimeAsync(string key, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<RedisText> IRedisNativeClientAsync.RoleAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<RedisData> IRedisNativeClientAsync.RawCommandAsync(object[] cmdWithArgs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<RedisData> IRedisNativeClientAsync.RawCommandAsync(byte[][] cmdWithBinaryArgs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<string> IRedisNativeClientAsync.ClientGetNameAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.ClientSetNameAsync(string client, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.ClientKillAsync(string host, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ClientKillAsync(string addr, string id, string type, string skipMe, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.ClientListAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.ClientPauseAsync(int timeOutMs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> IRedisNativeClientAsync.MSetNxAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> IRedisNativeClientAsync.MSetNxAsync(string[] keys, byte[][] values, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.GetSetAsync(string key, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.MGetAsync(byte[][] keysAndArgs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<ScanResult> IRedisNativeClientAsync.SScanAsync(string setId, ulong cursor, int count, string match, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<ScanResult> IRedisNativeClientAsync.ZScanAsync(string setId, ulong cursor, int count, string match, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<ScanResult> IRedisNativeClientAsync.HScanAsync(string hashId, ulong cursor, int count, string match, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<bool> IRedisNativeClientAsync.PfAddAsync(string key, byte[][] elements, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.PfCountAsync(string key, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.PfMergeAsync(string toKeyId, string[] fromKeys, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SortAsync(string listOrSetId, SortOptions sortOptions, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.LRangeAsync(string listId, int startingFrom, int endingAt, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.RPushXAsync(string listId, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.LPushAsync(string listId, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.LPushXAsync(string listId, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.LTrimAsync(string listId, int keepStartingFrom, int keepEndingAt, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.LRemAsync(string listId, int removeNoOfMatches, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.LIndexAsync(string listId, int listIndex, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.LInsertAsync(string listId, bool insertBefore, byte[] pivot, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.LSetAsync(string listId, int listIndex, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.LPopAsync(string listId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.RPopAsync(string listId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.BLPopAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.BLPopAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.BLPopValueAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.BLPopValueAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.BRPopAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.BRPopAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.RPopLPushAsync(string fromListId, string toListId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.BRPopValueAsync(string listId, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.BRPopValueAsync(string[] listIds, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.BRPopLPushAsync(string fromListId, string toListId, int timeOutSecs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.SMoveAsync(string fromSetId, string toSetId, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.SIsMemberAsync(string setId, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SInterAsync(string[] setIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.SInterStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SUnionAsync(string[] setIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.SUnionStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SDiffAsync(string fromSetId, string[] withSetIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.SDiffStoreAsync(string intoSetId, string fromSetId, string[] withSetIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.SRandMemberAsync(string setId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZRemAsync(string setId, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZRemAsync(string setId, byte[][] values, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<double> IRedisNativeClientAsync.ZIncrByAsync(string setId, double incrBy, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<double> IRedisNativeClientAsync.ZIncrByAsync(string setId, long incrBy, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZRankAsync(string setId, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZRevRankAsync(string setId, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeAsync(string setId, int min, int max, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeWithScoresAsync(string setId, int min, int max, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeAsync(string setId, int min, int max, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeWithScoresAsync(string setId, int min, int max, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByScoreAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByScoreAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByScoreWithScoresAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRangeByScoreWithScoresAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeByScoreAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeByScoreAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeByScoreWithScoresAsync(string setId, double min, double max, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ZRevRangeByScoreWithScoresAsync(string setId, long min, long max, int? skip, int? take, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZRemRangeByRankAsync(string setId, int min, int max, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZRemRangeByScoreAsync(string setId, double fromScore, double toScore, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZRemRangeByScoreAsync(string setId, long fromScore, long toScore, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZUnionStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.ZInterStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask IRedisNativeClientAsync.HMSetAsync(string hashId, byte[][] keys, byte[][] values, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.HSetNXAsync(string hashId, byte[] key, byte[] value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.HIncrbyAsync(string hashId, byte[] key, int incrementBy, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<double> IRedisNativeClientAsync.HIncrbyFloatAsync(string hashId, byte[] key, double incrementBy, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[]> IRedisNativeClientAsync.HGetAsync(string hashId, byte[] key, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.HMGetAsync(string hashId, byte[][] keysAndArgs, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.HDelAsync(string hashId, byte[] key, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.HExistsAsync(string hashId, byte[] key, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.HKeysAsync(string hashId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.HValsAsync(string hashId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.HGetAllAsync(string hashId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.GeoAddAsync(string key, double longitude, double latitude, string member, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.GeoAddAsync(string key, RedisGeo[] geoPoints, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<double> IRedisNativeClientAsync.GeoDistAsync(string key, string fromMember, string toMember, string unit, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<string[]> IRedisNativeClientAsync.GeoHashAsync(string key, string[] members, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<List<RedisGeo>> IRedisNativeClientAsync.GeoPosAsync(string key, string[] members, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<List<RedisGeoResult>> IRedisNativeClientAsync.GeoRadiusAsync(string key, double longitude, double latitude, double radius, string unit, bool withCoords, bool withDist, bool withHash, int? count, bool? asc, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<List<RedisGeoResult>> IRedisNativeClientAsync.GeoRadiusByMemberAsync(string key, string member, double radius, string unit, bool withCoords, bool withDist, bool withHash, int? count, bool? asc, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<long> IRedisNativeClientAsync.PublishAsync(string toChannel, byte[] message, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SubscribeAsync(string[] toChannels, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.UnSubscribeAsync(string[] toChannels, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.PSubscribeAsync(string[] toChannelsMatchingPatterns, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.PUnSubscribeAsync(string[] toChannelsMatchingPatterns, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ReceiveMessagesAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        IRedisSubscriptionAsync IRedisNativeClientAsync.CreateSubscriptionAsync()
+            => new RedisSubscription(this);
     }
 }

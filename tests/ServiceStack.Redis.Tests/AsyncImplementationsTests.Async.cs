@@ -44,7 +44,9 @@ namespace ServiceStack.Redis.Tests
         [TestCase(typeof(IRedisTransactionBase), typeof(IRedisTransactionBaseAsync))]
         [TestCase(typeof(IRedisTypedClient<>), typeof(IRedisTypedClientAsync<>))]
         [TestCase(typeof(IRemoveByPattern), typeof(IRemoveByPatternAsync))]
+
         [TestCase(typeof(IDistributedLock), typeof(IDistributedLockAsync))]
+        [TestCase(typeof(IRedisSubscription), typeof(IRedisSubscriptionAsync))]
         public void TestSameAPI(Type syncInterface, Type asyncInterface)
         {
             TestContext.Out.WriteLine($"Comparing '{GetCSharpTypeName(syncInterface)}' and '{GetCSharpTypeName(asyncInterface)}'...");
