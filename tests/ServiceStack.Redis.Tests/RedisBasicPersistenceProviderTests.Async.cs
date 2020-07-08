@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,6 +44,7 @@ namespace ServiceStack.Redis.Tests
                 return Equals((TestModel)obj);
             }
 
+            [SuppressMessage("Style", "IDE0070:Use 'System.HashCode'", Justification = "not in netfx")]
             public override int GetHashCode()
             {
                 unchecked
