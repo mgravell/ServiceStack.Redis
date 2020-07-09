@@ -172,23 +172,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.RenameNxAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken)
         {
             CheckRenameKeys(oldKeyname, newKeyname);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.RenameNx, oldKeyname.ToUtf8Bytes(), newKeyname.ToUtf8Bytes()));
-        }
-
-        private protected static ValueTask<bool> IsSuccess(ValueTask<long> pending)
-        {
-            if (pending.IsCompletedSuccessfully)
-            {
-                return (pending.Result == Success).AsValueTask();
-            }
-            else
-            {
-                return Awaited(pending);
-            }
-            async static ValueTask<bool> Awaited(ValueTask<long> pending)
-            {
-                return (await pending.ConfigureAwait(false)) == Success;
-            }
+            return SendExpectLongAsync(cancellationToken, Commands.RenameNx, oldKeyname.ToUtf8Bytes(), newKeyname.ToUtf8Bytes()).IsSuccess();
         }
 
         ValueTask IRedisNativeClientAsync.MSetAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken)
@@ -219,25 +203,25 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.ExpireAsync(string key, int seconds, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.Expire, key.ToUtf8Bytes(), seconds.ToUtf8Bytes()));
+            return SendExpectLongAsync(cancellationToken, Commands.Expire, key.ToUtf8Bytes(), seconds.ToUtf8Bytes()).IsSuccess();
         }
 
         ValueTask<bool> IRedisNativeClientAsync.PExpireAsync(string key, long ttlMs, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.PExpire, key.ToUtf8Bytes(), ttlMs.ToUtf8Bytes()));
+            return SendExpectLongAsync(cancellationToken, Commands.PExpire, key.ToUtf8Bytes(), ttlMs.ToUtf8Bytes()).IsSuccess();
         }
 
         ValueTask<bool> IRedisNativeClientAsync.ExpireAtAsync(string key, long unixTime, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.ExpireAt, key.ToUtf8Bytes(), unixTime.ToUtf8Bytes()));
+            return SendExpectLongAsync(cancellationToken, Commands.ExpireAt, key.ToUtf8Bytes(), unixTime.ToUtf8Bytes()).IsSuccess();
         }
 
         ValueTask<bool> IRedisNativeClientAsync.PExpireAtAsync(string key, long unixTimeMs, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.PExpireAt, key.ToUtf8Bytes(), unixTimeMs.ToUtf8Bytes()));
+            return SendExpectLongAsync(cancellationToken, Commands.PExpireAt, key.ToUtf8Bytes(), unixTimeMs.ToUtf8Bytes()).IsSuccess();
         }
 
         ValueTask<long> IRedisNativeClientAsync.TtlAsync(string key, CancellationToken cancellationToken)
@@ -379,7 +363,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.PersistAsync(string key, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.Persist, key.ToUtf8Bytes()));
+            return SendExpectLongAsync(cancellationToken, Commands.Persist, key.ToUtf8Bytes()).IsSuccess();
         }
 
         ValueTask IRedisNativeClientAsync.PSetExAsync(string key, long expireInMs, byte[] value, CancellationToken cancellationToken)
@@ -695,7 +679,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.MoveAsync(string key, int db, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, Commands.Move, key.ToUtf8Bytes(), db.ToUtf8Bytes()));
+            return SendExpectLongAsync(cancellationToken, Commands.Move, key.ToUtf8Bytes(), db.ToUtf8Bytes()).IsSuccess();
         }
 
         ValueTask<long> IRedisNativeClientAsync.ObjectIdleTimeAsync(string key, CancellationToken cancellationToken)
@@ -737,7 +721,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.MSetNxAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken)
         {
             var keysAndValues = MergeCommandWithKeysAndValues(Commands.MSet, keys, values);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, keysAndValues));
+            return SendExpectLongAsync(cancellationToken, keysAndValues).IsSuccess();
         }
 
         ValueTask<bool> IRedisNativeClientAsync.MSetNxAsync(string[] keys, byte[][] values, CancellationToken cancellationToken)
@@ -800,7 +784,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.PfAddAsync(string key, byte[][] elements, CancellationToken cancellationToken)
         {
             var cmdWithArgs = MergeCommandWithArgs(Commands.PfAdd, key.ToUtf8Bytes(), elements);
-            return IsSuccess(SendExpectLongAsync(cancellationToken, cmdWithArgs));
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs).IsSuccess();
         }
 
         ValueTask<long> IRedisNativeClientAsync.PfCountAsync(string key, CancellationToken cancellationToken)

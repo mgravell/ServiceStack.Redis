@@ -41,6 +41,22 @@ namespace ServiceStack.Redis.Internal
             }
         }
 
+        internal static ValueTask<bool> IsSuccess(this ValueTask<long> pending)
+        {
+            if (pending.IsCompletedSuccessfully)
+            {
+                return (pending.Result == RedisNativeClient.Success).AsValueTask();
+            }
+            else
+            {
+                return Awaited(pending);
+            }
+            async static ValueTask<bool> Awaited(ValueTask<long> pending)
+            {
+                return (await pending.ConfigureAwait(false)) == RedisNativeClient.Success;
+            }
+        }
+
         private static readonly ValueTask<bool> s_ValueTaskTrue = true.AsValueTask();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
