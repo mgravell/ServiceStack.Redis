@@ -319,6 +319,10 @@ namespace ServiceStack.Redis.Generic
         public T[] SearchKeys(string pattern)
         {
             var strKeys = client.SearchKeys(pattern);
+            return SearchKeysParse(strKeys);
+        }
+        private T[] SearchKeysParse(List<string> strKeys)
+        {
             var keysCount = strKeys.Count;
 
             var keys = new T[keysCount];

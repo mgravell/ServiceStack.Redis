@@ -3,7 +3,7 @@
 // ServiceStack.Redis: ECMA CLI Binding to the Redis key-value storage system
 //
 // Authors:
-//   Demis Bellot Async(demis.bellot@gmail.com)
+//   Demis Bellot (demis.bellot@gmail.com)
 //
 // Copyright 2017 ServiceStack, Inc. All Rights Reserved.
 //

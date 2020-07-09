@@ -114,7 +114,7 @@ namespace ServiceStack.Redis.Generic
         ValueTask<long> RemoveItemFromListAsync(IRedisList<T> fromList, T value, CancellationToken cancellationToken = default);
         ValueTask<long> RemoveItemFromListAsync(IRedisList<T> fromList, T value, int noOfMatches, CancellationToken cancellationToken = default);
         ValueTask<long> GetListCountAsync(IRedisList<T> fromList, CancellationToken cancellationToken = default);
-        T GetItemFromListAsync(IRedisList<T> fromList, int listIndex, CancellationToken cancellationToken = default);
+        ValueTask<T> GetItemFromListAsync(IRedisList<T> fromList, int listIndex, CancellationToken cancellationToken = default);
         ValueTask SetItemInListAsync(IRedisList<T> toList, int listIndex, T value, CancellationToken cancellationToken = default);
         ValueTask InsertBeforeItemInListAsync(IRedisList<T> toList, T pivot, T value, CancellationToken cancellationToken = default);
         ValueTask InsertAfterItemInListAsync(IRedisList<T> toList, T pivot, T value, CancellationToken cancellationToken = default);
