@@ -13,9 +13,11 @@
 using ServiceStack.Data;
 using ServiceStack.Model;
 using ServiceStack.Redis.Internal;
+using ServiceStack.Text;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -34,15 +36,13 @@ namespace ServiceStack.Redis.Generic
         IRedisClientAsync IRedisTypedClientAsync<T>.RedisClient => client;
 
         ValueTask<T> IRedisTypedClientAsync<T>.GetValueAsync(string key, CancellationToken cancellationToken)
-            => DeserializeValue(AsyncNative.GetAsync(key, cancellationToken));
+            => DeserializeValueAsync(AsyncNative.GetAsync(key, cancellationToken));
 
         async ValueTask IRedisTypedClientAsync<T>.SetValueAsync(string key, T entity, CancellationToken cancellationToken)
         {
-            if (key == null)
-                throw new ArgumentNullException(nameof(key));
-
+            AssertNotNull(key);
             await AsyncClient.SetAsync(key, SerializeValue(entity), cancellationToken).ConfigureAwait(false);
-            client.RegisterTypeId(entity);
+            await client.RegisterTypeIdAsync(entity, cancellationToken).ConfigureAwait(false);
         }
 
         ValueTask<T> IEntityStoreAsync<T>.GetByIdAsync(object id, CancellationToken cancellationToken)
@@ -89,7 +89,7 @@ namespace ServiceStack.Redis.Generic
         {
             var urnKey = client.UrnKey(entity);
             await AsyncClient.RemoveEntryAsync(new[] { urnKey }, cancellationToken).ConfigureAwait(false);
-            await client.RemoveTypeIdsAsync(new[] { entity },  cancellationToken).ConfigureAwait(false);
+            await client.RemoveTypeIdsAsync(new[] { entity }, cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask IEntityStoreAsync<T>.DeleteByIdAsync(object id, CancellationToken cancellationToken)
@@ -200,7 +200,7 @@ namespace ServiceStack.Redis.Generic
         }
 
         ValueTask<T> IRedisTypedClientAsync<T>.GetAndSetValueAsync(string key, T value, CancellationToken cancellationToken)
-            => DeserializeValue(AsyncNative.GetSetAsync(key, SerializeValue(value), cancellationToken));
+            => DeserializeValueAsync(AsyncNative.GetSetAsync(key, SerializeValue(value), cancellationToken));
 
         ValueTask<bool> IRedisTypedClientAsync<T>.ContainsKeyAsync(string key, CancellationToken cancellationToken)
             => AsyncNative.ExistsAsync(key, cancellationToken).IsSuccess();
@@ -276,11 +276,32 @@ namespace ServiceStack.Redis.Generic
             static async ValueTask<List<T>> Awaited(RedisTypedClient<T> obj, ValueTask<byte[][]> pending)
                 => obj.CreateList(await pending.ConfigureAwait(false));
         }
-        private ValueTask<T> DeserializeValue(ValueTask<byte[]> pending)
+        private ValueTask<T> DeserializeValueAsync(ValueTask<byte[]> pending)
         {
             return pending.IsCompletedSuccessfully ? DeserializeValue(pending.Result).AsValueTask() : Awaited(this, pending);
             static async ValueTask<T> Awaited(RedisTypedClient<T> obj, ValueTask<byte[]> pending)
                 => obj.DeserializeValue(await pending.ConfigureAwait(false));
+        }
+
+        private static ValueTask<T> DeserializeFromStringAsync(ValueTask<string> pending)
+        {
+            return pending.IsCompletedSuccessfully ? DeserializeFromString(pending.Result).AsValueTask() : Awaited(pending);
+            static async ValueTask<T> Awaited(ValueTask<string> pending)
+                => DeserializeFromString(await pending.ConfigureAwait(false));
+        }
+
+        private static ValueTask<IDictionary<T, double>> CreateGenericMapAsync(ValueTask<IDictionary<string, double>> pending)
+        {
+            return pending.IsCompletedSuccessfully ? CreateGenericMap(pending.Result).AsValueTask() : Awaited(pending);
+            static async ValueTask<IDictionary<T, double>> Awaited(ValueTask<IDictionary<string, double>> pending)
+                => CreateGenericMap(await pending.ConfigureAwait(false));
+        }
+
+        private static ValueTask<Dictionary<TKey, TValue>> ConvertEachToAsync<TKey, TValue>(ValueTask<Dictionary<string, string>> pending)
+        {
+            return pending.IsCompletedSuccessfully ? ConvertEachTo<TKey, TValue>(pending.Result).AsValueTask() : Awaited(pending);
+            static async ValueTask<Dictionary<TKey, TValue>> Awaited(ValueTask<Dictionary<string, string>> pending)
+                => ConvertEachTo<TKey, TValue>(await pending.ConfigureAwait(false));
         }
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetSortedEntryValuesAsync(IRedisSet<T> fromSet, int startingFrom, int endingAt, CancellationToken cancellationToken)
@@ -309,7 +330,7 @@ namespace ServiceStack.Redis.Generic
             => AsyncNative.SRemAsync(fromSet.Id, SerializeValue(item), cancellationToken).Await();
 
         ValueTask<T> IRedisTypedClientAsync<T>.PopItemFromSetAsync(IRedisSet<T> fromSet, CancellationToken cancellationToken)
-            => DeserializeValue(AsyncNative.SPopAsync(fromSet.Id, cancellationToken));
+            => DeserializeValueAsync(AsyncNative.SPopAsync(fromSet.Id, cancellationToken));
 
         ValueTask IRedisTypedClientAsync<T>.MoveBetweenSetsAsync(IRedisSet<T> fromSet, IRedisSet<T> toSet, T item, CancellationToken cancellationToken)
             => AsyncNative.SMoveAsync(fromSet.Id, toSet.Id, SerializeValue(item), cancellationToken);
@@ -348,7 +369,7 @@ namespace ServiceStack.Redis.Generic
             => AsyncNative.SDiffStoreAsync(intoSet.Id, fromSet.Id, withSets.Map(x => x.Id).ToArray(), cancellationToken);
 
         ValueTask<T> IRedisTypedClientAsync<T>.GetRandomItemFromSetAsync(IRedisSet<T> fromSet, CancellationToken cancellationToken)
-            => DeserializeValue(AsyncNative.SRandMemberAsync(fromSet.Id, cancellationToken));
+            => DeserializeValueAsync(AsyncNative.SRandMemberAsync(fromSet.Id, cancellationToken));
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetAllItemsFromListAsync(IRedisList<T> fromList, CancellationToken cancellationToken)
         {
@@ -376,7 +397,7 @@ namespace ServiceStack.Redis.Generic
             => AsyncNative.LPushAsync(fromList.Id, SerializeValue(value), cancellationToken).Await();
 
         ValueTask<T> IRedisTypedClientAsync<T>.RemoveStartFromListAsync(IRedisList<T> fromList, CancellationToken cancellationToken)
-            => DeserializeValue(AsyncNative.LPopAsync(fromList.Id, cancellationToken));
+            => DeserializeValueAsync(AsyncNative.LPopAsync(fromList.Id, cancellationToken));
 
         async ValueTask<T> IRedisTypedClientAsync<T>.BlockingRemoveStartFromListAsync(IRedisList<T> fromList, TimeSpan? timeOut, CancellationToken cancellationToken)
         {
@@ -387,7 +408,7 @@ namespace ServiceStack.Redis.Generic
         }
 
         ValueTask<T> IRedisTypedClientAsync<T>.RemoveEndFromListAsync(IRedisList<T> fromList, CancellationToken cancellationToken)
-            => DeserializeValue(AsyncNative.RPopAsync(fromList.Id, cancellationToken));
+            => DeserializeValueAsync(AsyncNative.RPopAsync(fromList.Id, cancellationToken));
 
         ValueTask IRedisTypedClientAsync<T>.RemoveAllFromListAsync(IRedisList<T> fromList, CancellationToken cancellationToken)
             => AsyncNative.LTrimAsync(fromList.Id, int.MaxValue, FirstElement, cancellationToken);
@@ -408,356 +429,270 @@ namespace ServiceStack.Redis.Generic
             => AsyncNative.LLenAsync(fromList.Id, cancellationToken);
 
         ValueTask<T> IRedisTypedClientAsync<T>.GetItemFromListAsync(IRedisList<T> fromList, int listIndex, CancellationToken cancellationToken)
-            => DeserializeValue(AsyncNative.LIndexAsync(fromList.Id, listIndex, cancellationToken));
+            => DeserializeValueAsync(AsyncNative.LIndexAsync(fromList.Id, listIndex, cancellationToken));
 
         ValueTask IRedisTypedClientAsync<T>.SetItemInListAsync(IRedisList<T> toList, int listIndex, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncNative.LSetAsync(toList.Id, listIndex, SerializeValue(value), cancellationToken);
 
         ValueTask IRedisTypedClientAsync<T>.InsertBeforeItemInListAsync(IRedisList<T> toList, T pivot, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncNative.LInsertAsync(toList.Id, insertBefore: true, pivot: SerializeValue(pivot), value: SerializeValue(value), cancellationToken: cancellationToken);
 
         ValueTask IRedisTypedClientAsync<T>.InsertAfterItemInListAsync(IRedisList<T> toList, T pivot, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncNative.LInsertAsync(toList.Id, insertBefore: false, pivot: SerializeValue(pivot), value: SerializeValue(value), cancellationToken: cancellationToken);
 
         ValueTask IRedisTypedClientAsync<T>.EnqueueItemOnListAsync(IRedisList<T> fromList, T item, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncNative.LPushAsync(fromList.Id, SerializeValue(item), cancellationToken).Await();
 
         ValueTask<T> IRedisTypedClientAsync<T>.DequeueItemFromListAsync(IRedisList<T> fromList, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => DeserializeValueAsync(AsyncNative.RPopAsync(fromList.Id, cancellationToken));
 
-        ValueTask<T> IRedisTypedClientAsync<T>.BlockingDequeueItemFromListAsync(IRedisList<T> fromList, TimeSpan? timeOut, CancellationToken cancellationToken)
+        async ValueTask<T> IRedisTypedClientAsync<T>.BlockingDequeueItemFromListAsync(IRedisList<T> fromList, TimeSpan? timeOut, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var unblockingKeyAndValue = await AsyncNative.BRPopAsync(fromList.Id, (int)timeOut.GetValueOrDefault().TotalSeconds, cancellationToken).ConfigureAwait(false);
+            return unblockingKeyAndValue.Length == 0
+                ? default
+                : DeserializeValue(unblockingKeyAndValue[1]);
         }
 
         ValueTask IRedisTypedClientAsync<T>.PushItemToListAsync(IRedisList<T> fromList, T item, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncNative.RPushAsync(fromList.Id, SerializeValue(item), cancellationToken).Await();
 
         ValueTask<T> IRedisTypedClientAsync<T>.PopItemFromListAsync(IRedisList<T> fromList, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => DeserializeValueAsync(AsyncNative.RPopAsync(fromList.Id, cancellationToken));
 
-        ValueTask<T> IRedisTypedClientAsync<T>.BlockingPopItemFromListAsync(IRedisList<T> fromList, TimeSpan? timeOut, CancellationToken cancellationToken)
+        async ValueTask<T> IRedisTypedClientAsync<T>.BlockingPopItemFromListAsync(IRedisList<T> fromList, TimeSpan? timeOut, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var unblockingKeyAndValue = await AsyncNative.BRPopAsync(fromList.Id, (int)timeOut.GetValueOrDefault().TotalSeconds, cancellationToken).ConfigureAwait(false);
+            return unblockingKeyAndValue.Length == 0
+                ? default
+                : DeserializeValue(unblockingKeyAndValue[1]);
         }
 
         ValueTask<T> IRedisTypedClientAsync<T>.PopAndPushItemBetweenListsAsync(IRedisList<T> fromList, IRedisList<T> toList, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => DeserializeValueAsync(AsyncNative.RPopLPushAsync(fromList.Id, toList.Id, cancellationToken));
 
         ValueTask<T> IRedisTypedClientAsync<T>.BlockingPopAndPushItemBetweenListsAsync(IRedisList<T> fromList, IRedisList<T> toList, TimeSpan? timeOut, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => DeserializeValueAsync(AsyncNative.BRPopLPushAsync(fromList.Id, toList.Id, (int)timeOut.GetValueOrDefault().TotalSeconds, cancellationToken));
 
         ValueTask IRedisTypedClientAsync<T>.AddItemToSortedSetAsync(IRedisSortedSet<T> toSet, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.AddItemToSortedSetAsync(toSet.Id, value.SerializeToString(), cancellationToken).Await();
 
         ValueTask IRedisTypedClientAsync<T>.AddItemToSortedSetAsync(IRedisSortedSet<T> toSet, T value, double score, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.AddItemToSortedSetAsync(toSet.Id, value.SerializeToString(), score, cancellationToken).Await();
 
         ValueTask<bool> IRedisTypedClientAsync<T>.RemoveItemFromSortedSetAsync(IRedisSortedSet<T> fromSet, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.RemoveItemFromSortedSetAsync(fromSet.Id, value.SerializeToString(), cancellationToken);
 
         ValueTask<T> IRedisTypedClientAsync<T>.PopItemWithLowestScoreFromSortedSetAsync(IRedisSortedSet<T> fromSet, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => DeserializeFromStringAsync(AsyncClient.PopItemWithLowestScoreFromSortedSetAsync(fromSet.Id, cancellationToken));
 
         ValueTask<T> IRedisTypedClientAsync<T>.PopItemWithHighestScoreFromSortedSetAsync(IRedisSortedSet<T> fromSet, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => DeserializeFromStringAsync(AsyncClient.PopItemWithHighestScoreFromSortedSetAsync(fromSet.Id, cancellationToken));
 
         ValueTask<bool> IRedisTypedClientAsync<T>.SortedSetContainsItemAsync(IRedisSortedSet<T> set, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.SortedSetContainsItemAsync(set.Id, value.SerializeToString(), cancellationToken);
 
         ValueTask<double> IRedisTypedClientAsync<T>.IncrementItemInSortedSetAsync(IRedisSortedSet<T> set, T value, double incrementBy, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.IncrementItemInSortedSetAsync(set.Id, value.SerializeToString(), incrementBy, cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.GetItemIndexInSortedSetAsync(IRedisSortedSet<T> set, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetItemIndexInSortedSetAsync(set.Id, value.SerializeToString(), cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.GetItemIndexInSortedSetDescAsync(IRedisSortedSet<T> set, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetItemIndexInSortedSetDescAsync(set.Id, value.SerializeToString(), cancellationToken);
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetAllItemsFromSortedSetAsync(IRedisSortedSet<T> set, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetAllItemsFromSortedSetAsync(set.Id, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetAllItemsFromSortedSetDescAsync(IRedisSortedSet<T> set, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetAllItemsFromSortedSetDescAsync(set.Id, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetAsync(IRedisSortedSet<T> set, int fromRank, int toRank, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetAsync(set.Id, fromRank, toRank, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetDescAsync(IRedisSortedSet<T> set, int fromRank, int toRank, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetDescAsync(set.Id, fromRank, toRank, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetAllWithScoresFromSortedSetAsync(IRedisSortedSet<T> set, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetAsync(set.Id, FirstElement, LastElement, cancellationToken));
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetAsync(IRedisSortedSet<T> set, int fromRank, int toRank, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetAsync(set.Id, fromRank, toRank, cancellationToken));
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetDescAsync(IRedisSortedSet<T> set, int fromRank, int toRank, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetDescAsync(set.Id, fromRank, toRank, cancellationToken));
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetByLowestScoreAsync(IRedisSortedSet<T> set, string fromStringScore, string toStringScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetByLowestScoreAsync(set.Id, fromStringScore, toStringScore, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetByLowestScoreAsync(IRedisSortedSet<T> set, string fromStringScore, string toStringScore, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetByLowestScoreAsync(set.Id, fromStringScore, toStringScore, skip, take, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetByLowestScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetByLowestScoreAsync(set.Id, fromScore, toScore, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetByLowestScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetByLowestScoreAsync(set.Id, fromScore, toScore, skip, take, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetByLowestScoreAsync(IRedisSortedSet<T> set, string fromStringScore, string toStringScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetByLowestScoreAsync(set.Id, fromStringScore, toStringScore, cancellationToken));
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetByLowestScoreAsync(IRedisSortedSet<T> set, string fromStringScore, string toStringScore, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetByLowestScoreAsync(set.Id, fromStringScore, toStringScore, skip, take, cancellationToken));
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetByLowestScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetByLowestScoreAsync(set.Id, fromScore, toScore, cancellationToken));
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetByLowestScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetByLowestScoreAsync(set.Id, fromScore, toScore, skip, take, cancellationToken));
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetByHighestScoreAsync(IRedisSortedSet<T> set, string fromStringScore, string toStringScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetByHighestScoreAsync(set.Id, fromStringScore, toStringScore, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetByHighestScoreAsync(IRedisSortedSet<T> set, string fromStringScore, string toStringScore, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetByHighestScoreAsync(set.Id, fromStringScore, toStringScore, skip, take, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetByHighestScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetByHighestScoreAsync(set.Id, fromScore, toScore, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetRangeFromSortedSetByHighestScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetRangeFromSortedSetByHighestScoreAsync(set.Id, fromScore, toScore, skip, take, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetByHighestScoreAsync(IRedisSortedSet<T> set, string fromStringScore, string toStringScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetByHighestScoreAsync(set.Id, fromStringScore, toStringScore, cancellationToken));
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetByHighestScoreAsync(IRedisSortedSet<T> set, string fromStringScore, string toStringScore, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetByHighestScoreAsync(set.Id, fromStringScore, toStringScore, skip, take, cancellationToken));
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetByHighestScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetByHighestScoreAsync(set.Id, fromScore, toScore, cancellationToken));
 
         ValueTask<IDictionary<T, double>> IRedisTypedClientAsync<T>.GetRangeWithScoresFromSortedSetByHighestScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, int? skip, int? take, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => CreateGenericMapAsync(AsyncClient.GetRangeWithScoresFromSortedSetByHighestScoreAsync(set.Id, fromScore, toScore, skip, take, cancellationToken));
 
         ValueTask<long> IRedisTypedClientAsync<T>.RemoveRangeFromSortedSetAsync(IRedisSortedSet<T> set, int minRank, int maxRank, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.RemoveRangeFromSortedSetAsync(set.Id, minRank, maxRank, cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.RemoveRangeFromSortedSetByScoreAsync(IRedisSortedSet<T> set, double fromScore, double toScore, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.RemoveRangeFromSortedSetByScoreAsync(set.Id, fromScore, toScore, cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.GetSortedSetCountAsync(IRedisSortedSet<T> set, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetSortedSetCountAsync(set.Id, cancellationToken);
 
         ValueTask<double> IRedisTypedClientAsync<T>.GetItemScoreInSortedSetAsync(IRedisSortedSet<T> set, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetItemScoreInSortedSetAsync(set.Id, value.SerializeToString(), cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.StoreIntersectFromSortedSetsAsync(IRedisSortedSet<T> intoSetId, IRedisSortedSet<T>[] setIds, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.StoreIntersectFromSortedSetsAsync(intoSetId.Id, setIds.Map(x => x.Id).ToArray(), cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.StoreIntersectFromSortedSetsAsync(IRedisSortedSet<T> intoSetId, IRedisSortedSet<T>[] setIds, string[] args, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.StoreIntersectFromSortedSetsAsync(intoSetId.Id, setIds.Map(x => x.Id).ToArray(), args, cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.StoreUnionFromSortedSetsAsync(IRedisSortedSet<T> intoSetId, IRedisSortedSet<T>[] setIds, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.StoreUnionFromSortedSetsAsync(intoSetId.Id, setIds.Map(x => x.Id).ToArray(), cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.StoreUnionFromSortedSetsAsync(IRedisSortedSet<T> intoSetId, IRedisSortedSet<T>[] setIds, string[] args, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.StoreUnionFromSortedSetsAsync(intoSetId.Id, setIds.Map(x => x.Id).ToArray(), args, cancellationToken);
 
         ValueTask<bool> IRedisTypedClientAsync<T>.HashContainsEntryAsync<TKey>(IRedisHash<TKey, T> hash, TKey key, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.HashContainsEntryAsync(hash.Id, key.SerializeToString(), cancellationToken);
 
         ValueTask<bool> IRedisTypedClientAsync<T>.SetEntryInHashAsync<TKey>(IRedisHash<TKey, T> hash, TKey key, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.SetEntryInHashAsync(hash.Id, key.SerializeToString(), value.SerializeToString(), cancellationToken);
 
         ValueTask<bool> IRedisTypedClientAsync<T>.SetEntryInHashIfNotExistsAsync<TKey>(IRedisHash<TKey, T> hash, TKey key, T value, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.SetEntryInHashIfNotExistsAsync(hash.Id, key.SerializeToString(), value.SerializeToString(), cancellationToken);
 
         ValueTask IRedisTypedClientAsync<T>.SetRangeInHashAsync<TKey>(IRedisHash<TKey, T> hash, IEnumerable<KeyValuePair<TKey, T>> keyValuePairs, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var stringKeyValuePairs = keyValuePairs.ToList().ConvertAll(
+                x => new KeyValuePair<string, string>(x.Key.SerializeToString(), x.Value.SerializeToString()));
+
+            return AsyncClient.SetRangeInHashAsync(hash.Id, stringKeyValuePairs, cancellationToken);
         }
 
         ValueTask<T> IRedisTypedClientAsync<T>.GetValueFromHashAsync<TKey>(IRedisHash<TKey, T> hash, TKey key, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => DeserializeFromStringAsync(AsyncClient.GetValueFromHashAsync(hash.Id, key.SerializeToString(), cancellationToken));
 
         ValueTask<bool> IRedisTypedClientAsync<T>.RemoveEntryFromHashAsync<TKey>(IRedisHash<TKey, T> hash, TKey key, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.RemoveEntryFromHashAsync(hash.Id, key.SerializeToString(), cancellationToken);
 
         ValueTask<long> IRedisTypedClientAsync<T>.GetHashCountAsync<TKey>(IRedisHash<TKey, T> hash, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetHashCountAsync(hash.Id, cancellationToken);
 
         ValueTask<List<TKey>> IRedisTypedClientAsync<T>.GetHashKeysAsync<TKey>(IRedisHash<TKey, T> hash, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetHashKeysAsync(hash.Id, cancellationToken).ConvertEachToAsync<TKey>();
 
         ValueTask<List<T>> IRedisTypedClientAsync<T>.GetHashValuesAsync<TKey>(IRedisHash<TKey, T> hash, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsyncClient.GetHashValuesAsync(hash.Id, cancellationToken).ConvertEachToAsync<T>();
 
         ValueTask<Dictionary<TKey, T>> IRedisTypedClientAsync<T>.GetAllEntriesFromHashAsync<TKey>(IRedisHash<TKey, T> hash, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => ConvertEachToAsync<TKey, T>(AsyncClient.GetAllEntriesFromHashAsync(hash.Id, cancellationToken));
 
-        ValueTask IRedisTypedClientAsync<T>.StoreRelatedEntitiesAsync<TChild>(object parentId, List<TChild> children, CancellationToken cancellationToken)
+        async ValueTask IRedisTypedClientAsync<T>.StoreRelatedEntitiesAsync<TChild>(object parentId, List<TChild> children, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var childRefKey = GetChildReferenceSetKey<TChild>(parentId);
+            var childKeys = children.ConvertAll(x => client.UrnKey(x));
+
+            await using (var trans = await AsyncClient.CreateTransactionAsync(cancellationToken).ConfigureAwait(false))
+            {
+                //Ugly but need access to a generic constraint-free StoreAll method
+                trans.QueueCommand(c => ((RedisClient)c).StoreAllAsyncImpl(children, cancellationToken));
+                trans.QueueCommand(c => c.AddRangeToSetAsync(childRefKey, childKeys, cancellationToken));
+
+                await trans.CommitAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         ValueTask IRedisTypedClientAsync<T>.StoreRelatedEntitiesAsync<TChild>(object parentId, TChild[] children, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => AsAsync().StoreRelatedEntitiesAsync(parentId, new List<TChild>(children), cancellationToken);
 
         ValueTask IRedisTypedClientAsync<T>.DeleteRelatedEntitiesAsync<TChild>(object parentId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var childRefKey = GetChildReferenceSetKey<TChild>(parentId);
+            return AsyncClient.RemoveAsync(childRefKey, cancellationToken).Await();
         }
 
         ValueTask IRedisTypedClientAsync<T>.DeleteRelatedEntityAsync<TChild>(object parentId, object childId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var childRefKey = GetChildReferenceSetKey<TChild>(parentId);
+            return AsyncClient.RemoveItemFromSetAsync(childRefKey, TypeSerializer.SerializeToString(childId), cancellationToken);
         }
 
-        ValueTask<List<TChild>> IRedisTypedClientAsync<T>.GetRelatedEntitiesAsync<TChild>(object parentId, CancellationToken cancellationToken)
+        async ValueTask<List<TChild>> IRedisTypedClientAsync<T>.GetRelatedEntitiesAsync<TChild>(object parentId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var childRefKey = GetChildReferenceSetKey<TChild>(parentId);
+            var childKeys = (await AsyncClient.GetAllItemsFromSetAsync(childRefKey, cancellationToken).ConfigureAwait(false)).ToList();
+
+            return await AsyncClient.As<TChild>().GetValuesAsync(childKeys, cancellationToken).ConfigureAwait(false);
         }
 
         ValueTask<long> IRedisTypedClientAsync<T>.GetRelatedEntitiesCountAsync<TChild>(object parentId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var childRefKey = GetChildReferenceSetKey<TChild>(parentId);
+            return AsyncClient.GetSetCountAsync(childRefKey, cancellationToken);
         }
 
         ValueTask IRedisTypedClientAsync<T>.AddToRecentsListAsync(T value, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var key = client.UrnKey(value);
+            var nowScore = DateTime.UtcNow.ToUnixTime();
+            return AsyncClient.AddItemToSortedSetAsync(RecentSortedSetKey, key, nowScore, cancellationToken).Await();
         }
 
-        ValueTask<List<T>> IRedisTypedClientAsync<T>.GetLatestFromRecentsListAsync(int skip, int take, CancellationToken cancellationToken)
+        async ValueTask<List<T>> IRedisTypedClientAsync<T>.GetLatestFromRecentsListAsync(int skip, int take, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var toRank = take - 1;
+            var keys = await AsyncClient.GetRangeFromSortedSetDescAsync(RecentSortedSetKey, skip, toRank, cancellationToken).ConfigureAwait(false);
+            var values = await AsAsync().GetValuesAsync(keys, cancellationToken).ConfigureAwait(false);
+            return values;
         }
 
-        ValueTask<List<T>> IRedisTypedClientAsync<T>.GetEarliestFromRecentsListAsync(int skip, int take, CancellationToken cancellationToken)
+        async ValueTask<List<T>> IRedisTypedClientAsync<T>.GetEarliestFromRecentsListAsync(int skip, int take, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var toRank = take - 1;
+            var keys = await AsyncClient.GetRangeFromSortedSetAsync(RecentSortedSetKey, skip, toRank, cancellationToken).ConfigureAwait(false);
+            var values = await AsAsync().GetValuesAsync(keys, cancellationToken).ConfigureAwait(false);
+            return values;
         }
     }
 }

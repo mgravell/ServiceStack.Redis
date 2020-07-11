@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -55,6 +56,13 @@ namespace ServiceStack.Redis.Internal
             {
                 return (await pending.ConfigureAwait(false)) == RedisNativeClient.Success;
             }
+        }
+
+        internal static ValueTask<List<TValue>> ConvertEachToAsync<TValue>(this ValueTask<List<string>> pending)
+        {
+            return pending.IsCompletedSuccessfully ? pending.Result.ConvertEachTo<TValue>().AsValueTask() : Awaited(pending);
+            static async ValueTask<List<TValue>> Awaited(ValueTask<List<string>> pending)
+                => (await pending.ConfigureAwait(false)).ConvertEachTo<TValue>();
         }
 
         private static readonly ValueTask<bool> s_ValueTaskTrue = true.AsValueTask();
