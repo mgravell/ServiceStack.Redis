@@ -1001,6 +1001,10 @@ namespace ServiceStack.Redis
         public Dictionary<string, bool> WhichLuaScriptsExists(params string[] sha1Refs)
         {
             var intFlags = base.ScriptExists(sha1Refs.ToMultiByteArray());
+            return WhichLuaScriptsExistsParseResult(sha1Refs, intFlags);
+        }
+        static Dictionary<string, bool> WhichLuaScriptsExistsParseResult(string[] sha1Refs, byte[][] intFlags)
+        {
             var map = new Dictionary<string, bool>();
             for (int i = 0; i < sha1Refs.Length; i++)
             {

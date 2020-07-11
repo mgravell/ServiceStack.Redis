@@ -180,7 +180,7 @@ namespace ServiceStack.Redis.Generic
 
         async ValueTask<bool> IRedisTypedClientAsync<T>.SetValueIfNotExistsAsync(string key, T entity, CancellationToken cancellationToken)
         {
-            var success = await AsyncNative.SetNXAsync(key, SerializeValue(entity)).IsSuccess().ConfigureAwait(false);
+            var success = await AsyncNative.SetNXAsync(key, SerializeValue(entity)).IsSuccessAsync().ConfigureAwait(false);
             if (success) await client.RegisterTypeIdAsync(entity, cancellationToken);
             return success;
         }
@@ -203,18 +203,18 @@ namespace ServiceStack.Redis.Generic
             => DeserializeValueAsync(AsyncNative.GetSetAsync(key, SerializeValue(value), cancellationToken));
 
         ValueTask<bool> IRedisTypedClientAsync<T>.ContainsKeyAsync(string key, CancellationToken cancellationToken)
-            => AsyncNative.ExistsAsync(key, cancellationToken).IsSuccess();
+            => AsyncNative.ExistsAsync(key, cancellationToken).IsSuccessAsync();
 
         ValueTask<bool> IRedisTypedClientAsync<T>.RemoveEntryAsync(string key, CancellationToken cancellationToken)
-            => AsyncNative.DelAsync(key, cancellationToken).IsSuccess();
+            => AsyncNative.DelAsync(key, cancellationToken).IsSuccessAsync();
 
         ValueTask<bool> IRedisTypedClientAsync<T>.RemoveEntryAsync(string[] keys, CancellationToken cancellationToken)
-            => AsyncNative.DelAsync(keys, cancellationToken).IsSuccess();
+            => AsyncNative.DelAsync(keys, cancellationToken).IsSuccessAsync();
 
         async ValueTask<bool> IRedisTypedClientAsync<T>.RemoveEntryAsync(IHasStringId[] entities, CancellationToken cancellationToken)
         {
             var ids = entities.Map(x => x.Id);
-            var success = await AsyncNative.DelAsync(ids.ToArray(), cancellationToken).IsSuccess().ConfigureAwait(false);
+            var success = await AsyncNative.DelAsync(ids.ToArray(), cancellationToken).IsSuccessAsync().ConfigureAwait(false);
             if (success) await client.RemoveTypeIdsAsync(ids.ToArray(), cancellationToken).ConfigureAwait(false);
             return success;
         }
@@ -339,7 +339,7 @@ namespace ServiceStack.Redis.Generic
             => AsyncNative.SCardAsync(set.Id, cancellationToken);
 
         ValueTask<bool> IRedisTypedClientAsync<T>.SetContainsItemAsync(IRedisSet<T> set, T item, CancellationToken cancellationToken)
-            => AsyncNative.SIsMemberAsync(set.Id, SerializeValue(item)).IsSuccess();
+            => AsyncNative.SIsMemberAsync(set.Id, SerializeValue(item)).IsSuccessAsync();
 
         async ValueTask<HashSet<T>> IRedisTypedClientAsync<T>.GetIntersectFromSetsAsync(IRedisSet<T>[] sets, CancellationToken cancellationToken)
         {

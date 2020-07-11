@@ -97,6 +97,11 @@ namespace ServiceStack.Redis
         public string[] FindGeoMembersInRadius(string key, double longitude, double latitude, double radius, string unit)
         {
             var results = base.GeoRadius(key, longitude, latitude, radius, unit);
+            return ParseFindGeoMembersResult(results);
+        }
+
+        private static string[] ParseFindGeoMembersResult(List<RedisGeoResult> results)
+        {
             var to = new string[results.Count];
             for (var i = 0; i < results.Count; i++)
             {
@@ -114,12 +119,7 @@ namespace ServiceStack.Redis
         public string[] FindGeoMembersInRadius(string key, string member, double radius, string unit)
         {
             var results = base.GeoRadiusByMember(key, member, radius, unit);
-            var to = new string[results.Count];
-            for (var i = 0; i < results.Count; i++)
-            {
-                to[i] = results[i].Member;
-            }
-            return to;
+            return ParseFindGeoMembersResult(results);
         }
 
         public List<RedisGeoResult> FindGeoResultsInRadius(string key, string member, double radius, string unit, int? count = null, bool? sortByNearest = null)

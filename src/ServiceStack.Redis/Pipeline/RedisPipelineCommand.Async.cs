@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,5 +17,13 @@ namespace ServiceStack.Redis.Pipeline
 
             return results;
         }
+        internal async ValueTask<bool> ReadAllAsIntsHaveSuccessAsync(CancellationToken cancellationToken)
+        {
+            var allResults = await ReadAllAsIntsAsync(cancellationToken).ConfigureAwait(false);
+            return allResults.All(x => x == RedisNativeClient.Success);
+        }
+
+        internal ValueTask FlushAsync(CancellationToken cancellationToken)
+            => ((IRedisPipelineAsync)this).FlushAsync(cancellationToken);
     }
 }

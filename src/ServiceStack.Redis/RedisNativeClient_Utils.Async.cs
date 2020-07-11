@@ -37,7 +37,7 @@ namespace ServiceStack.Redis
                 PipelineAsync != null ? PipelineAsync.CompleteDoubleQueuedCommandAsync : (Action<Func<CancellationToken, ValueTask<double>>>)null);
         }
         protected ValueTask<string> SendExpectStringAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
-            => SendExpectDataAsync(cancellationToken, cmdWithBinaryArgs).AwaitFromUtf8Bytes();
+            => SendExpectDataAsync(cancellationToken, cmdWithBinaryArgs).FromUtf8BytesAsync();
 
         private ValueTask SendExpectSuccessAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
         {

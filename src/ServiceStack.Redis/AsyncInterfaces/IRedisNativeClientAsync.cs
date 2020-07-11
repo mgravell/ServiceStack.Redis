@@ -238,7 +238,7 @@ namespace ServiceStack.Redis
         ValueTask<byte[][]> PSubscribeAsync(string[] toChannelsMatchingPatterns, CancellationToken cancellationToken = default);
         ValueTask<byte[][]> PUnSubscribeAsync(string[] toChannelsMatchingPatterns, CancellationToken cancellationToken = default);
         ValueTask<byte[][]> ReceiveMessagesAsync(CancellationToken cancellationToken = default);
-        IRedisSubscriptionAsync CreateSubscriptionAsync();
+        ValueTask<IRedisSubscriptionAsync> CreateSubscriptionAsync(CancellationToken cancellationToken = default);
 
         //Redis LUA support
         ValueTask<RedisData> EvalCommandAsync(string luaBody, int numberKeysInArgs, byte[][] keys, CancellationToken cancellationToken = default);

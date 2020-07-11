@@ -101,8 +101,8 @@ namespace ServiceStack.Redis
         ValueTask FlushDbAsync(CancellationToken cancellationToken = default);
 
 
-        RedisServerRole GetServerRoleAsync(CancellationToken cancellationToken = default);
-        RedisText GetServerRoleInfoAsync(CancellationToken cancellationToken = default);
+        ValueTask<RedisServerRole> GetServerRoleAsync(CancellationToken cancellationToken = default);
+        ValueTask<RedisText> GetServerRoleInfoAsync(CancellationToken cancellationToken = default);
         ValueTask<string> GetConfigAsync(string item, CancellationToken cancellationToken = default);
         ValueTask SetConfigAsync(string item, string value, CancellationToken cancellationToken = default);
         ValueTask SaveConfigAsync(CancellationToken cancellationToken = default);
@@ -119,7 +119,7 @@ namespace ServiceStack.Redis
 
         //Fetch fully qualified key for specific Type and Id
         string UrnKey<T>(T value);
-        string UrnKey(object id);
+        string UrnKey<T>(object id);
         string UrnKey(Type type, object id);
 
         ValueTask SetAllAsync(IEnumerable<string> keys, IEnumerable<string> values, CancellationToken cancellationToken = default);
@@ -205,7 +205,7 @@ namespace ServiceStack.Redis
 
         ValueTask WatchAsync(string[] keys, CancellationToken cancellationToken = default);
         ValueTask UnWatchAsync(CancellationToken cancellationToken = default);
-        IRedisSubscriptionAsync CreateSubscriptionAsync();
+        ValueTask<IRedisSubscriptionAsync> CreateSubscriptionAsync(CancellationToken cancellationToken = default);
         ValueTask<long> PublishMessageAsync(string toChannel, string message, CancellationToken cancellationToken = default);
 
         #endregion

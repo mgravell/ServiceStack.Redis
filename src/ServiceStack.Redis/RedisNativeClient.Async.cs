@@ -161,7 +161,7 @@ namespace ServiceStack.Redis
         }
 
         ValueTask<string> IRedisNativeClientAsync.RandomKeyAsync(CancellationToken cancellationToken)
-            => SendExpectDataAsync(cancellationToken, Commands.RandomKey).AwaitFromUtf8Bytes();
+            => SendExpectDataAsync(cancellationToken, Commands.RandomKey).FromUtf8BytesAsync();
 
         ValueTask IRedisNativeClientAsync.RenameAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken)
         {
@@ -172,7 +172,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.RenameNxAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken)
         {
             CheckRenameKeys(oldKeyname, newKeyname);
-            return SendExpectLongAsync(cancellationToken, Commands.RenameNx, oldKeyname.ToUtf8Bytes(), newKeyname.ToUtf8Bytes()).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, Commands.RenameNx, oldKeyname.ToUtf8Bytes(), newKeyname.ToUtf8Bytes()).IsSuccessAsync();
         }
 
         ValueTask IRedisNativeClientAsync.MSetAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken)
@@ -203,25 +203,25 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.ExpireAsync(string key, int seconds, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return SendExpectLongAsync(cancellationToken, Commands.Expire, key.ToUtf8Bytes(), seconds.ToUtf8Bytes()).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, Commands.Expire, key.ToUtf8Bytes(), seconds.ToUtf8Bytes()).IsSuccessAsync();
         }
 
         ValueTask<bool> IRedisNativeClientAsync.PExpireAsync(string key, long ttlMs, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return SendExpectLongAsync(cancellationToken, Commands.PExpire, key.ToUtf8Bytes(), ttlMs.ToUtf8Bytes()).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, Commands.PExpire, key.ToUtf8Bytes(), ttlMs.ToUtf8Bytes()).IsSuccessAsync();
         }
 
         ValueTask<bool> IRedisNativeClientAsync.ExpireAtAsync(string key, long unixTime, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return SendExpectLongAsync(cancellationToken, Commands.ExpireAt, key.ToUtf8Bytes(), unixTime.ToUtf8Bytes()).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, Commands.ExpireAt, key.ToUtf8Bytes(), unixTime.ToUtf8Bytes()).IsSuccessAsync();
         }
 
         ValueTask<bool> IRedisNativeClientAsync.PExpireAtAsync(string key, long unixTimeMs, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return SendExpectLongAsync(cancellationToken, Commands.PExpireAt, key.ToUtf8Bytes(), unixTimeMs.ToUtf8Bytes()).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, Commands.PExpireAt, key.ToUtf8Bytes(), unixTimeMs.ToUtf8Bytes()).IsSuccessAsync();
         }
 
         ValueTask<long> IRedisNativeClientAsync.TtlAsync(string key, CancellationToken cancellationToken)
@@ -249,7 +249,7 @@ namespace ServiceStack.Redis
         }
 
         ValueTask<string> IRedisNativeClientAsync.EchoAsync(string text, CancellationToken cancellationToken)
-            => SendExpectDataAsync(cancellationToken, Commands.Echo, text.ToUtf8Bytes()).AwaitFromUtf8Bytes();
+            => SendExpectDataAsync(cancellationToken, Commands.Echo, text.ToUtf8Bytes()).FromUtf8BytesAsync();
 
         ValueTask<long> IRedisNativeClientAsync.DbSizeAsync(CancellationToken cancellationToken)
             => SendExpectLongAsync(cancellationToken, Commands.DbSize);
@@ -363,7 +363,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.PersistAsync(string key, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return SendExpectLongAsync(cancellationToken, Commands.Persist, key.ToUtf8Bytes()).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, Commands.Persist, key.ToUtf8Bytes()).IsSuccessAsync();
         }
 
         ValueTask IRedisNativeClientAsync.PSetExAsync(string key, long expireInMs, byte[] value, CancellationToken cancellationToken)
@@ -582,7 +582,7 @@ namespace ServiceStack.Redis
             AssertNotNull(luaBody, nameof(luaBody));
 
             var cmdArgs = MergeCommandWithArgs(Commands.Eval, luaBody.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
-            return SendExpectDataAsync(cancellationToken, cmdArgs).AwaitFromUtf8Bytes();
+            return SendExpectDataAsync(cancellationToken, cmdArgs).FromUtf8BytesAsync();
         }
 
         ValueTask<string> IRedisNativeClientAsync.EvalShaStrAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken)
@@ -590,7 +590,7 @@ namespace ServiceStack.Redis
             AssertNotNull(sha1, nameof(sha1));
 
             var cmdArgs = MergeCommandWithArgs(Commands.EvalSha, sha1.ToUtf8Bytes(), keysAndArgs.PrependInt(numberOfKeys));
-            return SendExpectDataAsync(cancellationToken, cmdArgs).AwaitFromUtf8Bytes();
+            return SendExpectDataAsync(cancellationToken, cmdArgs).FromUtf8BytesAsync();
         }
 
         ValueTask<byte[][]> IRedisNativeClientAsync.SMembersAsync(string setId, CancellationToken cancellationToken)
@@ -679,7 +679,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.MoveAsync(string key, int db, CancellationToken cancellationToken)
         {
             AssertNotNull(key);
-            return SendExpectLongAsync(cancellationToken, Commands.Move, key.ToUtf8Bytes(), db.ToUtf8Bytes()).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, Commands.Move, key.ToUtf8Bytes(), db.ToUtf8Bytes()).IsSuccessAsync();
         }
 
         ValueTask<long> IRedisNativeClientAsync.ObjectIdleTimeAsync(string key, CancellationToken cancellationToken)
@@ -721,7 +721,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.MSetNxAsync(byte[][] keys, byte[][] values, CancellationToken cancellationToken)
         {
             var keysAndValues = MergeCommandWithKeysAndValues(Commands.MSet, keys, values);
-            return SendExpectLongAsync(cancellationToken, keysAndValues).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, keysAndValues).IsSuccessAsync();
         }
 
         ValueTask<bool> IRedisNativeClientAsync.MSetNxAsync(string[] keys, byte[][] values, CancellationToken cancellationToken)
@@ -784,7 +784,7 @@ namespace ServiceStack.Redis
         ValueTask<bool> IRedisNativeClientAsync.PfAddAsync(string key, byte[][] elements, CancellationToken cancellationToken)
         {
             var cmdWithArgs = MergeCommandWithArgs(Commands.PfAdd, key.ToUtf8Bytes(), elements);
-            return SendExpectLongAsync(cancellationToken, cmdWithArgs).IsSuccess();
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs).IsSuccessAsync();
         }
 
         ValueTask<long> IRedisNativeClientAsync.PfCountAsync(string key, CancellationToken cancellationToken)
@@ -1155,6 +1155,28 @@ namespace ServiceStack.Redis
             return SendExpectLongAsync(cancellationToken, cmdWithArgs);
         }
 
+        internal ValueTask<long> ZInterStoreAsync(string intoSetId, string[] setIds, string[] args, CancellationToken cancellationToken)
+        {
+            var totalArgs = new List<string>(setIds);
+            totalArgs.Insert(0, setIds.Length.ToString());
+            totalArgs.Insert(0, intoSetId);
+            totalArgs.AddRange(args);
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.ZInterStore, totalArgs.ToArray());
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs);
+        }
+
+        internal ValueTask<long> ZUnionStoreAsync(string intoSetId, string[] setIds, string[] args, CancellationToken cancellationToken)
+        {
+            var totalArgs = new List<string>(setIds);
+            totalArgs.Insert(0, setIds.Length.ToString());
+            totalArgs.Insert(0, intoSetId);
+            totalArgs.AddRange(args);
+
+            var cmdWithArgs = MergeCommandWithArgs(Commands.ZUnionStore, totalArgs.ToArray());
+            return SendExpectLongAsync(cancellationToken, cmdWithArgs);
+        }
+
         ValueTask IRedisNativeClientAsync.HMSetAsync(string hashId, byte[][] keys, byte[][] values, CancellationToken cancellationToken)
         {
             AssertNotNull(hashId, nameof(hashId));
@@ -1355,7 +1377,7 @@ namespace ServiceStack.Redis
         ValueTask<byte[][]> IRedisNativeClientAsync.ReceiveMessagesAsync(CancellationToken cancellationToken)
             => ReadMultiDataAsync(cancellationToken);
 
-        IRedisSubscriptionAsync IRedisNativeClientAsync.CreateSubscriptionAsync()
-            => new RedisSubscription(this);
+        ValueTask<IRedisSubscriptionAsync> IRedisNativeClientAsync.CreateSubscriptionAsync(CancellationToken cancellationToken)
+            => new RedisSubscription(this).AsValueTask<IRedisSubscriptionAsync>();
     }
 }

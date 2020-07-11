@@ -42,27 +42,28 @@ namespace ServiceStack.Redis.Internal
             }
         }
 
-        internal static ValueTask<bool> IsSuccess(this ValueTask<long> pending)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ValueTask<bool> IsSuccessAsync(this ValueTask<long> pending)
         {
-            if (pending.IsCompletedSuccessfully)
-            {
-                return (pending.Result == RedisNativeClient.Success).AsValueTask();
-            }
-            else
-            {
-                return Awaited(pending);
-            }
+            return pending.IsCompletedSuccessfully ? (pending.Result == RedisNativeClient.Success).AsValueTask() : Awaited(pending);
             async static ValueTask<bool> Awaited(ValueTask<long> pending)
-            {
-                return (await pending.ConfigureAwait(false)) == RedisNativeClient.Success;
-            }
+                => (await pending.ConfigureAwait(false)) == RedisNativeClient.Success;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ValueTask<List<TValue>> ConvertEachToAsync<TValue>(this ValueTask<List<string>> pending)
         {
             return pending.IsCompletedSuccessfully ? pending.Result.ConvertEachTo<TValue>().AsValueTask() : Awaited(pending);
             static async ValueTask<List<TValue>> Awaited(ValueTask<List<string>> pending)
                 => (await pending.ConfigureAwait(false)).ConvertEachTo<TValue>();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ValueTask<List<string>> ToStringListAsync(this ValueTask<byte[][]> pending)
+        {
+            return pending.IsCompletedSuccessfully ? pending.Result.ToStringList().AsValueTask() : Awaited(pending);
+            static async ValueTask<List<string>> Awaited(ValueTask<byte[][]> pending)
+                => (await pending.ConfigureAwait(false)).ToStringList();
         }
 
         private static readonly ValueTask<bool> s_ValueTaskTrue = true.AsValueTask();
@@ -82,12 +83,9 @@ namespace ServiceStack.Redis.Internal
         internal static ValueTask<T> AsValueTask<T>(this T value) => new ValueTask<T>(value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static ValueTask<string> AwaitFromUtf8Bytes(this ValueTask<byte[]> pending)
+        internal static ValueTask<string> FromUtf8BytesAsync(this ValueTask<byte[]> pending)
         {
-            return pending.IsCompletedSuccessfully
-                ? pending.Result.FromUtf8Bytes().AsValueTask()
-                : Awaited(pending);
-
+            return pending.IsCompletedSuccessfully ? pending.Result.FromUtf8Bytes().AsValueTask() : Awaited(pending);
             static async ValueTask<string> Awaited(ValueTask<byte[]> pending)
                 => (await pending.ConfigureAwait(false)).FromUtf8Bytes();
         }

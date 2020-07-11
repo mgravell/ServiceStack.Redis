@@ -32,8 +32,13 @@ namespace ServiceStack.Redis
 
         public string GetConfig(string configItem)
         {
-            var sb = StringBuilderCache.Allocate();
             var byteArray = base.ConfigGet(configItem);
+            return GetConfigParse(byteArray);
+        }
+
+        static string GetConfigParse(byte[][] byteArray)
+        {
+            var sb = StringBuilderCache.Allocate();
             const int startAt = 1; //skip repeating config name
             for (var i = startAt; i < byteArray.Length; i++)
             {
@@ -80,7 +85,11 @@ namespace ServiceStack.Redis
 
         public List<Dictionary<string, string>> GetClientsInfo()
         {
-            var clientList = base.ClientList().FromUtf8Bytes();
+            return GetClientsInfoParse(ClientList());
+        }
+        private static List<Dictionary<string, string>> GetClientsInfoParse(byte[] rawResult)
+        {
+            var clientList = rawResult.FromUtf8Bytes();
             var results = new List<Dictionary<string, string>>();
 
             var lines = clientList.Split('\n');
