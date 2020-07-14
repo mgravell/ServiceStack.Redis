@@ -47,6 +47,16 @@ namespace ServiceStack.Redis.Tests
 
         [TestCase(typeof(IDistributedLock), typeof(IDistributedLockAsync))]
         [TestCase(typeof(IRedisSubscription), typeof(IRedisSubscriptionAsync))]
+        [TestCase(typeof(IRedisHash), typeof(IRedisHashAsync))]
+        [TestCase(typeof(IRedisSortedSet), typeof(IRedisSortedSetAsync))]
+        [TestCase(typeof(IRedisSet), typeof(IRedisSetAsync))]
+
+        [TestCase(typeof(IRedisList), typeof(IRedisListAsync))]
+        [TestCase(typeof(IRedisHash<,>), typeof(IRedisHashAsync<,>))]
+        [TestCase(typeof(IRedisSortedSet<>), typeof(IRedisSortedSetAsync<>))]
+        [TestCase(typeof(IRedisSet<>), typeof(IRedisSetAsync<>))]
+        [TestCase(typeof(IRedisList<>), typeof(IRedisListAsync<>))]
+
         public void TestSameAPI(Type syncInterface, Type asyncInterface)
         {
             TestContext.Out.WriteLine($"Comparing '{GetCSharpTypeName(syncInterface)}' and '{GetCSharpTypeName(asyncInterface)}'...");

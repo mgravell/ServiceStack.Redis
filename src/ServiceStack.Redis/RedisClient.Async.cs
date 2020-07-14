@@ -12,6 +12,7 @@
 
 using ServiceStack.Caching;
 using ServiceStack.Data;
+using ServiceStack.Model;
 using ServiceStack.Redis.Generic;
 using ServiceStack.Redis.Internal;
 using ServiceStack.Redis.Pipeline;
@@ -39,6 +40,11 @@ namespace ServiceStack.Redis
         // convenience since we're not saturating the public API; this makes it easy to call
         // the explicit interface implementations; the JIT should make this a direct call
         private IRedisNativeClientAsync NativeAsync => this;
+
+        IHasNamed<IRedisListAsync> IRedisClientAsync.Lists => Lists as IHasNamed<IRedisListAsync> ?? throw new NotSupportedException("The provided Lists does not support IRedisListAsync");
+        IHasNamed<IRedisSetAsync> IRedisClientAsync.Sets => Sets as IHasNamed<IRedisSetAsync> ?? throw new NotSupportedException("The provided Sets does not support IRedisSetAsync");
+        IHasNamed<IRedisSortedSetAsync> IRedisClientAsync.SortedSets => SortedSets as IHasNamed<IRedisSortedSetAsync> ?? throw new NotSupportedException("The provided SortedSets does not support IRedisSortedSetAsync");
+        IHasNamed<IRedisHashAsync> IRedisClientAsync.Hashes => Hashes as IHasNamed<IRedisHashAsync> ?? throw new NotSupportedException("The provided Hashes does not support IRedisHashAsync");
 
         internal ValueTask RegisterTypeIdAsync<T>(T value, CancellationToken cancellationToken)
         {

@@ -12,6 +12,7 @@
 
 using ServiceStack.Caching;
 using ServiceStack.Data;
+using ServiceStack.Model;
 using ServiceStack.Redis.Generic;
 using ServiceStack.Redis.Pipeline;
 using System;
@@ -67,10 +68,10 @@ namespace ServiceStack.Redis
         ////Basic Redis Connection Info
         //ValueTask<string> this[string key] { get; set; }
 
-        //IHasNamed<IRedisList> Lists { get; set; }
-        //IHasNamed<IRedisSet> Sets { get; set; }
-        //IHasNamed<IRedisSortedSet> SortedSets { get; set; }
-        //IHasNamed<IRedisHash> Hashes { get; set; }
+        IHasNamed<IRedisListAsync> Lists { get; }
+        IHasNamed<IRedisSetAsync> Sets { get; }
+        IHasNamed<IRedisSortedSetAsync> SortedSets { get; }
+        IHasNamed<IRedisHashAsync> Hashes { get; }
 
         long Db { get; }
         ValueTask ChangeDbAsync(long db, CancellationToken cancellationToken = default);
