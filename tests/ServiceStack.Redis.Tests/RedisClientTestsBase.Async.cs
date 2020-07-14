@@ -26,7 +26,11 @@ namespace ServiceStack.Redis.Tests
         [Obsolete("This should use RedisAsync or RedisRaw")]
         protected new RedisClient Redis => base.Redis;
 
-        protected RedisClient RedisRaw => base.Redis;
+        protected RedisClient RedisRaw
+        {
+            get => base.Redis;
+            set => base.Redis = value;
+        }
 
         public override void OnBeforeEachTest()
         {

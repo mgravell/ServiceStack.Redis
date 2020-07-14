@@ -24,6 +24,9 @@ namespace ServiceStack.Redis.Pipeline
         }
 
         internal ValueTask FlushAsync(CancellationToken cancellationToken)
-            => ((IRedisPipelineAsync)this).FlushAsync(cancellationToken);
+        {
+            Flush();
+            return default;
+        }
     }
 }
