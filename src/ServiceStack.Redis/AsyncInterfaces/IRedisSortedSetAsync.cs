@@ -20,6 +20,7 @@ namespace ServiceStack.Redis
     public interface IRedisSortedSetAsync
         : IAsyncEnumerable<string>, IHasStringId
     {
+        ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
         ValueTask<List<string>> GetAllAsync(CancellationToken cancellationToken = default);
         ValueTask<List<string>> GetRangeAsync(int startingRank, int endingRank, CancellationToken cancellationToken = default);
         ValueTask<List<string>> GetRangeByScoreAsync(string fromStringScore, string toStringScore, CancellationToken cancellationToken = default);

@@ -19,6 +19,7 @@ namespace ServiceStack.Redis.Generic
 {
     public interface IRedisSortedSetAsync<T> : IAsyncEnumerable<T>, IHasStringId
     {
+        ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
         ValueTask AddAsync(T item, double score, CancellationToken cancellationToken = default);
         ValueTask<T> PopItemWithHighestScoreAsync(CancellationToken cancellationToken = default);
         ValueTask<T> PopItemWithLowestScoreAsync(CancellationToken cancellationToken = default);

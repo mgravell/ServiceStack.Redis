@@ -10,6 +10,7 @@
 // Licensed under the same terms of ServiceStack.
 //
 
+using ServiceStack.Redis.Internal;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,9 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisHashAsync.AddRangeAsync(IEnumerable<KeyValuePair<string, string>> items, CancellationToken cancellationToken)
             => AsyncClient.SetRangeInHashAsync(hashId, items, cancellationToken);
+
+        ValueTask<int> IRedisHashAsync.CountAsync(CancellationToken cancellationToken)
+            => AsyncClient.GetHashCountAsync(hashId, cancellationToken).AsInt32();
 
         IAsyncEnumerator<KeyValuePair<string, string>> IAsyncEnumerable<KeyValuePair<string, string>>.GetAsyncEnumerator(CancellationToken cancellationToken)
             => AsyncClient.ScanAllHashEntriesAsync(hashId).GetAsyncEnumerator(cancellationToken); // note: we're using HSCAN here, not HGETALL

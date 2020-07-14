@@ -10,6 +10,7 @@
 // Licensed under the same terms of ServiceStack.
 //
 
+using ServiceStack.Redis.Internal;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -21,6 +22,9 @@ namespace ServiceStack.Redis
         : IRedisSetAsync
     {
         private IRedisClientAsync AsyncClient => client;
+
+        ValueTask<int> IRedisSetAsync.CountAsync(CancellationToken cancellationToken)
+            => AsyncClient.GetSetCountAsync(setId, cancellationToken).AsInt32();
 
         ValueTask<HashSet<string>> IRedisSetAsync.DiffAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken)
         {

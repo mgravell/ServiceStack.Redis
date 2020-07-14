@@ -19,6 +19,7 @@ namespace ServiceStack.Redis.Generic
 {
     public interface IRedisSetAsync<T> : IAsyncEnumerable<T>, IHasStringId
     {
+        ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
         ValueTask<List<T>> SortAsync(int startingFrom, int endingAt, CancellationToken cancellationToken = default);
         ValueTask<HashSet<T>> GetAllAsync(CancellationToken cancellationToken = default);
         ValueTask<T> PopRandomItemAsync(CancellationToken cancellationToken = default);

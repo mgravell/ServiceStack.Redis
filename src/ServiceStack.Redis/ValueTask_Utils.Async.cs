@@ -24,6 +24,14 @@ namespace ServiceStack.Redis.Internal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static ValueTask<int> AsInt32(this ValueTask<long> pending)
+        {
+            return pending.IsCompletedSuccessfully ? (checked((int)pending.Result)).AsValueTask() : Awaited(pending);
+            async static ValueTask<int> Awaited(ValueTask<long> pending)
+                => checked((int)await pending.ConfigureAwait(false));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ValueTask<TTo> Await<TFrom, TTo, TState>(this ValueTask<TFrom> pending, Func<TFrom, TState, TTo> projection, TState state)
         {
             return pending.IsCompletedSuccessfully ? projection(pending.Result, state).AsValueTask() : Awaited(pending, projection, state);

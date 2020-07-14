@@ -19,6 +19,7 @@ namespace ServiceStack.Redis.Generic
 {
     public interface IRedisHashAsync<TKey, TValue> : IAsyncEnumerable<KeyValuePair<TKey, TValue>>, IHasStringId
     {
+        ValueTask<int> CountAsync(CancellationToken cancellationToken = default);
         ValueTask<Dictionary<TKey, TValue>> GetAllAsync(CancellationToken cancellationToken = default);
     }
 

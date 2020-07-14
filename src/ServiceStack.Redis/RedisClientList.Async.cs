@@ -10,6 +10,7 @@
 // Licensed under the same terms of ServiceStack.
 //
 
+using ServiceStack.Redis.Internal;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -21,6 +22,7 @@ namespace ServiceStack.Redis
         : IRedisListAsync
     {
         private IRedisClientAsync AsyncClient => client;
+        private IRedisListAsync AsAsync() => this;
 
         ValueTask IRedisListAsync.AppendAsync(string value, CancellationToken cancellationToken)
             => AsyncClient.AddItemToListAsync(listId, value, cancellationToken);
@@ -34,6 +36,9 @@ namespace ServiceStack.Redis
         ValueTask<string> IRedisListAsync.BlockingRemoveStartAsync(TimeSpan? timeOut, CancellationToken cancellationToken)
             => AsyncClient.BlockingRemoveStartFromListAsync(listId, timeOut, cancellationToken);
 
+        ValueTask<int> IRedisListAsync.CountAsync(CancellationToken cancellationToken)
+            => AsyncClient.GetListCountAsync(listId, cancellationToken).AsInt32();
+
         ValueTask<string> IRedisListAsync.DequeueAsync(CancellationToken cancellationToken)
             => AsyncClient.DequeueItemFromListAsync(listId);
 
@@ -46,7 +51,7 @@ namespace ServiceStack.Redis
 
         async IAsyncEnumerator<string> IAsyncEnumerable<string>.GetAsyncEnumerator(CancellationToken cancellationToken)
         {
-            var count = (int) await AsyncClient.GetListCountAsync(listId).ConfigureAwait(false);
+            var count = await AsAsync().CountAsync(cancellationToken).ConfigureAwait(false);
             if (count <= PageLimit)
             {
                 var all = await AsyncClient.GetAllItemsFromListAsync(listId, cancellationToken).ConfigureAwait(false);
@@ -103,7 +108,7 @@ namespace ServiceStack.Redis
             => AsyncClient.RemoveItemFromListAsync(listId, value, cancellationToken);
 
         ValueTask<long> IRedisListAsync.RemoveValueAsync(string value, int noOfMatches, CancellationToken cancellationToken)
-            => AsyncClient.RemoveItemFromListAsync(listId, value, cancellationToken);
+            => AsyncClient.RemoveItemFromListAsync(listId, value, noOfMatches, cancellationToken);
 
         ValueTask IRedisListAsync.TrimAsync(int keepStartingFrom, int keepEndingAt, CancellationToken cancellationToken)
             => AsyncClient.TrimListAsync(listId, keepStartingFrom, keepEndingAt, cancellationToken);
