@@ -22,6 +22,18 @@ namespace ServiceStack.Redis.Generic
     {
         IRedisTypedClientAsync<T> AsyncClient => client;
 
+        ValueTask IRedisHashAsync<TKey, T>.AddAsync(KeyValuePair<TKey, T> item, CancellationToken cancellationToken)
+            => AsyncClient.SetEntryInHashAsync(this, item.Key, item.Value, cancellationToken).Await();
+
+        ValueTask IRedisHashAsync<TKey, T>.AddAsync(TKey key, T value, CancellationToken cancellationToken)
+            => AsyncClient.SetEntryInHashAsync(this, key, value, cancellationToken).Await();
+
+        ValueTask IRedisHashAsync<TKey, T>.ClearAsync(CancellationToken cancellationToken)
+            => AsyncClient.RemoveEntryAsync(new[] { this }, cancellationToken).Await();
+
+        ValueTask<bool> IRedisHashAsync<TKey, T>.ContainsKeyAsync(TKey key, CancellationToken cancellationToken)
+            => AsyncClient.HashContainsEntryAsync(this, key, cancellationToken);
+
         ValueTask<int> IRedisHashAsync<TKey, T>.CountAsync(CancellationToken cancellationToken)
             => AsyncClient.GetHashCountAsync(this, cancellationToken).AsInt32();
 
@@ -35,6 +47,11 @@ namespace ServiceStack.Redis.Generic
             {
                 yield return pair;
             }
+        }
+
+        ValueTask<bool> IRedisHashAsync<TKey, T>.RemoveAsync(TKey key, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

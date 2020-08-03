@@ -1,5 +1,8 @@
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests
 {
@@ -51,6 +54,16 @@ namespace ServiceStack.Redis.Tests
             if (client is object) client.DebugAllowSync = false;
 #endif
             return client;
+        }
+
+        protected static async ValueTask<List<T>> ToListAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken = default)
+        {
+            var list = new List<T>();
+            await foreach (var value in source.ConfigureAwait(false).WithCancellation(cancellationToken))
+            {
+                list.Add(value);
+            }
+            return list;
         }
     }
 }

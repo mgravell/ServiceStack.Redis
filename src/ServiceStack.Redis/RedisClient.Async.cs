@@ -41,10 +41,10 @@ namespace ServiceStack.Redis
         // the explicit interface implementations; the JIT should make this a direct call
         private IRedisNativeClientAsync NativeAsync => this;
 
-        IHasNamed<IRedisListAsync> IRedisClientAsync.Lists => Lists as IHasNamed<IRedisListAsync> ?? throw new NotSupportedException("The provided Lists does not support IRedisListAsync");
-        IHasNamed<IRedisSetAsync> IRedisClientAsync.Sets => Sets as IHasNamed<IRedisSetAsync> ?? throw new NotSupportedException("The provided Sets does not support IRedisSetAsync");
-        IHasNamed<IRedisSortedSetAsync> IRedisClientAsync.SortedSets => SortedSets as IHasNamed<IRedisSortedSetAsync> ?? throw new NotSupportedException("The provided SortedSets does not support IRedisSortedSetAsync");
-        IHasNamed<IRedisHashAsync> IRedisClientAsync.Hashes => Hashes as IHasNamed<IRedisHashAsync> ?? throw new NotSupportedException("The provided Hashes does not support IRedisHashAsync");
+        IHasNamed<IRedisListAsync> IRedisClientAsync.Lists => Lists as IHasNamed<IRedisListAsync> ?? throw new NotSupportedException($"The provided Lists ({Lists?.GetType().FullName}) does not support IRedisListAsync");
+        IHasNamed<IRedisSetAsync> IRedisClientAsync.Sets => Sets as IHasNamed<IRedisSetAsync> ?? throw new NotSupportedException($"The provided Sets ({Sets?.GetType().FullName})does not support IRedisSetAsync");
+        IHasNamed<IRedisSortedSetAsync> IRedisClientAsync.SortedSets => SortedSets as IHasNamed<IRedisSortedSetAsync> ?? throw new NotSupportedException($"The provided SortedSets ({SortedSets?.GetType().FullName})does not support IRedisSortedSetAsync");
+        IHasNamed<IRedisHashAsync> IRedisClientAsync.Hashes => Hashes as IHasNamed<IRedisHashAsync> ?? throw new NotSupportedException($"The provided Hashes ({Hashes?.GetType().FullName})does not support IRedisHashAsync");
 
         internal ValueTask RegisterTypeIdAsync<T>(T value, CancellationToken cancellationToken)
         {

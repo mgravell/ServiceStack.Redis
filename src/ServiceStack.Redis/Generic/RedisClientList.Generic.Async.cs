@@ -13,6 +13,7 @@
 using ServiceStack.Redis.Internal;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -120,5 +121,60 @@ namespace ServiceStack.Redis.Generic
 
         ValueTask IRedisListAsync<T>.TrimAsync(int keepStartingFrom, int keepEndingAt, CancellationToken cancellationToken)
             => AsyncClient.TrimListAsync(this, keepStartingFrom, keepEndingAt, cancellationToken);
+
+        async ValueTask<bool> IRedisListAsync<T>.RemoveAsync(T value, CancellationToken cancellationToken)
+        {
+            var index = await AsAsync().IndexOfAsync(value, cancellationToken).ConfigureAwait(false);
+            if (index != -1)
+            {
+                await AsAsync().RemoveAtAsync(index, cancellationToken);
+                return true;
+            }
+            return false;
+        }
+
+        ValueTask IRedisListAsync<T>.AddAsync(T value, CancellationToken cancellationToken)
+            => AsyncClient.AddItemToListAsync(this, value, cancellationToken);
+
+        async ValueTask IRedisListAsync<T>.RemoveAtAsync(int index, CancellationToken cancellationToken)
+        {
+            //TODO: replace with native implementation when one exists
+            var markForDelete = Guid.NewGuid().ToString();
+            await AsyncClient.NativeClient.LSetAsync(listId, index, Encoding.UTF8.GetBytes(markForDelete), cancellationToken);
+
+            const int removeAll = 0;
+            await AsyncClient.NativeClient.LRemAsync(listId, removeAll, Encoding.UTF8.GetBytes(markForDelete), cancellationToken);
+        }
+
+        async ValueTask<bool> IRedisListAsync<T>.ContainsAsync(T value, CancellationToken cancellationToken)
+        {
+            //TODO: replace with native implementation when exists
+            await foreach (var existingItem in this.ConfigureAwait(false).WithCancellation(cancellationToken))
+            {
+                if (Equals(existingItem, value)) return true;
+            }
+            return false;
+        }
+
+        ValueTask IRedisListAsync<T>.ClearAsync(CancellationToken cancellationToken)
+            => AsyncClient.RemoveAllFromListAsync(this, cancellationToken);
+
+        async ValueTask<int> IRedisListAsync<T>.IndexOfAsync(T value, CancellationToken cancellationToken)
+        {
+            //TODO: replace with native implementation when exists
+            var i = 0;
+            await foreach (var existingItem in this.ConfigureAwait(false).WithCancellation(cancellationToken))
+            {
+                if (Equals(existingItem, value)) return i;
+                i++;
+            }
+            return -1;
+        }
+
+        ValueTask<T> IRedisListAsync<T>.ElementAtAsync(int index, CancellationToken cancellationToken)
+            => AsyncClient.GetItemFromListAsync(this, index, cancellationToken);
+
+        ValueTask IRedisListAsync<T>.SetValueAsync(int index, T value, CancellationToken cancellationToken)
+            => AsyncClient.SetItemInListAsync(this, index, value, cancellationToken);
     }
 }

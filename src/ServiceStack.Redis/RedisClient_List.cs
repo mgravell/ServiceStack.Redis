@@ -27,7 +27,7 @@ namespace ServiceStack.Redis
 
         public IHasNamed<IRedisList> Lists { get; set; }
 
-        internal class RedisClientLists
+        internal partial class RedisClientLists
             : IHasNamed<IRedisList>
         {
             private readonly RedisClient client;

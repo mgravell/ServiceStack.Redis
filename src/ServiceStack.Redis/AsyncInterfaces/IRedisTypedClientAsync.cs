@@ -33,6 +33,7 @@ namespace ServiceStack.Redis.Generic
         IRedisTypedPipeline<T> CreatePipelineAsync();
 
         IRedisClientAsync RedisClient { get; }
+        IRedisNativeClientAsync NativeClient { get; }
 
         ValueTask<IAsyncDisposable> AcquireLockAsync(TimeSpan? timeOut = default, CancellationToken cancellationToken = default);
 

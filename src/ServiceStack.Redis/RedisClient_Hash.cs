@@ -23,7 +23,7 @@ namespace ServiceStack.Redis
     {
         public IHasNamed<IRedisHash> Hashes { get; set; }
 
-        internal class RedisClientHashes
+        internal partial class RedisClientHashes
             : IHasNamed<IRedisHash>
         {
             private readonly RedisClient client;
