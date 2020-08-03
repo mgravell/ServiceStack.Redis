@@ -10,7 +10,15 @@ namespace ServiceStack.Redis.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ValueTask Await<T>(this ValueTask<T> pending)
         {
-            return pending.IsCompletedSuccessfully ? default : Awaited(pending);
+            if (pending.IsCompletedSuccessfully)
+            {
+                _ = pending.GetAwaiter().GetResult(); // for IValueTaskSource reasons
+                return default;
+            }
+            else
+            {
+                return Awaited(pending);
+            }
             async static ValueTask Awaited(ValueTask<T> pending)
                 => await pending.ConfigureAwait(false);
         }
@@ -42,7 +50,15 @@ namespace ServiceStack.Redis.Internal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ValueTask<bool> AwaitAsTrue(this ValueTask pending)
         {
-            return pending.IsCompletedSuccessfully ? s_ValueTaskTrue : Awaited(pending);
+            if (pending.IsCompletedSuccessfully)
+            {
+                pending.GetAwaiter().GetResult(); // for IValueTaskSource reasons
+                return s_ValueTaskTrue;
+            }
+            else
+            {
+                return Awaited(pending);
+            }
             async static ValueTask<bool> Awaited(ValueTask pending)
             {
                 await pending.ConfigureAwait(false);

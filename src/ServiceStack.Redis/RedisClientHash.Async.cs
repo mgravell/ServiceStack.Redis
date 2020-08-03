@@ -21,11 +21,24 @@ namespace ServiceStack.Redis
         : IRedisHashAsync
     {
         private IRedisClientAsync AsyncClient => client;
+
+        ValueTask IRedisHashAsync.AddAsync(KeyValuePair<string, string> item, CancellationToken cancellationToken)
+            => AsyncClient.SetEntryInHashAsync(hashId, item.Key, item.Value).Await();
+
+        ValueTask IRedisHashAsync.AddAsync(string key, string value, CancellationToken cancellationToken)
+            => AsyncClient.SetEntryInHashAsync(hashId, key, value, cancellationToken).Await();
+
         ValueTask<bool> IRedisHashAsync.AddIfNotExistsAsync(KeyValuePair<string, string> item, CancellationToken cancellationToken)
             => AsyncClient.SetEntryInHashIfNotExistsAsync(hashId, item.Key, item.Value, cancellationToken);
 
         ValueTask IRedisHashAsync.AddRangeAsync(IEnumerable<KeyValuePair<string, string>> items, CancellationToken cancellationToken)
             => AsyncClient.SetRangeInHashAsync(hashId, items, cancellationToken);
+
+        ValueTask IRedisHashAsync.ClearAsync(CancellationToken cancellationToken)
+            => AsyncClient.RemoveAsync(hashId, cancellationToken).Await();
+
+        ValueTask<bool> IRedisHashAsync.ContainsKeyAsync(string key, CancellationToken cancellationToken)
+            => AsyncClient.HashContainsEntryAsync(hashId, key, cancellationToken);
 
         ValueTask<int> IRedisHashAsync.CountAsync(CancellationToken cancellationToken)
             => AsyncClient.GetHashCountAsync(hashId, cancellationToken).AsInt32();
@@ -35,5 +48,8 @@ namespace ServiceStack.Redis
 
         ValueTask<long> IRedisHashAsync.IncrementValue(string key, int incrementBy, CancellationToken cancellationToken)
             => AsyncClient.IncrementValueInHashAsync(hashId, key, incrementBy, cancellationToken);
+
+        ValueTask<bool> IRedisHashAsync.RemoveAsync(string key, CancellationToken cancellationToken)
+            => AsyncClient.RemoveEntryFromHashAsync(hashId, key, cancellationToken);
     }
 }
