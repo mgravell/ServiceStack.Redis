@@ -27,6 +27,36 @@ namespace ServiceStack.Redis.Tests
                 list.Add(item);
             return list;
         }
+
+        public static async ValueTask<int> CountAsync<T>(this IAsyncEnumerable<T> source)
+        {
+            int count = 0;
+            await foreach (var item in source.ConfigureAwait(false))
+                count++;
+            return count;
+        }
+
+        public static async IAsyncEnumerable<T> TakeAsync<T>(this IAsyncEnumerable<T> source, int count)
+        {
+            await foreach (var item in source.ConfigureAwait(false))
+            {
+                if (count > 0)
+                {
+                    count--;
+                    yield return item;
+                }
+            }
+        }
+
+        public static async ValueTask<Dictionary<TKey, TValue>> ToDictionaryAsync<T, TKey, TValue>(this IAsyncEnumerable<T> source, Func<T, TKey> keySelector, Func<T, TValue> valueSelector)
+        {
+            var result = new Dictionary<TKey, TValue>();
+            await foreach (var item in source.ConfigureAwait(false))
+            {
+                result.Add(keySelector(item), valueSelector(item));
+            }
+            return result;
+        }
     }
     public class RedisClientTestsBaseAsyncTests // testing the base class features
         : RedisClientTestsBaseAsync
