@@ -722,7 +722,7 @@ namespace ServiceStack.Redis
 
         async ValueTask IRedisClientAsync.AddRangeToSetAsync(string setId, List<string> items, CancellationToken cancellationToken)
         {
-            if (AddRangeToSetNeedsSend(setId, items))
+            if (await AddRangeToSetNeedsSendAsync(setId, items).ConfigureAwait(false))
             {
                 var uSetId = setId.ToUtf8Bytes();
                 var pipeline = CreatePipelineCommand();
@@ -734,6 +734,40 @@ namespace ServiceStack.Redis
 
                 //the number of items after
                 _ = await pipeline.ReadAllAsIntsAsync(cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        async ValueTask<bool> AddRangeToSetNeedsSendAsync(string setId, List<string> items)
+        {
+            if (setId.IsNullOrEmpty())
+                throw new ArgumentNullException("setId");
+            if (items == null)
+                throw new ArgumentNullException("items");
+            if (items.Count == 0)
+                return false;
+
+            if (this.Transaction is object || this.PipelineAsync is object)
+            {
+                var queueable = this.Transaction as IRedisQueueableOperationAsync
+                    ?? this.Pipeline as IRedisQueueableOperationAsync;
+
+                if (queueable == null)
+                    throw new NotSupportedException("Cannot AddRangeToSetAsync() when Transaction is: " + this.Transaction.GetType().Name);
+
+                //Complete the first QueuedCommand()
+                await AsAsync().AddItemToSetAsync(setId, items[0]).ConfigureAwait(false);
+
+                //Add subsequent queued commands
+                for (var i = 1; i < items.Count; i++)
+                {
+                    var item = items[i];
+                    queueable.QueueCommand(c => c.AddItemToSetAsync(setId, item));
+                }
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
 
