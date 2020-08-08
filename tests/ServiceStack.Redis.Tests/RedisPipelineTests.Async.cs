@@ -54,11 +54,9 @@ namespace ServiceStack.Redis.Tests
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             try
             {
-                await using (var pipeline = await RedisAsync.CreatePipelineAsync())
-                {
-                    pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
-                    throw new NotSupportedException();
-                }
+                await using var pipeline = await RedisAsync.CreatePipelineAsync();
+                pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
+                throw new NotSupportedException();
             }
             catch (NotSupportedException)
             {
@@ -224,11 +222,9 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_call_operation_not_supported_on_older_servers_in_pipeline()
         {
             var temp = new byte[1];
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
-            {
-                pipeline.QueueCommand(r => ((IRedisNativeClientAsync)r).SetExAsync(Key + "key", 5, temp));
-                await pipeline.FlushAsync();
-            }
+            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            pipeline.QueueCommand(r => ((IRedisNativeClientAsync)r).SetExAsync(Key + "key", 5, temp));
+            await pipeline.FlushAsync();
         }
         [Test]
         public async Task Pipeline_can_be_replayed()
@@ -236,24 +232,22 @@ namespace ServiceStack.Redis.Tests
             string KeySquared = Key + Key;
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
-            {
-                pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
-                pipeline.QueueCommand(r => r.IncrementValueAsync(KeySquared));
-                await pipeline.FlushAsync();
+            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
+            pipeline.QueueCommand(r => r.IncrementValueAsync(KeySquared));
+            await pipeline.FlushAsync();
 
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
-                Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
-                await NativeAsync.DelAsync(Key);
-                await NativeAsync.DelAsync(KeySquared);
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
-                Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
+            Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
+            await NativeAsync.DelAsync(Key);
+            await NativeAsync.DelAsync(KeySquared);
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
+            Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
 
-                await pipeline.ReplayAsync();
-                await pipeline.DisposeAsync();
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
-                Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
-            }
+            await pipeline.ReplayAsync();
+            await pipeline.DisposeAsync();
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
+            Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
         }
 
         [Test]
@@ -262,30 +256,26 @@ namespace ServiceStack.Redis.Tests
             string KeySquared = Key + Key;
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
-            {
-                pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
-                pipeline.QueueCommand(r => r.IncrementValueAsync(KeySquared));
-                pipeline.QueueCommand(r => ((IRedisNativeClientAsync)r).WatchAsync(new[] { Key + "FOO" }));
-                await pipeline.FlushAsync();
+            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
+            pipeline.QueueCommand(r => r.IncrementValueAsync(KeySquared));
+            pipeline.QueueCommand(r => ((IRedisNativeClientAsync)r).WatchAsync(new[] { Key + "FOO" }));
+            await pipeline.FlushAsync();
 
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
-                Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
-            }
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
+            Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
         }
 
         [Test]
         public async Task Can_call_AddRangeToSet_in_pipeline()
         {
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
-            {
-                var key = "pipeline-test";
+            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            var key = "pipeline-test";
 
-                pipeline.QueueCommand(r => r.RemoveAsync(key));
-                pipeline.QueueCommand(r => r.AddRangeToSetAsync(key, new[] { "A", "B", "C" }.ToList()));
+            pipeline.QueueCommand(r => r.RemoveAsync(key));
+            pipeline.QueueCommand(r => r.AddRangeToSetAsync(key, new[] { "A", "B", "C" }.ToList()));
 
-                await pipeline.FlushAsync();
-            }
+            await pipeline.FlushAsync();
         }
     }
 }

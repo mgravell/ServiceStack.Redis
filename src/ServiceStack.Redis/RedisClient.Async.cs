@@ -834,8 +834,8 @@ namespace ServiceStack.Redis
 
         ValueTask<long> IRedisClientAsync.KillClientsAsync(string fromAddress, string withId, RedisClientType? ofType, bool? skipMe, CancellationToken cancellationToken)
         {
-            var typeString = ofType != null ? ofType.ToString().ToLower() : null;
-            var skipMeString = skipMe != null ? (skipMe.Value ? "yes" : "no") : null;
+            var typeString = ofType?.ToString().ToLower();
+            var skipMeString = skipMe.HasValue ? (skipMe.Value ? "yes" : "no") : null;
             return NativeAsync.ClientKillAsync(addr: fromAddress, id: withId, type: typeString, skipMe: skipMeString, cancellationToken);
         }
 

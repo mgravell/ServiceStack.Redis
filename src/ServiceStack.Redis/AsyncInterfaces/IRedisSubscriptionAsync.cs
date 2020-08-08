@@ -15,22 +15,22 @@ namespace ServiceStack.Redis
         /// <summary>
         /// Registered handler called after client *Subscribes* to each new channel
         /// </summary>
-        Action<string> OnSubscribe { get; set; }
+        event Func<string, ValueTask> OnSubscribeAsync;
 
         /// <summary>
         /// Registered handler called when each message is received
         /// </summary>
-        Action<string, string> OnMessage { get; set; }
+        event Func<string, string, ValueTask> OnMessageAsync;
 
         /// <summary>
         /// Registered handler called when each message is received
         /// </summary>
-        Action<string, byte[]> OnMessageBytes { get; set; }
+        event Func<string, byte[], ValueTask> OnMessageBytesAsync;
 
         /// <summary>
         /// Registered handler called when each channel is unsubscribed
         /// </summary>
-        Action<string> OnUnSubscribe { get; set; }
+        event Func<string, ValueTask> OnUnSubscribeAsync;
 
         /// <summary>
         /// Subscribe to channels by name
@@ -43,7 +43,7 @@ namespace ServiceStack.Redis
         ValueTask SubscribeToChannelsMatchingAsync(string[] patterns, CancellationToken cancellationToken = default);
 
         ValueTask UnSubscribeFromAllChannelsAsync(CancellationToken cancellationToken = default);
-        ValueTask UnSubscribeFromChannels(string[] channels, CancellationToken cancellationToken = default);
-        ValueTask UnSubscribeFromChannelsMatching(string[] patterns, CancellationToken cancellationToken = default);
+        ValueTask UnSubscribeFromChannelsAsync(string[] channels, CancellationToken cancellationToken = default);
+        ValueTask UnSubscribeFromChannelsMatchingAsync(string[] patterns, CancellationToken cancellationToken = default);
     }
 }
