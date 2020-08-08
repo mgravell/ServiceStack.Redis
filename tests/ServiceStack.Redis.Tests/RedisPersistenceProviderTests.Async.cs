@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests
 {
-    [TestFixture, Category("Integration")]
+    [TestFixture, Category("Integration"), Category("Async")]
     public class RedisPersistenceProviderTestsAsync
     {
         [Test]

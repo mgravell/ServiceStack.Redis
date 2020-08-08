@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests
 {
-    [TestFixture]
+    [TestFixture, Category("Async")]
     [Ignore("CI requires redis-server v3.2.0")]
     public class RedisGeoNativeClientTestsAsync
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests
 {
-    [TestFixture]
+    [TestFixture, Category("Async")]
     public class RetryCommandTestsAsync
     {
         [Test, Ignore("3 vs 2 needs investigation; does same in non-async")]

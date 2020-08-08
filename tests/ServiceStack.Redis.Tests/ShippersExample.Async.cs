@@ -20,7 +20,7 @@ using ServiceStack.Text;
 
 namespace ServiceStack.Redis.Tests
 {
-    [TestFixture]
+    [TestFixture, Category("Async")]
     public class ShippersExampleAsync
     {
 

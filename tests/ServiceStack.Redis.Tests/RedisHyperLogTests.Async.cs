@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests
 {
-    [TestFixture, Ignore("Integration")]
+    [TestFixture, Ignore("Integration"), Category("Async")]
     public class RedisHyperLogTestsAsync
     {
         const string Host = "localhost"; // "10.0.0.14"
