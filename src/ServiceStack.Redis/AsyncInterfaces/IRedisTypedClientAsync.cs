@@ -24,13 +24,13 @@ namespace ServiceStack.Redis.Generic
         IHasNamed<IRedisSetAsync<T>> Sets { get; }
         IHasNamed<IRedisSortedSetAsync<T>> SortedSets { get; }
         IRedisHashAsync<TKey, T> GetHashAsync<TKey>(string hashId);
-        IRedisSet TypeIdsSet { get; }
+        IRedisSetAsync TypeIdsSet { get; }
 
         // not provided: use GetValueAsync/SetValueAsync instead
         // T this[string key] { get; set; }
 
-        IRedisTypedTransaction<T> CreateTransactionAsync();
-        IRedisTypedPipeline<T> CreatePipelineAsync();
+        ValueTask<IRedisTypedTransactionAsync<T>> CreateTransactionAsync(CancellationToken cancellationToken = default);
+        IRedisTypedPipelineAsync<T> CreatePipelineAsync();
 
         IRedisClientAsync RedisClient { get; }
         IRedisNativeClientAsync NativeClient { get; }

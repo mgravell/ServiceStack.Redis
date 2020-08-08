@@ -33,6 +33,8 @@ namespace ServiceStack.Redis.Generic
         private IRedisClientAsync AsyncClient => client;
         private IRedisNativeClientAsync AsyncNative => client;
 
+        IRedisSetAsync IRedisTypedClientAsync<T>.TypeIdsSet => TypeIdsSetRaw;
+
         IRedisNativeClientAsync IRedisTypedClientAsync<T>.NativeClient => client;
 
         IRedisClientAsync IRedisTypedClientAsync<T>.RedisClient => client;
@@ -133,10 +135,13 @@ namespace ServiceStack.Redis.Generic
             return ProcessGetValues(resultBytesArray);
         }
 
-        IRedisTypedTransaction<T> IRedisTypedClientAsync<T>.CreateTransactionAsync()
-            => new RedisTypedTransaction<T>(this);
+        ValueTask<IRedisTypedTransactionAsync<T>> IRedisTypedClientAsync<T>.CreateTransactionAsync(CancellationToken cancellationToken)
+        {
+            IRedisTypedTransactionAsync<T> obj = new RedisTypedTransaction<T>(this);
+            return obj.AsValueTask();
+        }
 
-        IRedisTypedPipeline<T> IRedisTypedClientAsync<T>.CreatePipelineAsync()
+        IRedisTypedPipelineAsync<T> IRedisTypedClientAsync<T>.CreatePipelineAsync()
             => new RedisTypedPipeline<T>(this);
 
 
@@ -146,8 +151,8 @@ namespace ServiceStack.Redis.Generic
         long IRedisTypedClientAsync<T>.Db => AsyncClient.Db;
 
         IHasNamed<IRedisListAsync<T>> IRedisTypedClientAsync<T>.Lists => Lists as IHasNamed<IRedisListAsync<T>> ?? throw new NotSupportedException("The provided Lists does not support IRedisListAsync");
-        IHasNamed<IRedisSetAsync<T>> IRedisTypedClientAsync<T>.Sets => Lists as IHasNamed<IRedisSetAsync<T>> ?? throw new NotSupportedException("The provided Lists does not support IRedisSetAsync");
-        IHasNamed<IRedisSortedSetAsync<T>> IRedisTypedClientAsync<T>.SortedSets => Lists as IHasNamed<IRedisSortedSetAsync<T>> ?? throw new NotSupportedException("The provided Lists does not support IRedisSortedSetAsync");
+        IHasNamed<IRedisSetAsync<T>> IRedisTypedClientAsync<T>.Sets => Sets as IHasNamed<IRedisSetAsync<T>> ?? throw new NotSupportedException("The provided Sets does not support IRedisSetAsync");
+        IHasNamed<IRedisSortedSetAsync<T>> IRedisTypedClientAsync<T>.SortedSets => SortedSets as IHasNamed<IRedisSortedSetAsync<T>> ?? throw new NotSupportedException("The provided SortedSets does not support IRedisSortedSetAsync");
 
         IRedisHashAsync<TKey, T> IRedisTypedClientAsync<T>.GetHashAsync<TKey>(string hashId) => GetHash<TKey>(hashId) as IRedisHashAsync<TKey, T> ?? throw new NotSupportedException("The provided Hash does not support IRedisHashAsync");
 

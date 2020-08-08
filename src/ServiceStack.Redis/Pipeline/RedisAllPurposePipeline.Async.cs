@@ -69,7 +69,7 @@ namespace ServiceStack.Redis
 
         ValueTask IAsyncDisposable.DisposeAsync() => DisposeAsync();
 
-        private static void AssertSync<T>(ValueTask<T> command)
+        internal static void AssertSync<T>(ValueTask<T> command)
         {
             if (!command.IsCompleted)
             {
@@ -82,7 +82,7 @@ namespace ServiceStack.Redis
             }
         }
 
-        private static void AssertSync(ValueTask command)
+        internal static void AssertSync(ValueTask command)
         {
             if (!command.IsCompleted)
             {

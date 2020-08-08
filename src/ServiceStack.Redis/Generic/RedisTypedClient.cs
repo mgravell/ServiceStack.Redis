@@ -137,7 +137,9 @@ namespace ServiceStack.Redis.Generic
             return client.UrnKey(entity);
         }
 
-        public IRedisSet TypeIdsSet => new RedisClientSet(client, client.GetTypeIdsSetKey<T>());
+        public IRedisSet TypeIdsSet => TypeIdsSetRaw;
+
+        private RedisClientSet TypeIdsSetRaw => new RedisClientSet(client, client.GetTypeIdsSetKey<T>());
 
         public T this[string key]
         {

@@ -19,7 +19,7 @@ namespace ServiceStack.Redis.Generic
     /// <summary>
     /// Adds support for Redis Transactions (i.e. MULTI/EXEC/DISCARD operations).
     /// </summary>
-    internal class RedisTypedTransaction<T>
+    internal partial class RedisTypedTransaction<T>
         : RedisTypedPipeline<T>, IRedisTypedTransaction<T>, IRedisTransactionBase
     {
         private int _numCommands = 0;
@@ -59,40 +59,43 @@ namespace ServiceStack.Redis.Generic
         {
             RedisClient.Exec();
             RedisClient.FlushSendBuffer();
-
         }
 
+        private void EnqueueCommandsWithExecAndFlush()
+        {
+            _numCommands = QueuedCommands.Count / 2;
+
+            //insert multi command at beginning
+            QueuedCommands.Insert(0, new QueuedRedisCommand()
+            {
+                VoidReturnCommand = r => Init(),
+                VoidReadCommand = RedisClient.ExpectOk,
+            });
+
+
+            //the first half of the responses will be "QUEUED",
+            // so insert reading of multiline after these responses
+            QueuedCommands.Insert(_numCommands + 1, new QueuedRedisOperation()
+            {
+                IntReadCommand = RedisClient.ReadMultiDataResultCount,
+                OnSuccessIntCallback = handleMultiDataResultCount
+            });
+
+            // add Exec command at end (not queued)
+            QueuedCommands.Add(new RedisCommand()
+            {
+                VoidReturnCommand = r => Exec()
+            });
+
+            //execute transaction
+            Exec();
+        }
         public bool Commit()
         {
             bool rc = true;
             try
             {
-                _numCommands = QueuedCommands.Count / 2;
-
-                //insert multi command at beginning
-                QueuedCommands.Insert(0, new QueuedRedisCommand()
-                {
-                    VoidReturnCommand = r => Init(),
-                    VoidReadCommand = RedisClient.ExpectOk,
-                });
-
-
-                //the first half of the responses will be "QUEUED",
-                // so insert reading of multiline after these responses
-                QueuedCommands.Insert(_numCommands + 1, new QueuedRedisOperation()
-                {
-                    IntReadCommand = RedisClient.ReadMultiDataResultCount,
-                    OnSuccessIntCallback = handleMultiDataResultCount
-                });
-
-                // add Exec command at end (not queued)
-                QueuedCommands.Add(new RedisCommand()
-                {
-                    VoidReturnCommand = r => Exec()
-                });
-
-                //execute transaction
-                Exec();
+                EnqueueCommandsWithExecAndFlush();
 
                 /////////////////////////////
                 //receive expected results

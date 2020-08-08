@@ -57,6 +57,10 @@ namespace ServiceStack.Redis.Tests
         [TestCase(typeof(IRedisSet<>), typeof(IRedisSetAsync<>))]
         [TestCase(typeof(IRedisList<>), typeof(IRedisListAsync<>))]
 
+        [TestCase(typeof(IRedisTypedPipeline<>), typeof(IRedisTypedPipelineAsync<>))]
+        [TestCase(typeof(IRedisTypedQueueableOperation<>), typeof(IRedisTypedQueueableOperationAsync<>))]
+        [TestCase(typeof(IRedisTypedTransaction<>), typeof(IRedisTypedTransactionAsync<>))]
+
         public void TestSameAPI(Type syncInterface, Type asyncInterface)
         {
             TestContext.Out.WriteLine($"Comparing '{GetCSharpTypeName(syncInterface)}' and '{GetCSharpTypeName(asyncInterface)}'...");
@@ -357,10 +361,18 @@ namespace ServiceStack.Redis.Tests
         [TestCase(typeof(IDistributedLock), typeof(IDistributedLockAsync))]
         public void TestFullyImplemented(Type syncInterface, Type asyncInterface)
         {
-            var syncTypes = AllTypes.Where(x => Implements(x, syncInterface)).ToArray();
+            HashSet<Type> except = new HashSet<Type>();
+#if NET472 // only exists there!
+            if (syncInterface == typeof(IRedisClientsManager))
+            {
+                except.Add(typeof(ServiceStack.Redis.Support.Diagnostic.TrackingRedisClientsManager));
+            }
+#endif
+
+            var syncTypes = AllTypes.Except(except).Where(x => Implements(x, syncInterface)).ToArray();
             DumpTypes(syncInterface, syncTypes);
 
-            var asyncTypes = AllTypes.Where(x => Implements(x, asyncInterface)).ToArray();
+            var asyncTypes = AllTypes.Except(except).Where(x => Implements(x, asyncInterface)).ToArray();
             DumpTypes(asyncInterface, asyncTypes);
             Assert.AreEqual(syncTypes, asyncTypes);
         }
