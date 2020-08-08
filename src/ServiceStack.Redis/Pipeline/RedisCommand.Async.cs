@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServiceStack.Redis.Internal;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ namespace ServiceStack.Redis
     internal partial class RedisCommand
     {
         private Delegate _asyncReturnCommand;
+        protected Delegate AsyncReturnCommand => _asyncReturnCommand;
         private RedisCommand SetAsyncReturnCommand(Delegate value)
         {
             if (_asyncReturnCommand is object && _asyncReturnCommand != value)
@@ -42,69 +44,59 @@ namespace ServiceStack.Redis
         internal RedisCommand WithAsyncReturnCommand(Func<IRedisClientAsync, ValueTask<double>> DoubleReturnCommandAsync)
             => SetAsyncReturnCommand(DoubleReturnCommandAsync);
 
-        public override async ValueTask ExecuteAsync(IRedisClientAsync client)
+        public override ValueTask ExecuteAsync(IRedisClientAsync client)
         {
             try
             {
                 switch (_asyncReturnCommand)
                 {
                     case null:
-                        break;
+                        ExecuteThrowIfSync();
+                        return default;
                     case Func<IRedisClientAsync, ValueTask> VoidReturnCommandAsync:
-                        await VoidReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return VoidReturnCommandAsync(client);
                     case Func<IRedisClientAsync, ValueTask<int>> IntReturnCommandAsync:
-                        await IntReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return IntReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<long>> LongReturnCommandAsync:
-                        await LongReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return LongReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<double>> DoubleReturnCommandAsync:
-                        await DoubleReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return DoubleReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<byte[]>> BytesReturnCommandAsync:
-                        await BytesReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return BytesReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<string>> StringReturnCommandAsync:
-                        await StringReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return StringReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<byte[][]>> MultiBytesReturnCommandAsync:
-                        await MultiBytesReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return MultiBytesReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<List<string>>> MultiStringReturnCommandAsync:
-                        await MultiStringReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return MultiStringReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<Dictionary<string, string>>> DictionaryStringReturnCommandAsync:
-                        await DictionaryStringReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return DictionaryStringReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<RedisData>> RedisDataReturnCommandAsync:
-                        await RedisDataReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return RedisDataReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<RedisText>> RedisTextReturnCommandAsync:
-                        await RedisTextReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
+                        return RedisTextReturnCommandAsync(client).Await();
                     case Func<IRedisClientAsync, ValueTask<bool>> BoolReturnCommandAsync:
-                        await BoolReturnCommandAsync(client).ConfigureAwait(false);
-                        break;
-                    default:
-                        ThrowIfSync();
-                        break;
+                        return BoolReturnCommandAsync(client).Await();
+                    case object obj:
+                        ExecuteThrowIfSync();
+                        return default;
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex);
+                return default; // RedisCommand.Execute swallows here; we'll do the same
             }
         }
 
-        partial void ThrowIfAsync()
+        partial void OnExecuteThrowIfAsync()
         {
             if (_asyncReturnCommand is object)
             {
                 throw new InvalidOperationException("An async return command was present, but the queued operation is being processed synchronously");
             }
         }
-        private void ThrowIfSync()
+        protected void ExecuteThrowIfSync()
         {
             if (VoidReturnCommand is object
                 || IntReturnCommand is object

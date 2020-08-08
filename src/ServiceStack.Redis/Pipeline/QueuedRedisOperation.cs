@@ -123,7 +123,7 @@ namespace ServiceStack.Redis.Pipeline
                 }
                 else
                 {
-                    ThrowIfAsync();
+                    ProcessResultThrowIfAsync();
                 }
             }
             catch (Exception ex)
@@ -140,6 +140,8 @@ namespace ServiceStack.Redis.Pipeline
                 }
             }
         }
-        partial void ThrowIfAsync();
+
+        protected void ProcessResultThrowIfAsync() => OnProcessResultThrowIfAsync();
+        partial void OnProcessResultThrowIfAsync();
     }
 }

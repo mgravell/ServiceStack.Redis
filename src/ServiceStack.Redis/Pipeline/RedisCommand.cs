@@ -85,7 +85,7 @@ namespace ServiceStack.Redis
                 }
                 else
                 {
-                    ThrowIfAsync();
+                    ExecuteThrowIfAsync();
                 }
             }
             catch (Exception ex)
@@ -94,6 +94,7 @@ namespace ServiceStack.Redis
             }
         }
 
-        partial void ThrowIfAsync();
+        protected void ExecuteThrowIfAsync() => OnExecuteThrowIfAsync();
+        partial void OnExecuteThrowIfAsync();
     }
 }

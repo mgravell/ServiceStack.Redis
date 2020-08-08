@@ -111,7 +111,7 @@ namespace ServiceStack.Redis.Pipeline
                         OnSuccessDictionaryStringCallback?.Invoke(dict);
                         break;
                       default:
-                        ThrowIfSync();
+                        ProcessResultThrowIfSync();
                         break;
                 }
             }
@@ -129,14 +129,15 @@ namespace ServiceStack.Redis.Pipeline
                 }
             }
         }
-        partial void ThrowIfAsync()
+
+        partial void OnProcessResultThrowIfAsync()
         {
             if (_asyncReadCommand is object)
             {
                 throw new InvalidOperationException("An async read command was present, but the queued operation is being processed synchronously");
             }
         }
-        private void ThrowIfSync()
+        private void ProcessResultThrowIfSync()
         {
             if (VoidReadCommand is object
                 || IntReadCommand is object

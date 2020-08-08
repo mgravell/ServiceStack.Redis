@@ -15,10 +15,23 @@ namespace ServiceStack.Redis
         private protected virtual async ValueTask<bool> ReplayAsync(CancellationToken cancellationToken)
         {
             Init();
-            Execute();
+            await ExecuteAsync().ConfigureAwait(false);
             await AsAsync().FlushAsync(cancellationToken).ConfigureAwait(false);
             return true;
         }
+
+        protected async ValueTask ExecuteAsync()
+        {
+            int count = QueuedCommands.Count;
+            for (int i = 0; i < count; ++i)
+            {
+                var op = QueuedCommands[0];
+                QueuedCommands.RemoveAt(0);
+                await op.ExecuteAsync(RedisClient).ConfigureAwait(false);
+                QueuedCommands.Add(op);
+            }
+        }
+
         ValueTask<bool> IRedisPipelineSharedAsync.ReplayAsync(CancellationToken cancellationToken)
             => ReplayAsync(cancellationToken);
 
