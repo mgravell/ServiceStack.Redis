@@ -69,6 +69,8 @@ return results
         public async Task Can_call_Cached_Lua_even_after_script_is_flushed()
         {
             await using var redis = new RedisClient().ForAsyncOnly();
+            await AddTestKeysAsync(redis, 20);
+
             var r = await redis.ExecCachedLuaAsync(LuaScript, sha1 =>
                 redis.ExecLuaShaAsync(sha1, "key:*", "10"));
             Assert.That(r.Children.Count, Is.EqualTo(10));
@@ -113,6 +115,8 @@ return results
         public async Task Can_call_Cached_Lua_even_after_script_is_flushed_longhand()
         {
             await using var redis = new RedisClient().ForAsyncOnly();
+            await AddTestKeysAsync(redis, 20);
+
             var r = await redis.ExecCachedLuaAsync(LuaScript, sha1 =>
                 redis.ExecLuaShaAsync(sha1, null, new[] { "key:*", "10" }));
             Assert.That(r.Children.Count, Is.EqualTo(10));
