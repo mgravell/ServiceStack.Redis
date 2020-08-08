@@ -89,11 +89,11 @@ namespace ServiceStack.Redis.Tests
 
                 await currentShippers.AddAsync(lameShipper);
 
-                Dump("ADDED 3 SHIPPERS:", currentShippers);
+                Dump("ADDED 3 SHIPPERS:", await currentShippers.ToListAsync());
 
                 await currentShippers.RemoveAsync(lameShipper);
 
-                Dump("REMOVED 1:", currentShippers);
+                Dump("REMOVED 1:", await currentShippers.ToListAsync());
 
                 await prospectiveShippers.AddAsync(
                     new Shipper
@@ -105,21 +105,21 @@ namespace ServiceStack.Redis.Tests
                         UniqueRef = Guid.NewGuid()
                     });
 
-                Dump("ADDED A PROSPECTIVE SHIPPER:", prospectiveShippers);
+                Dump("ADDED A PROSPECTIVE SHIPPER:", await prospectiveShippers.ToListAsync());
 
                 await redis.PopAndPushItemBetweenListsAsync(prospectiveShippers, currentShippers);
 
-                Dump("CURRENT SHIPPERS AFTER POP n' PUSH:", currentShippers);
-                Dump("PROSPECTIVE SHIPPERS AFTER POP n' PUSH:", prospectiveShippers);
+                Dump("CURRENT SHIPPERS AFTER POP n' PUSH:", await currentShippers.ToListAsync());
+                Dump("PROSPECTIVE SHIPPERS AFTER POP n' PUSH:", await prospectiveShippers.ToListAsync());
 
                 var poppedShipper = await redis.PopItemFromListAsync(currentShippers);
                 Dump("POPPED a SHIPPER:", poppedShipper);
-                Dump("CURRENT SHIPPERS AFTER POP:", currentShippers);
+                Dump("CURRENT SHIPPERS AFTER POP:", await currentShippers.ToListAsync());
 
                 //reset sequence and delete all lists
                 await redis.SetSequenceAsync(0);
                 await redis.RemoveEntryAsync(new[] { currentShippers, prospectiveShippers });
-                Dump("DELETING CURRENT AND PROSPECTIVE SHIPPERS:", currentShippers);
+                Dump("DELETING CURRENT AND PROSPECTIVE SHIPPERS:", await currentShippers.ToListAsync());
             }
 
         }
