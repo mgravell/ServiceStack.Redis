@@ -50,8 +50,6 @@ namespace ServiceStack.Redis.Generic
         }
 
         ValueTask<bool> IRedisHashAsync<TKey, T>.RemoveAsync(TKey key, CancellationToken cancellationToken)
-        {
-            throw new System.NotImplementedException();
-        }
+            => AsyncClient.RemoveEntryFromHashAsync(this, key, cancellationToken);
     }
 }

@@ -32,5 +32,11 @@ namespace ServiceStack.Redis
         ValueTask<HashSet<string>> DiffAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken = default);
         ValueTask StoreDiffAsync(IRedisSetAsync fromSet, IRedisSetAsync[] withSets, CancellationToken cancellationToken = default);
         ValueTask<string> GetRandomEntryAsync(CancellationToken cancellationToken = default);
+
+
+        ValueTask RemoveAsync(string value, CancellationToken cancellationToken = default);
+        ValueTask AddAsync(string value, CancellationToken cancellationToken = default);
+        ValueTask<bool> ContainsAsync(string value, CancellationToken cancellationToken = default);
+        ValueTask ClearAsync(CancellationToken cancellationToken = default);
     }
 }

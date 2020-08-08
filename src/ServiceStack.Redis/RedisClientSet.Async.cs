@@ -23,6 +23,15 @@ namespace ServiceStack.Redis
     {
         private IRedisClientAsync AsyncClient => client;
 
+        ValueTask IRedisSetAsync.AddAsync(string item, CancellationToken cancellationToken)
+            => AsyncClient.AddItemToSetAsync(setId, item, cancellationToken);
+
+        ValueTask IRedisSetAsync.ClearAsync(CancellationToken cancellationToken)
+            => AsyncClient.RemoveAsync(setId, cancellationToken).Await();
+
+        ValueTask<bool> IRedisSetAsync.ContainsAsync(string item, CancellationToken cancellationToken)
+            => AsyncClient.SetContainsItemAsync(setId, item, cancellationToken);
+
         ValueTask<int> IRedisSetAsync.CountAsync(CancellationToken cancellationToken)
             => AsyncClient.GetSetCountAsync(setId, cancellationToken).AsInt32();
 
@@ -62,6 +71,9 @@ namespace ServiceStack.Redis
 
         ValueTask<string> IRedisSetAsync.PopAsync(CancellationToken cancellationToken)
             => AsyncClient.PopItemFromSetAsync(setId, cancellationToken);
+
+        ValueTask IRedisSetAsync.RemoveAsync(string item, CancellationToken cancellationToken)
+            => AsyncClient.RemoveItemFromSetAsync(setId, item, cancellationToken);
 
         ValueTask IRedisSetAsync.StoreDiffAsync(IRedisSetAsync fromSet, IRedisSetAsync[] withSets, CancellationToken cancellationToken)
         {

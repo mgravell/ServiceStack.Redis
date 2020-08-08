@@ -6,6 +6,28 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests
 {
+    public static class AsyncExtensions
+    {
+        public static async ValueTask ForEachAsync<T>(this List<T> source, Func<T, ValueTask> action)
+        {
+            foreach (var item in source)
+                await action(item).ConfigureAwait(false);
+        }
+        public static async ValueTask TimesAsync(this int times, Func<int, ValueTask> action)
+        {
+            for (int i = 0; i < times; i++)
+            {
+                await action(i).ConfigureAwait(false);
+            }
+        }
+        public static async ValueTask<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source)
+        {
+            var list = new List<T>();
+            await foreach (var item in source.ConfigureAwait(false))
+                list.Add(item);
+            return list;
+        }
+    }
     public class RedisClientTestsBaseAsyncTests // testing the base class features
         : RedisClientTestsBaseAsync
     {
