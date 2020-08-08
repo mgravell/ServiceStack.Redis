@@ -36,6 +36,14 @@ namespace ServiceStack.Redis.Tests
             return count;
         }
 
+        public static IRedisClientAsync ForAsyncOnly(this RedisClient client)
+        {
+#if DEBUG
+            if (client is object) client.DebugAllowSync = false;
+#endif
+            return client;
+        }
+
         public static async IAsyncEnumerable<T> TakeAsync<T>(this IAsyncEnumerable<T> source, int count)
         {
             await foreach (var item in source.ConfigureAwait(false))
@@ -90,7 +98,7 @@ namespace ServiceStack.Redis.Tests
         public override void OnBeforeEachTest()
         {
             base.OnBeforeEachTest();
-            ForAsyncOnly(RedisRaw);
+            _ = RedisRaw.ForAsyncOnly();
         }
         public override void OnAfterEachTest()
         {
@@ -98,14 +106,6 @@ namespace ServiceStack.Redis.Tests
             if(RedisRaw is object) RedisRaw.DebugAllowSync = true;
 #endif
             base.OnAfterEachTest();
-        }
-
-        protected internal static IRedisClientAsync ForAsyncOnly(RedisClient client)
-        {
-#if DEBUG
-            if (client is object) client.DebugAllowSync = false;
-#endif
-            return client;
         }
 
         protected static async ValueTask<List<T>> ToListAsync<T>(IAsyncEnumerable<T> source, CancellationToken cancellationToken = default)

@@ -18,11 +18,11 @@ namespace ServiceStack.Redis.Tests
             // RedisConfig.EnableVerboseLogging = true;
             RedisStats.Reset();
 
-            var redisCtrl = new RedisClient(RedisConfig.DefaultHost).AsAsync();
+            var redisCtrl = new RedisClient(RedisConfig.DefaultHost).ForAsyncOnly();
             await redisCtrl.FlushAllAsync();
             await redisCtrl.SetClientAsync("redisCtrl");
 
-            var redis = new RedisClient(RedisConfig.DefaultHost).AsAsync();
+            var redis = new RedisClient(RedisConfig.DefaultHost).ForAsyncOnly();
             await redis.SetClientAsync("redisRetry");
 
             var clientInfo = await redisCtrl.GetClientsInfoAsync();
@@ -49,7 +49,7 @@ namespace ServiceStack.Redis.Tests
         {
             RedisStats.Reset();
 
-            var redis = new RedisClient(RedisConfig.DefaultHost).AsAsync();
+            var redis = new RedisClient(RedisConfig.DefaultHost).ForAsyncOnly();
             await redis.FlushAllAsync();
 
             Assert.That(await redis.IncrementValueAsync("retryCounter"), Is.EqualTo(1));
@@ -74,7 +74,7 @@ namespace ServiceStack.Redis.Tests
             RedisConfig.Reset();
             RedisConfig.DefaultRetryTimeout = 100;
 
-            var redis = new RedisClient(RedisConfig.DefaultHost).AsAsync();
+            var redis = new RedisClient(RedisConfig.DefaultHost).ForAsyncOnly();
             await redis.FlushAllAsync();
 
             Assert.That(await redis.IncrementValueAsync("retryCounter"), Is.EqualTo(1));
@@ -110,7 +110,7 @@ namespace ServiceStack.Redis.Tests
             RedisConfig.Reset();
             RedisConfig.DefaultRetryTimeout = 0;
 
-            var redis = new RedisClient(RedisConfig.DefaultHost).AsAsync();
+            var redis = new RedisClient(RedisConfig.DefaultHost).ForAsyncOnly();
             await redis.FlushAllAsync();
 
             Assert.That(await redis.IncrementValueAsync("retryCounter"), Is.EqualTo(1));

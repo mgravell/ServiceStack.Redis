@@ -9,7 +9,7 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Search_Test()
         {
-            await using (var client = RedisClientTestsBaseAsync.ForAsyncOnly(new RedisClient(TestConfig.SingleHost)))
+            await using (var client = new RedisClient(TestConfig.SingleHost).ForAsyncOnly())
             {
                 const string cacheKey = "urn+metadata:All:SearchProProfiles?SwanShinichi Osawa /0/8,0,0,0";
                 const long value = 1L;

@@ -365,7 +365,7 @@ namespace ServiceStack.Redis.Tests
             {
                 var snapsot = i;
                 tasks[snapsot] = Task.Run(
-                    () => IncrementKeyInsideLock(key, lockKey, snapsot, ForAsyncOnly(new RedisClient(TestConfig.SingleHost) { NamespacePrefix = RedisRaw.NamespacePrefix }))
+                    () => IncrementKeyInsideLock(key, lockKey, snapsot, new RedisClient(TestConfig.SingleHost) { NamespacePrefix = RedisRaw.NamespacePrefix }.ForAsyncOnly())
                 );
             }
             await Task.WhenAll(tasks);
@@ -402,7 +402,7 @@ namespace ServiceStack.Redis.Tests
 
             try
             {
-                await using var client = ForAsyncOnly(new RedisClient(TestConfig.SingleHost));
+                await using var client = new RedisClient(TestConfig.SingleHost).ForAsyncOnly();
                 await using (await client.AcquireLockAsync(lockKey, waitFor))
                 {
                     await client.IncrementValueAsync(key); //2
@@ -528,7 +528,7 @@ namespace ServiceStack.Redis.Tests
             var map = new Dictionary<string, string>();
             keys.ForEach(x => map[x] = "val" + x);
 
-            await using var client = ForAsyncOnly(RedisClient.New());
+            await using var client = RedisClient.New().ForAsyncOnly();
             await client.SetAllAsync(map);
 
             var all = await client.GetValuesMapAsync(keys);
@@ -544,7 +544,7 @@ namespace ServiceStack.Redis.Tests
                 ["key_b"] = null
             };
 
-            await using var client = ForAsyncOnly(RedisClient.New());
+            await using var client = RedisClient.New().ForAsyncOnly();
             await client.SetAllAsync(map);
 
             Assert.That(await client.GetAsync<string>("key_a"), Is.EqualTo("123"));
@@ -561,7 +561,7 @@ namespace ServiceStack.Redis.Tests
                 ["key_b"] = null
             };
 
-            await using var client = ForAsyncOnly(RedisClient.New());
+            await using var client = RedisClient.New().ForAsyncOnly();
             await client.SetAllAsync(map);
 
             Assert.That(await client.GetAsync<string>("key_a"), Is.EqualTo("123"));
@@ -571,14 +571,14 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Should_reset_slowlog()
         {
-            await using var client = ForAsyncOnly(RedisClient.New());
+            await using var client = RedisClient.New().ForAsyncOnly();
             await client.SlowlogResetAsync();
         }
 
         [Test]
         public async Task Can_get_slowlog()
         {
-            await using var client = ForAsyncOnly(RedisClient.New());
+            await using var client = RedisClient.New().ForAsyncOnly();
             var log = await client.SlowlogGetAsync(10);
 
             foreach (var t in log)
@@ -594,7 +594,7 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_change_db_at_runtime()
         {
-            await using var redis = ForAsyncOnly(new RedisClient(TestConfig.SingleHost, TestConfig.RedisPort, db: 1));
+            await using var redis = new RedisClient(TestConfig.SingleHost, TestConfig.RedisPort, db: 1).ForAsyncOnly();
             var val = Environment.TickCount;
             var key = "test" + val;
             try

@@ -51,7 +51,7 @@ namespace ServiceStack.Redis.Tests
                 ThreadPool.QueueUserWorkItem(async x =>
                 {
                     await Task.Delay(100); // to be sure that we have subscribers
-                    await using var redisClient = CreateRedisClient().AsAsync();
+                    await using var redisClient = CreateRedisClient().ForAsyncOnly();
                     Log("Publishing '{0}' to '{1}'", message, channelName);
                     await redisClient.PublishMessageAsync(channelName, message);
                 });
@@ -100,7 +100,7 @@ namespace ServiceStack.Redis.Tests
                 ThreadPool.QueueUserWorkItem(async x =>
                 {
                     await Task.Delay(100); // to be sure that we have subscribers
-                    await using var redisClient = CreateRedisClient().AsAsync();
+                    await using var redisClient = CreateRedisClient().ForAsyncOnly();
                     Log("Publishing '{0}' to '{1}'", message, channelName);
                     await redisClient.PublishMessageAsync(channelName, message);
                 });
@@ -155,7 +155,7 @@ namespace ServiceStack.Redis.Tests
                 {
                     await Task.Delay(100); // to be sure that we have subscribers
 
-                    await using var redisClient = CreateRedisClient().AsAsync();
+                    await using var redisClient = CreateRedisClient().ForAsyncOnly();
                     for (var i = 0; i < publishMessageCount; i++)
                     {
                         var message = messagePrefix + i;
@@ -219,7 +219,7 @@ namespace ServiceStack.Redis.Tests
                 {
                     await Task.Delay(100); // to be sure that we have subscribers
 
-                    await using var redisClient = CreateRedisClient().AsAsync();
+                    await using var redisClient = CreateRedisClient().ForAsyncOnly();
                     foreach (var channel in channels)
                     {
                         Log("Publishing '{0}' to '{1}'", message, channel);
@@ -255,7 +255,7 @@ namespace ServiceStack.Redis.Tests
             {
                 await Task.Delay(100); // to be sure that we have subscribers
 
-                    await using var redisClient = CreateRedisClient().AsAsync();
+                    await using var redisClient = CreateRedisClient().ForAsyncOnly();
                 Log("Publishing msg...");
                 await redisClient.PublishMessageAsync(PrefixedKey("CHANNEL4:TITLE1"), "hello"); // .ToUtf8Bytes()
                 });
@@ -280,7 +280,7 @@ namespace ServiceStack.Redis.Tests
             {
                 await Task.Delay(100); // to be sure that we have subscribers
 
-                    await using var redisClient = CreateRedisClient().AsAsync();
+                    await using var redisClient = CreateRedisClient().ForAsyncOnly();
                 Log("Publishing msg...");
                 await redisClient.PublishMessageAsync(PrefixedKey("CHANNEL5:BODY"), "hello"); // .ToUtf8Bytes()
                 });
