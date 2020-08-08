@@ -105,7 +105,7 @@ namespace ServiceStack.Redis
             bool rc = true;
             try
             {
-                Execute();
+                await ExecuteAsync().ConfigureAwait(false);
 
                 //receive expected results
                 foreach (var queuedCommand in QueuedCommands)

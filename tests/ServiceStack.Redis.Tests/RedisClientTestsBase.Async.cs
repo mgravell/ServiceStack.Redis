@@ -78,7 +78,7 @@ namespace ServiceStack.Redis.Tests
         protected IRedisClientAsync RedisAsync => base.Redis;
         protected IRedisNativeClientAsync NativeAsync => base.Redis;
 
-        [Obsolete("This should use RedisAsync or RedisRaw")]
+        [Obsolete("This should use RedisAsync or RedisRaw", true)]
         protected new RedisClient Redis => base.Redis;
 
         protected RedisClient RedisRaw
