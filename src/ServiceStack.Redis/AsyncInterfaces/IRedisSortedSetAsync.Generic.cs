@@ -41,5 +41,9 @@ namespace ServiceStack.Redis.Generic
         ValueTask<long> PopulateWithUnionOfAsync(IRedisSortedSetAsync<T>[] setIds, CancellationToken cancellationToken = default);
         ValueTask<long> PopulateWithUnionOfAsync(IRedisSortedSetAsync<T>[] setIds, string[] args, CancellationToken cancellationToken = default);
         ValueTask ClearAsync(CancellationToken cancellationToken = default);
+
+        ValueTask<bool> ContainsAsync(T value, CancellationToken cancellationToken = default);
+        ValueTask AddAsync(T value, CancellationToken cancellationToken = default);
+        ValueTask RemoveAsync(T value, CancellationToken cancellationToken = default);
     }
 }

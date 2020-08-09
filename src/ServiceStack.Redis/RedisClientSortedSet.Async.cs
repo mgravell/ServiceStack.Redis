@@ -22,10 +22,16 @@ namespace ServiceStack.Redis
     {
         private IRedisClientAsync AsyncClient => client;
 
+        ValueTask IRedisSortedSetAsync.AddAsync(string value, CancellationToken cancellationToken)
+            => AsyncClient.AddItemToSortedSetAsync(setId, value, cancellationToken).Await();
+
         private IRedisSortedSetAsync AsAsync() => this;
 
         ValueTask IRedisSortedSetAsync.ClearAsync(CancellationToken cancellationToken)
             => AsyncClient.RemoveAsync(setId, cancellationToken).Await();
+
+        ValueTask<bool> IRedisSortedSetAsync.ContainsAsync(string value, CancellationToken cancellationToken)
+            => AsyncClient.SortedSetContainsItemAsync(setId, value, cancellationToken);
 
         ValueTask<int> IRedisSortedSetAsync.CountAsync(CancellationToken cancellationToken)
             => AsyncClient.GetSortedSetCountAsync(setId, cancellationToken).AsInt32();
@@ -71,6 +77,9 @@ namespace ServiceStack.Redis
 
         ValueTask<string> IRedisSortedSetAsync.PopItemWithLowestScoreAsync(CancellationToken cancellationToken)
             => AsyncClient.PopItemWithLowestScoreFromSortedSetAsync(setId, cancellationToken);
+
+        ValueTask IRedisSortedSetAsync.RemoveAsync(string value, CancellationToken cancellationToken)
+            => AsyncClient.RemoveItemFromSortedSetAsync(setId, value, cancellationToken).Await();
 
         ValueTask IRedisSortedSetAsync.RemoveRangeAsync(int fromRank, int toRank, CancellationToken cancellationToken)
             => AsyncClient.RemoveRangeFromSortedSetAsync(setId, fromRank, toRank, cancellationToken).Await();

@@ -96,11 +96,13 @@ namespace ServiceStack.Redis.Tests
         }
 
         [Test]
-        public async Task Can_PauseAllClients()
+        public Task Can_PauseAllClients()
         {
             //needs redis-server v3.0
             //var replica = new RedisClient("10.0.0.9:6380");
             //replica.PauseAllClients(TimeSpan.FromSeconds(2));
+
+            return Task.CompletedTask;
         }
     }
 }
