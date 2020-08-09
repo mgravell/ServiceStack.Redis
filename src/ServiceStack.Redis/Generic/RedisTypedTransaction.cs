@@ -23,10 +23,13 @@ namespace ServiceStack.Redis.Generic
         : RedisTypedPipeline<T>, IRedisTypedTransaction<T>, IRedisTransactionBase
     {
         private int _numCommands = 0;
-        internal RedisTypedTransaction(RedisTypedClient<T> redisClient)
+        private readonly bool _isAsync;
+        internal RedisTypedTransaction(RedisTypedClient<T> redisClient, bool isAsync)
             : base(redisClient)
         {
-
+            // if someone casts between sync/async: the sync-over-async or
+            // async-over-sync is entirely self-inflicted; I can't fix stupid
+            _isAsync = isAsync;
         }
 
         protected override void Init()
@@ -61,41 +64,36 @@ namespace ServiceStack.Redis.Generic
             RedisClient.FlushSendBuffer();
         }
 
-        private void EnqueueCommandsWithExecAndFlush()
-        {
-            _numCommands = QueuedCommands.Count / 2;
-
-            //insert multi command at beginning
-            QueuedCommands.Insert(0, new QueuedRedisCommand()
-            {
-                VoidReturnCommand = r => Init(),
-                VoidReadCommand = RedisClient.ExpectOk,
-            });
-
-
-            //the first half of the responses will be "QUEUED",
-            // so insert reading of multiline after these responses
-            QueuedCommands.Insert(_numCommands + 1, new QueuedRedisOperation()
-            {
-                IntReadCommand = RedisClient.ReadMultiDataResultCount,
-                OnSuccessIntCallback = handleMultiDataResultCount
-            });
-
-            // add Exec command at end (not queued)
-            QueuedCommands.Add(new RedisCommand()
-            {
-                VoidReturnCommand = r => Exec()
-            });
-
-            //execute transaction
-            Exec();
-        }
         public bool Commit()
         {
             bool rc = true;
             try
             {
-                EnqueueCommandsWithExecAndFlush();
+                _numCommands = QueuedCommands.Count / 2;
+
+                //insert multi command at beginning
+                QueuedCommands.Insert(0, new QueuedRedisCommand()
+                {
+                    VoidReturnCommand = r => Init(),
+                    VoidReadCommand = RedisClient.ExpectOk,
+                });
+
+                //the first half of the responses will be "QUEUED",
+                // so insert reading of multiline after these responses
+                QueuedCommands.Insert(_numCommands + 1, new QueuedRedisOperation()
+                {
+                    IntReadCommand = RedisClient.ReadMultiDataResultCount,
+                    OnSuccessIntCallback = handleMultiDataResultCount
+                });
+
+                // add Exec command at end (not queued)
+                QueuedCommands.Add(new RedisCommand()
+                {
+                    VoidReturnCommand = r => Exec()
+                });
+
+                //execute transaction
+                Exec();
 
                 /////////////////////////////
                 //receive expected results
@@ -177,8 +175,16 @@ namespace ServiceStack.Redis.Generic
         protected override void AddCurrentQueuedOperation()
         {
             base.AddCurrentQueuedOperation();
-            QueueExpectQueued();
+            if (_isAsync)
+            {
+                QueueExpectQueuedAsync();
+            }
+            else
+            {
+                QueueExpectQueued();
+            }
         }
         #endregion
+        partial void QueueExpectQueuedAsync();
     }
 }

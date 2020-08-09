@@ -39,6 +39,15 @@ namespace ServiceStack.Redis.Generic
 
         IRedisClientAsync IRedisTypedClientAsync<T>.RedisClient => client;
 
+        internal ValueTask ExpectQueuedAsync(CancellationToken cancellationToken)
+            => client.ExpectQueuedAsync(cancellationToken);
+
+        internal ValueTask ExpectOkAsync(CancellationToken cancellationToken)
+            => client.ExpectOkAsync(cancellationToken);
+
+        internal ValueTask<int> ReadMultiDataResultCountAsync(CancellationToken cancellationToken)
+            => client.ReadMultiDataResultCountAsync(cancellationToken);
+
         ValueTask<T> IRedisTypedClientAsync<T>.GetValueAsync(string key, CancellationToken cancellationToken)
             => DeserializeValueAsync(AsyncNative.GetAsync(key, cancellationToken));
 
@@ -143,7 +152,7 @@ namespace ServiceStack.Redis.Generic
 
         ValueTask<IRedisTypedTransactionAsync<T>> IRedisTypedClientAsync<T>.CreateTransactionAsync(CancellationToken cancellationToken)
         {
-            IRedisTypedTransactionAsync<T> obj = new RedisTypedTransaction<T>(this);
+            IRedisTypedTransactionAsync<T> obj = new RedisTypedTransaction<T>(this, true);
             return obj.AsValueTask();
         }
 

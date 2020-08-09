@@ -29,7 +29,28 @@ namespace ServiceStack.Redis.Generic
             bool rc = true;
             try
             {
-                EnqueueCommandsWithExecAndFlush();
+                _numCommands = QueuedCommands.Count / 2;
+
+                //insert multi command at beginning
+                QueuedCommands.Insert(0, new QueuedRedisCommand()
+                {
+                }.WithAsyncReturnCommand(VoidReturnCommandAsync: r => { Init(); return default; })
+                .WithAsyncReadCommand(RedisClient.ExpectOkAsync));
+
+                //the first half of the responses will be "QUEUED",
+                // so insert reading of multiline after these responses
+                QueuedCommands.Insert(_numCommands + 1, new QueuedRedisOperation()
+                {
+                    OnSuccessIntCallback = handleMultiDataResultCount
+                }.WithAsyncReadCommand(RedisClient.ReadMultiDataResultCountAsync));
+
+                // add Exec command at end (not queued)
+                QueuedCommands.Add(new RedisCommand()
+                {
+                }.WithAsyncReturnCommand(r => ExecAsync(cancellationToken)));
+
+                //execute transaction
+                await ExecAsync(cancellationToken).ConfigureAwait(false);
 
                 /////////////////////////////
                 //receive expected results
@@ -51,10 +72,23 @@ namespace ServiceStack.Redis.Generic
             return rc;
         }
 
+        private  ValueTask ExecAsync(CancellationToken cancellationToken)
+        {
+            RedisClient.Exec();
+            return RedisClient.FlushSendBufferAsync(cancellationToken);
+        }
+
         ValueTask IRedisTypedTransactionAsync<T>.RollbackAsync(CancellationToken cancellationToken)
         {
             Rollback(); // no async bits needed
             return default;
+        }
+
+        partial void QueueExpectQueuedAsync()
+        {
+            QueuedCommands.Insert(0, new QueuedRedisOperation
+            {
+            }.WithAsyncReadCommand(RedisClient.ExpectQueuedAsync));
         }
     }
 }

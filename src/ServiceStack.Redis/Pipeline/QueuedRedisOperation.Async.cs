@@ -49,6 +49,7 @@ namespace ServiceStack.Redis.Pipeline
                 switch (_asyncReadCommand)
                 {
                     case null:
+                        ProcessResultThrowIfSync();
                         break;
                     case Func<CancellationToken, ValueTask> VoidReadCommandAsync:
                         await VoidReadCommandAsync(cancellationToken).ConfigureAwait(false);
@@ -110,7 +111,7 @@ namespace ServiceStack.Redis.Pipeline
                         var dict = await DictionaryStringReadCommandAsync(cancellationToken).ConfigureAwait(false);
                         OnSuccessDictionaryStringCallback?.Invoke(dict);
                         break;
-                      default:
+                    default:
                         ProcessResultThrowIfSync();
                         break;
                 }

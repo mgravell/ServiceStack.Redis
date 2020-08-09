@@ -63,7 +63,7 @@ namespace ServiceStack.Redis.Generic
 
         public IRedisTypedTransaction<T> CreateTransaction()
         {
-            return new RedisTypedTransaction<T>(this);
+            return new RedisTypedTransaction<T>(this, false);
         }
 
         public IRedisTypedPipeline<T> CreatePipeline()

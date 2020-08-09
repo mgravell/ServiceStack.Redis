@@ -36,7 +36,7 @@ namespace ServiceStack.Redis.Tests.Generic
         [Test]
         public async Task Can_call_single_operation_in_transaction()
         {
-            Assert.That(typedClient.GetValueAsync(Key), Is.Null);
+            Assert.That(await typedClient.GetValueAsync(Key), Is.Null);
 
             await using (var trans = await typedClient.CreateTransactionAsync())
             {
@@ -58,7 +58,7 @@ namespace ServiceStack.Redis.Tests.Generic
                 trans.QueueCommand(r => r.SetValueAsync(Key, model));
             }
 
-            Assert.That(typedClient.GetValueAsync(Key), Is.Null);
+            Assert.That(await typedClient.GetValueAsync(Key), Is.Null);
         }
 
         [Test]
