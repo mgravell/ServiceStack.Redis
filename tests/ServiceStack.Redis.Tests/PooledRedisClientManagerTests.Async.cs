@@ -283,7 +283,7 @@ namespace ServiceStack.Redis.Tests
             Action func = async delegate
 #pragma warning restore IDE0039 // Use local function
             {
-                Thread.Sleep(delay + TimeSpan.FromSeconds(0.5));
+                await Task.Delay(delay + TimeSpan.FromSeconds(0.5));
                 await client4.DisposeAsync();
             };
 
@@ -320,7 +320,7 @@ namespace ServiceStack.Redis.Tests
             Action func = async delegate
 #pragma warning restore IDE0039 // Use local function
             {
-                Thread.Sleep(delay + TimeSpan.FromSeconds(0.5));
+                await Task.Delay(delay + TimeSpan.FromSeconds(0.5));
                 await client3.DisposeAsync();
             };
 #if NETCORE

@@ -34,7 +34,7 @@ namespace ServiceStack.Redis.Tests
             }                                                          //Calls 'DISCARD' if 'EXEC' wasn't called
 
             Assert.That(await RedisAsync.GetValueAsync(Prefix + "key"), Is.EqualTo("a"));
-            Thread.Sleep(TimeSpan.FromSeconds(2));
+            await Task.Delay(TimeSpan.FromSeconds(2));
             Assert.That(await RedisAsync.GetValueAsync(Prefix + "key"), Is.Null);
         }
 
