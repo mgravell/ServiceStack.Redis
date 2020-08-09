@@ -1379,5 +1379,11 @@ namespace ServiceStack.Redis
 
         ValueTask<IRedisSubscriptionAsync> IRedisNativeClientAsync.CreateSubscriptionAsync(CancellationToken cancellationToken)
             => new RedisSubscription(this).AsValueTask<IRedisSubscriptionAsync>();
+
+        ValueTask<long> IRedisNativeClientAsync.BitCountAsync(string key, CancellationToken cancellationToken)
+        {
+            AssertNotNull(key);
+            return SendExpectLongAsync(cancellationToken, Commands.BitCount, key.ToUtf8Bytes());
+        }
     }
 }

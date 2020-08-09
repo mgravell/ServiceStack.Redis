@@ -101,7 +101,7 @@ namespace ServiceStack.Redis
         ValueTask<long> SetRangeAsync(string key, int offset, byte[] value, CancellationToken cancellationToken = default);
         ValueTask<long> GetBitAsync(string key, int offset, CancellationToken cancellationToken = default);
         ValueTask<long> SetBitAsync(string key, int offset, int value, CancellationToken cancellationToken = default);
-
+        ValueTask<long> BitCountAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<string> RandomKeyAsync(CancellationToken cancellationToken = default);
         ValueTask RenameAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);
         ValueTask<bool> RenameNxAsync(string oldKeyname, string newKeyname, CancellationToken cancellationToken = default);
