@@ -67,6 +67,16 @@ namespace ServiceStack.Redis
             }
         }
 
+        // Called just after original Pipeline is closed.
+        internal async ValueTask AddTypeIdsRegisteredDuringPipelineAsync(CancellationToken cancellationToken)
+        {
+            foreach (var entry in registeredTypeIdsWithinPipelineMap)
+            {
+                await AsAsync().AddRangeToSetAsync(entry.Key, entry.Value.ToList(), cancellationToken).ConfigureAwait(false);
+            }
+            registeredTypeIdsWithinPipelineMap = new Dictionary<string, HashSet<string>>();
+        }
+
 
         ValueTask<DateTime> IRedisClientAsync.GetServerTimeAsync(CancellationToken cancellationToken)
             => NativeAsync.TimeAsync(cancellationToken).Await(parts => ParseTimeResult(parts));
@@ -1066,7 +1076,7 @@ namespace ServiceStack.Redis
             await pipeline.FlushAsync(cancellationToken).ConfigureAwait(false);
 
             //the number of items after
-            _ = await pipeline.ReadAllAsIntsAsync(cancellationToken);
+            _ = await pipeline.ReadAllAsIntsAsync(cancellationToken).ConfigureAwait(false);
         }
 
         ValueTask IRedisClientAsync.RemoveAllFromListAsync(string listId, CancellationToken cancellationToken)

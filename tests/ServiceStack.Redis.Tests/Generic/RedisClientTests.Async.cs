@@ -55,16 +55,6 @@ namespace ServiceStack.Redis.Tests.Generic
             return sortedList;
         }
 
-        private void AssertUnorderedListsAreEqual<T>(IList<T> actualList, IList<T> expectedList)
-        {
-            Assert.That(actualList, Has.Count.EqualTo(expectedList.Count));
-
-            var actualMap = Sort(actualList.Select(x => x.GetId()));
-            var expectedMap = Sort(expectedList.Select(x => x.GetId()));
-
-            Assert.That(actualMap, Is.EquivalentTo(expectedMap));
-        }
-
         [Test]
         public async Task Can_SetBit_And_GetBit_And_BitCount()
         {

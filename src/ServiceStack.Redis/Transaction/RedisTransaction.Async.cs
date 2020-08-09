@@ -86,7 +86,7 @@ namespace ServiceStack.Redis
             {
                 RedisClient.Transaction = null;
                 ClosePipeline();
-                RedisClient.AddTypeIdsRegisteredDuringPipeline();
+                await RedisClient.AddTypeIdsRegisteredDuringPipelineAsync(cancellationToken).ConfigureAwait(false);
             }
             return rc;
         }
@@ -121,7 +121,7 @@ namespace ServiceStack.Redis
             {
                 RedisClient.Transaction = null;
                 ClosePipeline();
-                RedisClient.AddTypeIdsRegisteredDuringPipeline();
+                await RedisClient.AddTypeIdsRegisteredDuringPipelineAsync(cancellationToken).ConfigureAwait(false);
             }
             return rc;
         }

@@ -35,7 +35,7 @@ namespace ServiceStack.Redis.Generic
                 //receive expected results
                 foreach (var queuedCommand in QueuedCommands)
                 {
-                    await queuedCommand.ProcessResultAsync(cancellationToken);
+                    await queuedCommand.ProcessResultAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (RedisTransactionFailedException)
@@ -46,7 +46,7 @@ namespace ServiceStack.Redis.Generic
             {
                 RedisClient.Transaction = null;
                 ClosePipeline();
-                RedisClient.AddTypeIdsRegisteredDuringPipeline();
+                await RedisClient.AddTypeIdsRegisteredDuringPipelineAsync(cancellationToken).ConfigureAwait(false);
             }
             return rc;
         }

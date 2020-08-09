@@ -127,7 +127,7 @@ namespace ServiceStack.Redis.Generic
             var index = await AsAsync().IndexOfAsync(value, cancellationToken).ConfigureAwait(false);
             if (index != -1)
             {
-                await AsAsync().RemoveAtAsync(index, cancellationToken);
+                await AsAsync().RemoveAtAsync(index, cancellationToken).ConfigureAwait(false);
                 return true;
             }
             return false;
@@ -140,10 +140,10 @@ namespace ServiceStack.Redis.Generic
         {
             //TODO: replace with native implementation when one exists
             var markForDelete = Guid.NewGuid().ToString();
-            await AsyncClient.NativeClient.LSetAsync(listId, index, Encoding.UTF8.GetBytes(markForDelete), cancellationToken);
+            await AsyncClient.NativeClient.LSetAsync(listId, index, Encoding.UTF8.GetBytes(markForDelete), cancellationToken).ConfigureAwait(false);
 
             const int removeAll = 0;
-            await AsyncClient.NativeClient.LRemAsync(listId, removeAll, Encoding.UTF8.GetBytes(markForDelete), cancellationToken);
+            await AsyncClient.NativeClient.LRemAsync(listId, removeAll, Encoding.UTF8.GetBytes(markForDelete), cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask<bool> IRedisListAsync<T>.ContainsAsync(T value, CancellationToken cancellationToken)

@@ -209,16 +209,6 @@ namespace ServiceStack.Redis.Tests.Generic
             Assert.That(members, Is.EquivalentTo(mapValues));
         }
 
-        private static Dictionary<string, string> ToStringMap(Dictionary<string, int> stringIntMap)
-        {
-            var map = new Dictionary<string, string>();
-            foreach (var kvp in stringIntMap)
-            {
-                map[kvp.Key] = kvp.Value.ToString();
-            }
-            return map;
-        }
-
         [Test]
         public async Task Can_SetItemInHashIfNotExists()
         {

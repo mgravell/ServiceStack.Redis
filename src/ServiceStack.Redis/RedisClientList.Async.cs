@@ -123,8 +123,8 @@ namespace ServiceStack.Redis
         {
             //TODO: replace with native implementation when one exists
             var markForDelete = Guid.NewGuid().ToString();
-            await AsyncClient.SetItemInListAsync(listId, index, markForDelete, cancellationToken);
-            await AsyncClient.RemoveItemFromListAsync(listId, markForDelete, cancellationToken);
+            await AsyncClient.SetItemInListAsync(listId, index, markForDelete, cancellationToken).ConfigureAwait(false);
+            await AsyncClient.RemoveItemFromListAsync(listId, markForDelete, cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask<bool> IRedisListAsync.ContainsAsync(string value, CancellationToken cancellationToken)

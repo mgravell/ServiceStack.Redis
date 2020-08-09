@@ -55,6 +55,12 @@ namespace ServiceStack.Redis.Generic
             return AsAsync().GetValueAsync(key, cancellationToken);
         }
 
+        internal ValueTask FlushSendBufferAsync(CancellationToken cancellationToken)
+            => client.FlushSendBufferAsync(cancellationToken);
+
+        internal ValueTask AddTypeIdsRegisteredDuringPipelineAsync(CancellationToken cancellationToken)
+            => client.AddTypeIdsRegisteredDuringPipelineAsync(cancellationToken);
+
         async ValueTask<IList<T>> IEntityStoreAsync<T>.GetByIdsAsync(IEnumerable ids, CancellationToken cancellationToken)
         {
             if (ids != null)
@@ -194,7 +200,7 @@ namespace ServiceStack.Redis.Generic
         async ValueTask<bool> IRedisTypedClientAsync<T>.SetValueIfNotExistsAsync(string key, T entity, CancellationToken cancellationToken)
         {
             var success = await AsyncNative.SetNXAsync(key, SerializeValue(entity)).IsSuccessAsync().ConfigureAwait(false);
-            if (success) await client.RegisterTypeIdAsync(entity, cancellationToken);
+            if (success) await client.RegisterTypeIdAsync(entity, cancellationToken).ConfigureAwait(false);
             return success;
         }
 
@@ -416,7 +422,7 @@ namespace ServiceStack.Redis.Generic
         {
             var unblockingKeyAndValue = await AsyncNative.BLPopAsync(fromList.Id, (int)timeOut.GetValueOrDefault().TotalSeconds, cancellationToken).ConfigureAwait(false);
             return unblockingKeyAndValue.Length == 0
-                ? default(T)
+                ? default
                 : DeserializeValue(unblockingKeyAndValue[1]);
         }
 
@@ -646,14 +652,12 @@ namespace ServiceStack.Redis.Generic
             var childRefKey = GetChildReferenceSetKey<TChild>(parentId);
             var childKeys = children.ConvertAll(x => client.UrnKey(x));
 
-            await using (var trans = await AsyncClient.CreateTransactionAsync(cancellationToken).ConfigureAwait(false))
-            {
-                //Ugly but need access to a generic constraint-free StoreAll method
-                trans.QueueCommand(c => ((RedisClient)c).StoreAllAsyncImpl(children, cancellationToken));
-                trans.QueueCommand(c => c.AddRangeToSetAsync(childRefKey, childKeys, cancellationToken));
+            await using var trans = await AsyncClient.CreateTransactionAsync(cancellationToken).ConfigureAwait(false);
+            //Ugly but need access to a generic constraint-free StoreAll method
+            trans.QueueCommand(c => ((RedisClient)c).StoreAllAsyncImpl(children, cancellationToken));
+            trans.QueueCommand(c => c.AddRangeToSetAsync(childRefKey, childKeys, cancellationToken));
 
-                await trans.CommitAsync(cancellationToken).ConfigureAwait(false);
-            }
+            await trans.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
 
         ValueTask IRedisTypedClientAsync<T>.StoreRelatedEntitiesAsync<TChild>(object parentId, TChild[] children, CancellationToken cancellationToken)

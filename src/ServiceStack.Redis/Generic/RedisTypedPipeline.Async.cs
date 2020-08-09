@@ -16,6 +16,7 @@ namespace ServiceStack.Redis
     public partial class RedisTypedPipeline<T>
         : IRedisTypedPipelineAsync<T>
     {
+        private IRedisTypedPipelineAsync<T> AsAsync() => this;
         void IRedisQueueCompletableOperationAsync.CompleteBytesQueuedCommandAsync(Func<CancellationToken, ValueTask<byte[]>> bytesReadCommand)
         {
             //AssertCurrentOperation();
@@ -108,12 +109,30 @@ namespace ServiceStack.Redis
 
         ValueTask IAsyncDisposable.DisposeAsync()
         {
-            throw new NotImplementedException();
+            Dispose();
+            return default;
         }
 
-        ValueTask IRedisPipelineSharedAsync.FlushAsync(CancellationToken cancellationToken)
+        async ValueTask IRedisPipelineSharedAsync.FlushAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // flush send buffers
+                await RedisClient.FlushSendBufferAsync(cancellationToken).ConfigureAwait(false);
+                RedisClient.ResetSendBuffer();
+
+                //receive expected results
+                foreach (var queuedCommand in QueuedCommands)
+                {
+                    await queuedCommand.ProcessResultAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+            }
+            finally
+            {
+                ClosePipeline();
+                await RedisClient.AddTypeIdsRegisteredDuringPipelineAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         void IRedisTypedQueueableOperationAsync<T>.QueueCommand(Func<IRedisTypedClientAsync<T>, ValueTask> command, Action onSuccessCallback, Action<Exception> onErrorCallback)
@@ -230,9 +249,17 @@ namespace ServiceStack.Redis
             RedisAllPurposePipeline.AssertSync(command(RedisClient));
         }
 
-        ValueTask<bool> IRedisPipelineSharedAsync.ReplayAsync(CancellationToken cancellationToken)
+        async ValueTask<bool> IRedisPipelineSharedAsync.ReplayAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            RedisClient.Pipeline = this;
+            // execute
+            foreach (var queuedCommand in QueuedCommands)
+            {
+                if (queuedCommand is QueuedRedisTypedCommand<T> cmd)
+                    await cmd.ExecuteAsync(RedisClient).ConfigureAwait(false);
+            }
+            await AsAsync().FlushAsync(cancellationToken).ConfigureAwait(false);
+            return true;
         }
     }
 }

@@ -122,7 +122,7 @@ namespace ServiceStack.Redis
                     activeChannels.Add(channel);
 
                     var tmp = OnSubscribeAsync;
-                    if (tmp is object) await tmp.Invoke(channel);
+                    if (tmp is object) await tmp.Invoke(channel).ConfigureAwait(false);
                 }
                 else if (UnSubscribeWord.AreEqual(messageType)
                     || PUnSubscribeWord.AreEqual(messageType))
@@ -132,19 +132,19 @@ namespace ServiceStack.Redis
                     activeChannels.Remove(channel);
 
                     var tmp = OnUnSubscribeAsync;
-                    if (tmp is object) await tmp.Invoke(channel);
+                    if (tmp is object) await tmp.Invoke(channel).ConfigureAwait(false);
                 }
                 else if (MessageWord.AreEqual(messageType))
                 {
                     var msgBytes = multiBytes[i + MsgIndex];
                     var tmp1 = OnMessageBytesAsync;
-                    if (tmp1 is object) await tmp1.Invoke(channel, msgBytes);
+                    if (tmp1 is object) await tmp1.Invoke(channel, msgBytes).ConfigureAwait(false);
 
                     var tmp2 = OnMessageAsync;
                     if (tmp2 is object)
                     {
                         var message = msgBytes.FromUtf8Bytes();
-                        await tmp2.Invoke(channel, message);
+                        await tmp2.Invoke(channel, message).ConfigureAwait(false);
                     }
                 }
                 else if (PMessageWord.AreEqual(messageType))
@@ -152,13 +152,13 @@ namespace ServiceStack.Redis
                     channel = multiBytes[i + 2].FromUtf8Bytes();
                     var msgBytes = multiBytes[i + MsgIndex + 1];
                     var tmp1 = OnMessageBytesAsync;
-                    if (tmp1 is object) await tmp1.Invoke(channel, msgBytes);
+                    if (tmp1 is object) await tmp1.Invoke(channel, msgBytes).ConfigureAwait(false);
 
                     var tmp2 = OnMessageAsync;
                     if (tmp2 is object)
                     {
                         var message = msgBytes.FromUtf8Bytes();
-                        await tmp2.Invoke(channel, message);
+                        await tmp2.Invoke(channel, message).ConfigureAwait(false);
                     }
                 }
                 else

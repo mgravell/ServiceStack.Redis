@@ -68,11 +68,9 @@ namespace ServiceStack.Redis.Tests.Generic
             Assert.That(await typedClient.GetValueAsync(Key), Is.Null);
             try
             {
-                await using (var pipeline = typedClient.CreatePipelineAsync())
-                {
-                    pipeline.QueueCommand(r => r.SetValueAsync(Key, model));
-                    throw new NotSupportedException();
-                }
+                await using var pipeline = typedClient.CreatePipelineAsync();
+                pipeline.QueueCommand(r => r.SetValueAsync(Key, model));
+                throw new NotSupportedException();
             }
             catch (NotSupportedException)
             {
@@ -209,24 +207,22 @@ namespace ServiceStack.Redis.Tests.Generic
             const string keySquared = Key + Key;
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             Assert.That(await RedisAsync.GetValueAsync(keySquared), Is.Null);
-            await using (var pipeline = typedClient.CreatePipelineAsync())
-            {
-                pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
-                pipeline.QueueCommand(r => r.IncrementValueAsync(keySquared));
-                await pipeline.FlushAsync();
+            await using var pipeline = typedClient.CreatePipelineAsync();
+            pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
+            pipeline.QueueCommand(r => r.IncrementValueAsync(keySquared));
+            await pipeline.FlushAsync();
 
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
-                Assert.That(await RedisAsync.GetValueAsync(keySquared), Is.EqualTo("1"));
-                await typedClient.RemoveEntryAsync(Key);
-                await typedClient.RemoveEntryAsync(keySquared);
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
-                Assert.That(await RedisAsync.GetValueAsync(keySquared), Is.Null);
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
+            Assert.That(await RedisAsync.GetValueAsync(keySquared), Is.EqualTo("1"));
+            await typedClient.RemoveEntryAsync(Key);
+            await typedClient.RemoveEntryAsync(keySquared);
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
+            Assert.That(await RedisAsync.GetValueAsync(keySquared), Is.Null);
 
-                await pipeline.ReplayAsync();
-                await pipeline.DisposeAsync();
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
-                Assert.That(await RedisAsync.GetValueAsync(keySquared), Is.EqualTo("1"));
-            }
+            await pipeline.ReplayAsync();
+            await pipeline.DisposeAsync();
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
+            Assert.That(await RedisAsync.GetValueAsync(keySquared), Is.EqualTo("1"));
 
         }
 

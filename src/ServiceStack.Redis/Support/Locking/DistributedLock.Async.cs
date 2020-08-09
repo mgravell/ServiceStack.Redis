@@ -43,7 +43,7 @@ namespace ServiceStack.Redis.Support.Locking
                 if (wasSet != LOCK_NOT_ACQUIRED) break;
 
                 // handle possibliity of crashed client still holding the lock
-                var pipe = await client.CreatePipelineAsync(cancellationToken);
+                var pipe = await client.CreatePipelineAsync(cancellationToken).ConfigureAwait(false);
                 await using (pipe.ConfigureAwait(false))
                 {
                     long lockValue = 0;
@@ -107,7 +107,7 @@ namespace ServiceStack.Redis.Support.Locking
                 return false;
             }
 
-            var trans = await client.CreateTransactionAsync(cancellationToken);
+            var trans = await client.CreateTransactionAsync(cancellationToken).ConfigureAwait(false);
             await using (trans.ConfigureAwait(false))
             {
                 trans.QueueCommand(r => ((IRedisNativeClientAsync)r).DelAsync(key, cancellationToken));

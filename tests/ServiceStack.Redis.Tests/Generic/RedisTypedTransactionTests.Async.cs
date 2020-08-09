@@ -67,11 +67,9 @@ namespace ServiceStack.Redis.Tests.Generic
             Assert.That(await typedClient.GetValueAsync(Key), Is.Null);
             try
             {
-                await using (var trans = await typedClient.CreateTransactionAsync())
-                {
-                    trans.QueueCommand(r => r.SetValueAsync(Key, model));
-                    throw new NotSupportedException();
-                }
+                await using var trans = await typedClient.CreateTransactionAsync();
+                trans.QueueCommand(r => r.SetValueAsync(Key, model));
+                throw new NotSupportedException();
             }
             catch (NotSupportedException)
             {
@@ -208,11 +206,9 @@ namespace ServiceStack.Redis.Tests.Generic
         public async Task Can_call_operation_not_supported_on_older_servers_in_transaction()
         {
             var temp = new byte[1];
-            await using (var trans = await RedisAsync.CreateTransactionAsync())
-            {
-                trans.QueueCommand(r => ((IRedisNativeClientAsync)r).SetExAsync("key", 5, temp));
-                await trans.CommitAsync();
-            }
+            await using var trans = await RedisAsync.CreateTransactionAsync();
+            trans.QueueCommand(r => ((IRedisNativeClientAsync)r).SetExAsync("key", 5, temp));
+            await trans.CommitAsync();
         }
 
 
@@ -222,24 +218,22 @@ namespace ServiceStack.Redis.Tests.Generic
             string KeySquared = Key + Key;
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
-            await using (var trans = await RedisAsync.CreateTransactionAsync())
-            {
-                trans.QueueCommand(r => r.IncrementValueAsync(Key));
-                trans.QueueCommand(r => r.IncrementValueAsync(KeySquared));
-                await trans.CommitAsync();
+            await using var trans = await RedisAsync.CreateTransactionAsync();
+            trans.QueueCommand(r => r.IncrementValueAsync(Key));
+            trans.QueueCommand(r => r.IncrementValueAsync(KeySquared));
+            await trans.CommitAsync();
 
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
-                Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
-                await NativeAsync.DelAsync(Key);
-                await NativeAsync.DelAsync(KeySquared);
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
-                Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
+            Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
+            await NativeAsync.DelAsync(Key);
+            await NativeAsync.DelAsync(KeySquared);
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
+            Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
 
-                await trans.ReplayAsync();
-                await trans.DisposeAsync();
-                Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
-                Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
-            }
+            await trans.ReplayAsync();
+            await trans.DisposeAsync();
+            Assert.That(await RedisAsync.GetValueAsync(Key), Is.EqualTo("1"));
+            Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.EqualTo("1"));
         }
 
     }

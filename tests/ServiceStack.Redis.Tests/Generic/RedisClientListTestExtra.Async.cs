@@ -10,9 +10,9 @@ namespace ServiceStack.Redis.Tests.Generic
     public class RedisClientListTestExtraAsync
     {
         const string ListId = "testlist";
-        const string ListId2 = "testlist2";
+        // const string ListId2 = "testlist2";
         private IRedisListAsync<CustomType> List;
-        private IRedisListAsync<CustomType> List2;
+        // private IRedisListAsync<CustomType> List2;
 
 
         private readonly IModelFactory<CustomType> factory = new CustomTypeFactory();
@@ -36,7 +36,7 @@ namespace ServiceStack.Redis.Tests.Generic
             redis = client.As<CustomType>();
 
             List = redis.Lists[ListId];
-            List2 = redis.Lists[ListId2];
+            // List2 = redis.Lists[ListId2];
         }
 
         [Test]

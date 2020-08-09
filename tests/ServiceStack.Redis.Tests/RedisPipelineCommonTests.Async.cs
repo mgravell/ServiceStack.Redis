@@ -36,13 +36,11 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_SetAll_and_Publish_in_atomic_transaction()
         {
             var messages = new Dictionary<string, string> { { "a", "a" }, { "b", "b" } };
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
-            {
-                pipeline.QueueCommand(c => c.SetAllAsync(messages.ToDictionary(t => t.Key, t => t.Value)));
-                pipeline.QueueCommand(c => c.PublishMessageAsync("uc", "b"));
+            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            pipeline.QueueCommand(c => c.SetAllAsync(messages.ToDictionary(t => t.Key, t => t.Value)));
+            pipeline.QueueCommand(c => c.PublishMessageAsync("uc", "b"));
 
-                await pipeline.FlushAsync();
-            }
+            await pipeline.FlushAsync();
         }
 
         [Test]
