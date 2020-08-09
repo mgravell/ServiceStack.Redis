@@ -5,9 +5,9 @@ using ServiceStack.Redis.Tests.Support;
 
 namespace ServiceStack.Redis.Tests.Generic
 {
-    // TODO: error, missing fixture?
-    public class RedisClientListTestsModelWithFieldsOfDifferentTypes
-        : RedisClientListTestsBase<ModelWithFieldsOfDifferentTypes>
+    [TestFixture]
+    public class RedisClientListTestsModelWithFieldsOfDifferentTypesAsync
+        : RedisClientListTestsBaseAsync<ModelWithFieldsOfDifferentTypes>
     {
         private readonly IModelFactory<ModelWithFieldsOfDifferentTypes> factory =
             new ModelWithFieldsOfDifferentTypesFactory();
@@ -19,8 +19,8 @@ namespace ServiceStack.Redis.Tests.Generic
     }
 
     [TestFixture]
-    public class RedisClientListTestsString
-        : RedisClientListTestsBase<string>
+    public class RedisClientListTestsStringAsync
+        : RedisClientListTestsBaseAsync<string>
     {
         private readonly IModelFactory<string> factory = new BuiltInsFactory();
 
@@ -31,8 +31,8 @@ namespace ServiceStack.Redis.Tests.Generic
     }
 
     [TestFixture]
-    public class RedisClientListTestsShipper
-        : RedisClientListTestsBase<Shipper>
+    public class RedisClientListTestsShipperAsync
+        : RedisClientListTestsBaseAsync<Shipper>
     {
         private readonly IModelFactory<Shipper> factory = new ShipperFactory();
 
@@ -43,8 +43,8 @@ namespace ServiceStack.Redis.Tests.Generic
     }
 
     [TestFixture]
-    public class RedisClientListTestsInt
-        : RedisClientListTestsBase<int>
+    public class RedisClientListTestsIntAsync
+        : RedisClientListTestsBaseAsync<int>
     {
         private readonly IModelFactory<int> factory = new IntFactory();
 
@@ -55,8 +55,8 @@ namespace ServiceStack.Redis.Tests.Generic
     }
 
     [TestFixture]
-    public class RedisClientListTestsCustomType
-        : RedisClientSetTestsBase<CustomType>
+    public class RedisClientListTestsCustomTypeAsync
+        : RedisClientSetTestsBaseAsync<CustomType>
     {
         private readonly IModelFactory<CustomType> factory = new CustomTypeFactory();
 
@@ -67,8 +67,8 @@ namespace ServiceStack.Redis.Tests.Generic
     }
 
     [TestFixture]
-    public class RedisClientlistTestCustomType_Failing
-        : RedisClientListTestsBase<CustomType>
+    public class RedisClientlistTestCustomType_FailingAsync
+        : RedisClientListTestsBaseAsync<CustomType>
     {
         private readonly IModelFactory<CustomType> factory = new CustomTypeFactory();
 
@@ -78,8 +78,8 @@ namespace ServiceStack.Redis.Tests.Generic
         }
     }
 
-    //public class RedisClientListTestsDateTime
-    //    : RedisClientListTestsBase<DateTime>
+    //public class RedisClientListTestsDateTimeAsync
+    //    : RedisClientListTestsBaseAsync<DateTime>
     //{
     //    private readonly IModelFactory<DateTime> factory = new DateTimeFactory();
 

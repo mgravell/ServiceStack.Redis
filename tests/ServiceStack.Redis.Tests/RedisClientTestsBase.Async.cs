@@ -13,6 +13,11 @@ namespace ServiceStack.Redis.Tests
             foreach (var item in source)
                 await action(item).ConfigureAwait(false);
         }
+        public static async ValueTask ForEachAsync<TKey, TValue>(this Dictionary<TKey, TValue> source, Func<TKey, TValue, ValueTask> action)
+        {
+            foreach (var item in source)
+                await action(item.Key, item.Value).ConfigureAwait(false);
+        }
         public static async ValueTask TimesAsync(this int times, Func<int, ValueTask> action)
         {
             for (int i = 0; i < times; i++)

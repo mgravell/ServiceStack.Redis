@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests.Generic
 {
+    [Category("Async")]
     public abstract class RedisClientSetTestsBaseAsync<T>
     {
         private const string SetId = "testset";

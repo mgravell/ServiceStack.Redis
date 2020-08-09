@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ServiceStack.Redis.Tests.Generic
 {
-    [TestFixture, Category("Integration")]
+    [TestFixture, Category("Integration"), Category("Async")]
     public class RedisClientTestsAsync : RedisClientTestsBaseAsync
     {
         [OneTimeSetUp]
