@@ -76,10 +76,9 @@ namespace ServiceStack.Redis
                 _ = ObserveAsync(command.AsTask());
                 throw new InvalidOperationException($"The operations provided to {nameof(IRedisQueueableOperationAsync.QueueCommand)} should not perform asynchronous operations internally");
             }
-            if (!command.IsCompletedSuccessfully)
-            {   // so: faulted synchronously; expose that
-                command.GetAwaiter().GetResult();
-            }
+            // this serves two purposes: 1) surface any fault, and
+            // 2) ensure that if pooled (IValueTaskSource), it is reclaimed
+            _ = command.Result;
         }
 
         internal static void AssertSync(ValueTask command)
@@ -89,10 +88,9 @@ namespace ServiceStack.Redis
                 _ = ObserveAsync(command.AsTask());
                 throw new InvalidOperationException($"The operations provided to {nameof(IRedisQueueableOperationAsync.QueueCommand)} should not perform asynchronous operations internally");
             }
-            if (!command.IsCompletedSuccessfully)
-            {   // so: faulted synchronously; expose that
-                command.GetAwaiter().GetResult();
-            }
+            // this serves two purposes: 1) surface any fault, and
+            // 2) ensure that if pooled (IValueTaskSource), it is reclaimed
+            command.GetAwaiter().GetResult();
         }
 
         static async Task ObserveAsync(Task task) // semantically this is "async void", but: some sync-contexts explode on that

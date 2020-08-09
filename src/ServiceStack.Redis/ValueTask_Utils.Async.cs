@@ -12,7 +12,7 @@ namespace ServiceStack.Redis.Internal
         {
             if (pending.IsCompletedSuccessfully)
             {
-                _ = pending.GetAwaiter().GetResult(); // for IValueTaskSource reasons
+                _ = pending.Result; // for IValueTaskSource reasons
                 return default;
             }
             else
