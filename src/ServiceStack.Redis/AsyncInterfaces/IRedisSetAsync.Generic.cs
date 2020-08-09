@@ -29,6 +29,10 @@ namespace ServiceStack.Redis.Generic
         ValueTask PopulateWithUnionOfAsync(IRedisSetAsync<T>[] sets, CancellationToken cancellationToken = default);
         ValueTask GetDifferencesAsync(IRedisSetAsync<T>[] withSets, CancellationToken cancellationToken = default);
         ValueTask PopulateWithDifferencesOfAsync(IRedisSetAsync<T> fromSet, IRedisSetAsync<T>[] withSets, CancellationToken cancellationToken = default);
+        ValueTask ClearAsync(CancellationToken cancellationToken = default);
+        ValueTask<bool> ContainsAsync(T value, CancellationToken cancellationToken = default);
+        ValueTask RemoveAsync(T value, CancellationToken cancellationToken = default);
+        ValueTask AddAsync(T value, CancellationToken cancellationToken = default);
     }
 
 }

@@ -21,7 +21,17 @@ namespace ServiceStack.Redis.Generic
         : IRedisSetAsync<T>
     {
         IRedisTypedClientAsync<T> AsyncClient => client;
+
+        ValueTask IRedisSetAsync<T>.AddAsync(T value, CancellationToken cancellationToken)
+            => AsyncClient.AddItemToSetAsync(this, value, cancellationToken);
+
         IRedisSetAsync<T> AsAsync() => this;
+
+        ValueTask IRedisSetAsync<T>.ClearAsync(CancellationToken cancellationToken)
+            => AsyncClient.RemoveEntryAsync(setId, cancellationToken).Await();
+
+        ValueTask<bool> IRedisSetAsync<T>.ContainsAsync(T item, CancellationToken cancellationToken)
+            => AsyncClient.SetContainsItemAsync(this, item, cancellationToken);
 
         ValueTask<int> IRedisSetAsync<T>.CountAsync(CancellationToken cancellationToken)
             => AsyncClient.GetSetCountAsync(this, cancellationToken).AsInt32();
@@ -77,6 +87,9 @@ namespace ServiceStack.Redis.Generic
 
         ValueTask IRedisSetAsync<T>.PopulateWithUnionOfAsync(IRedisSetAsync<T>[] sets, CancellationToken cancellationToken)
             => AsyncClient.StoreUnionFromSetsAsync(this, sets, cancellationToken);
+
+        ValueTask IRedisSetAsync<T>.RemoveAsync(T value, CancellationToken cancellationToken)
+            => AsyncClient.RemoveItemFromSetAsync(this, value, cancellationToken);
 
         ValueTask<List<T>> IRedisSetAsync<T>.SortAsync(int startingFrom, int endingAt, CancellationToken cancellationToken)
             => AsyncClient.GetSortedEntryValuesAsync(this, startingFrom, endingAt, cancellationToken);

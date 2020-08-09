@@ -114,5 +114,8 @@ namespace ServiceStack.Redis.Generic
 
         ValueTask<long> IRedisSortedSetAsync<T>.RemoveRangeByScoreAsync(double fromScore, double toScore, CancellationToken cancellationToken)
             => AsyncClient.RemoveRangeFromSortedSetByScoreAsync(this, fromScore, toScore, cancellationToken);
+
+        ValueTask IRedisSortedSetAsync<T>.ClearAsync(CancellationToken cancellationToken)
+            => AsyncClient.RemoveEntryAsync(setId, cancellationToken).Await();
     }
 }

@@ -23,7 +23,7 @@ namespace ServiceStack.Redis
         private IRedisClientAsync AsyncClient => client;
 
         ValueTask IRedisHashAsync.AddAsync(KeyValuePair<string, string> item, CancellationToken cancellationToken)
-            => AsyncClient.SetEntryInHashAsync(hashId, item.Key, item.Value).Await();
+            => AsyncClient.SetEntryInHashAsync(hashId, item.Key, item.Value, cancellationToken).Await();
 
         ValueTask IRedisHashAsync.AddAsync(string key, string value, CancellationToken cancellationToken)
             => AsyncClient.SetEntryInHashAsync(hashId, key, value, cancellationToken).Await();

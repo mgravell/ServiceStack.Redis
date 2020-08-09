@@ -36,5 +36,6 @@ namespace ServiceStack.Redis
         ValueTask IncrementItemScoreAsync(string value, double incrementByScore, CancellationToken cancellationToken = default);
         ValueTask<string> PopItemWithHighestScoreAsync(CancellationToken cancellationToken = default);
         ValueTask<string> PopItemWithLowestScoreAsync(CancellationToken cancellationToken = default);
+        ValueTask ClearAsync(CancellationToken cancellationToken = default);
     }
 }

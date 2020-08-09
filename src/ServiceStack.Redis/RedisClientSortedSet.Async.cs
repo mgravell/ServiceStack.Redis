@@ -24,6 +24,9 @@ namespace ServiceStack.Redis
 
         private IRedisSortedSetAsync AsAsync() => this;
 
+        ValueTask IRedisSortedSetAsync.ClearAsync(CancellationToken cancellationToken)
+            => AsyncClient.RemoveAsync(setId, cancellationToken).Await();
+
         ValueTask<int> IRedisSortedSetAsync.CountAsync(CancellationToken cancellationToken)
             => AsyncClient.GetSortedSetCountAsync(setId, cancellationToken).AsInt32();
 
