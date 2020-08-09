@@ -105,7 +105,7 @@ namespace ServiceStack.Redis
                     return s;
             }
 
-            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+            throw CreateResponseError("Unknown reply on multi-request: " + ((char)c) + s); // c here is the protocol prefix
         }
 
         protected ValueTask<RedisData> SendExpectComplexResponseAsync(CancellationToken cancellationToken, params byte[][] cmdWithBinaryArgs)
@@ -152,7 +152,7 @@ namespace ServiceStack.Redis
                     return new RedisData { Data = s.ToUtf8Bytes() };
             }
 
-            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+            throw CreateResponseError("Unknown reply on multi-request: " + ((char)c) + s); // c here is the protocol prefix
         }
 
         private async ValueTask<T> SendReceiveAsync<T>(byte[][] cmdWithBinaryArgs,
@@ -461,7 +461,7 @@ namespace ServiceStack.Redis
                     break;
             }
 
-            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+            throw CreateResponseError("Unknown reply on multi-request: " + ((char)c) + s); // c here is the protocol prefix
         }
 
         internal async ValueTask<long> ReadLongAsync(CancellationToken cancellationToken)
@@ -546,7 +546,7 @@ namespace ServiceStack.Redis
                     return count;
                 }
             }
-            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+            throw CreateResponseError("Unknown reply on multi-request: " + ((char)c) + s); // c here is the protocol prefix
         }
     }
 }

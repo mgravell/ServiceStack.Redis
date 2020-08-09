@@ -954,7 +954,7 @@ namespace ServiceStack.Redis
                 if (long.TryParse(s, out i))
                     return i;
             }
-            throw CreateResponseError("Unknown reply on integer response: " + c + s);
+            throw CreateResponseError("Unknown reply on integer response: " + ((char)c) + s); // c here is the protocol prefix
         }
 
         public double ReadDouble()
@@ -1063,7 +1063,7 @@ namespace ServiceStack.Redis
                     break;
             }
 
-            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+            throw CreateResponseError("Unknown reply on multi-request: " + ((char)c) + s); // c here is the protocol prefix
         }
 
         private object[] ReadDeeplyNestedMultiData()
@@ -1107,7 +1107,7 @@ namespace ServiceStack.Redis
                     return s;
             }
 
-            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+            throw CreateResponseError("Unknown reply on multi-request: " + ((char)c) + s); // c here is the protocol prefix
         }
 
         internal RedisData ReadComplexResponse()
@@ -1148,7 +1148,7 @@ namespace ServiceStack.Redis
                     return new RedisData { Data = s.ToUtf8Bytes() };
             }
 
-            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+            throw CreateResponseError("Unknown reply on multi-request: " + ((char)c) + s); // c here is the protocol prefix
         }
 
         internal int ReadMultiDataResultCount()
@@ -1169,7 +1169,7 @@ namespace ServiceStack.Redis
                     return count;
                 }
             }
-            throw CreateResponseError("Unknown reply on multi-request: " + c + s);
+            throw CreateResponseError("Unknown reply on multi-request: " + ((char)c) + s); // c here is the protocol prefix
         }
 
         private static void AssertListIdAndValue(string listId, byte[] value)
