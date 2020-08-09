@@ -410,9 +410,9 @@ namespace ServiceStack.Redis
             try
             {
                 // get rid of unmanaged resources
-                for (var i = 0; i < clients.Length; i++)
+                foreach (var client in clients)
                 {
-                    Dispose(clients[i]);
+                    Dispose(client);
                 }
             }
             catch (Exception ex)
@@ -434,9 +434,7 @@ namespace ServiceStack.Redis
             }
             catch (Exception ex)
             {
-                Log.Error(string.Format(
-                    "Error when trying to dispose of RedisClient to host {0}:{1}",
-                    redisClient.Host, redisClient.Port), ex);
+                Log.Error($"Error when trying to dispose of RedisClient to host {redisClient.Host}:{redisClient.Port}", ex);
             }
         }
 
