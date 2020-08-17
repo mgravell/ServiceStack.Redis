@@ -21,6 +21,7 @@ namespace ServiceStack.Redis
     internal partial class RedisClientSet
         : IRedisSetAsync
     {
+        private IRedisSetAsync AsAsync() => this;
         private IRedisClientAsync AsyncClient => client;
 
         ValueTask IRedisSetAsync.AddAsync(string item, CancellationToken cancellationToken)
@@ -59,6 +60,9 @@ namespace ServiceStack.Redis
             return AsyncClient.GetIntersectFromSetsAsync(allSetIds.ToArray(), cancellationToken);
         }
 
+        ValueTask<HashSet<string>> IRedisSetAsync.IntersectAsync(params IRedisSetAsync[] withSets)
+            => AsAsync().IntersectAsync(withSets, cancellationToken: default);
+
         private List<string> MergeSetIds(IRedisSetAsync[] withSets)
         {
             var allSetIds = new List<string> { setId };
@@ -72,8 +76,8 @@ namespace ServiceStack.Redis
         ValueTask<string> IRedisSetAsync.PopAsync(CancellationToken cancellationToken)
             => AsyncClient.PopItemFromSetAsync(setId, cancellationToken);
 
-        ValueTask IRedisSetAsync.RemoveAsync(string item, CancellationToken cancellationToken)
-            => AsyncClient.RemoveItemFromSetAsync(setId, item, cancellationToken);
+        ValueTask<bool> IRedisSetAsync.RemoveAsync(string item, CancellationToken cancellationToken)
+            => AsyncClient.RemoveItemFromSetAsync(setId, item, cancellationToken).AwaitAsTrue(); // see Remove for why true
 
         ValueTask IRedisSetAsync.StoreDiffAsync(IRedisSetAsync fromSet, IRedisSetAsync[] withSets, CancellationToken cancellationToken)
         {
@@ -81,11 +85,17 @@ namespace ServiceStack.Redis
             return AsyncClient.StoreDifferencesFromSetAsync(setId, fromSet.Id, withSetIds, cancellationToken);
         }
 
+        ValueTask IRedisSetAsync.StoreDiffAsync(IRedisSetAsync fromSet, params IRedisSetAsync[] withSets)
+            => AsAsync().StoreDiffAsync(fromSet, withSets, cancellationToken: default);
+
         ValueTask IRedisSetAsync.StoreIntersectAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken)
         {
             var withSetIds = withSets.ToList().ConvertAll(x => x.Id).ToArray();
             return AsyncClient.StoreIntersectFromSetsAsync(setId, withSetIds, cancellationToken);
         }
+
+        ValueTask IRedisSetAsync.StoreIntersectAsync(params IRedisSetAsync[] withSets)
+            => AsAsync().StoreIntersectAsync(withSets, cancellationToken: default);
 
         ValueTask IRedisSetAsync.StoreUnionAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken)
         {
@@ -93,10 +103,16 @@ namespace ServiceStack.Redis
             return AsyncClient.StoreUnionFromSetsAsync(setId, withSetIds, cancellationToken);
         }
 
+        ValueTask IRedisSetAsync.StoreUnionAsync(params IRedisSetAsync[] withSets)
+            => AsAsync().StoreUnionAsync(withSets, cancellationToken: default);
+
         ValueTask<HashSet<string>> IRedisSetAsync.UnionAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken)
         {
             var allSetIds = MergeSetIds(withSets);
             return AsyncClient.GetUnionFromSetsAsync(allSetIds.ToArray(), cancellationToken);
         }
+
+        ValueTask<HashSet<string>> IRedisSetAsync.UnionAsync(params IRedisSetAsync[] withSets)
+            => AsAsync().UnionAsync(withSets, cancellationToken: default);
     }
 }

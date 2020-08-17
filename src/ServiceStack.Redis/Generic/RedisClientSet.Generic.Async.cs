@@ -70,6 +70,9 @@ namespace ServiceStack.Redis.Generic
         ValueTask IRedisSetAsync<T>.GetDifferencesAsync(IRedisSetAsync<T>[] withSets, CancellationToken cancellationToken)
             => AsyncClient.StoreUnionFromSetsAsync(this, withSets, cancellationToken);
 
+        ValueTask IRedisSetAsync<T>.GetDifferencesAsync(params IRedisSetAsync<T>[] withSets)
+            => AsAsync().GetDifferencesAsync(withSets, cancellationToken: default);
+
         ValueTask<T> IRedisSetAsync<T>.GetRandomItemAsync(CancellationToken cancellationToken)
             => AsyncClient.GetRandomItemFromSetAsync(this, cancellationToken);
 
@@ -82,14 +85,23 @@ namespace ServiceStack.Redis.Generic
         ValueTask IRedisSetAsync<T>.PopulateWithDifferencesOfAsync(IRedisSetAsync<T> fromSet, IRedisSetAsync<T>[] withSets, CancellationToken cancellationToken)
             => AsyncClient.StoreDifferencesFromSetAsync(this, fromSet, withSets, cancellationToken);
 
+        ValueTask IRedisSetAsync<T>.PopulateWithDifferencesOfAsync(IRedisSetAsync<T> fromSet, params IRedisSetAsync<T>[] withSets)
+            => AsAsync().PopulateWithDifferencesOfAsync(fromSet, withSets, cancellationToken: default);
+
         ValueTask IRedisSetAsync<T>.PopulateWithIntersectOfAsync(IRedisSetAsync<T>[] sets, CancellationToken cancellationToken)
             => AsyncClient.StoreIntersectFromSetsAsync(this, sets, cancellationToken);
+
+        ValueTask IRedisSetAsync<T>.PopulateWithIntersectOfAsync(params IRedisSetAsync<T>[] sets)
+            => AsAsync().PopulateWithIntersectOfAsync(sets, cancellationToken: default);
 
         ValueTask IRedisSetAsync<T>.PopulateWithUnionOfAsync(IRedisSetAsync<T>[] sets, CancellationToken cancellationToken)
             => AsyncClient.StoreUnionFromSetsAsync(this, sets, cancellationToken);
 
-        ValueTask IRedisSetAsync<T>.RemoveAsync(T value, CancellationToken cancellationToken)
-            => AsyncClient.RemoveItemFromSetAsync(this, value, cancellationToken);
+        ValueTask IRedisSetAsync<T>.PopulateWithUnionOfAsync(params IRedisSetAsync<T>[] sets)
+            => AsAsync().PopulateWithUnionOfAsync(sets, cancellationToken: default);
+
+        ValueTask<bool> IRedisSetAsync<T>.RemoveAsync(T value, CancellationToken cancellationToken)
+            => AsyncClient.RemoveItemFromSetAsync(this, value, cancellationToken).AwaitAsTrue(); // see Remove for why "true"
 
         ValueTask<List<T>> IRedisSetAsync<T>.SortAsync(int startingFrom, int endingAt, CancellationToken cancellationToken)
             => AsyncClient.GetSortedEntryValuesAsync(this, startingFrom, endingAt, cancellationToken);

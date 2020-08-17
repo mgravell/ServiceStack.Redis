@@ -168,5 +168,17 @@ namespace ServiceStack.Redis
                 }
             }
         }
+
+        ValueTask IRedisSubscriptionAsync.SubscribeToChannelsAsync(params string[] channels)
+            => AsAsync().SubscribeToChannelsAsync(channels, cancellationToken: default);
+
+        ValueTask IRedisSubscriptionAsync.SubscribeToChannelsMatchingAsync(params string[] patterns)
+            => AsAsync().SubscribeToChannelsMatchingAsync(patterns, cancellationToken: default);
+
+        ValueTask IRedisSubscriptionAsync.UnSubscribeFromChannelsAsync(params string[] channels)
+            => AsAsync().UnSubscribeFromChannelsAsync(channels, cancellationToken: default);
+
+        ValueTask IRedisSubscriptionAsync.UnSubscribeFromChannelsMatchingAsync(params string[] patterns)
+            => AsAsync().UnSubscribeFromChannelsMatchingAsync(patterns, cancellationToken: default);
     }
 }

@@ -26,17 +26,22 @@ namespace ServiceStack.Redis
         ValueTask<string> PopAsync(CancellationToken cancellationToken = default);
         ValueTask MoveAsync(string value, IRedisSetAsync toSet, CancellationToken cancellationToken = default);
         ValueTask<HashSet<string>> IntersectAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken = default);
+        ValueTask<HashSet<string>> IntersectAsync(params IRedisSetAsync[] withSets); // conveinence API
         ValueTask StoreIntersectAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken = default);
+        ValueTask StoreIntersectAsync(params IRedisSetAsync[] withSets); // conveinence API
         ValueTask<HashSet<string>> UnionAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken = default);
+        ValueTask<HashSet<string>> UnionAsync(params IRedisSetAsync[] withSets); // conveinence API
         ValueTask StoreUnionAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken = default);
+        ValueTask StoreUnionAsync(params IRedisSetAsync[] withSets); // conveinence API
         ValueTask<HashSet<string>> DiffAsync(IRedisSetAsync[] withSets, CancellationToken cancellationToken = default);
         ValueTask StoreDiffAsync(IRedisSetAsync fromSet, IRedisSetAsync[] withSets, CancellationToken cancellationToken = default);
+        ValueTask StoreDiffAsync(IRedisSetAsync fromSet, params IRedisSetAsync[] withSets); // conveinence API
         ValueTask<string> GetRandomEntryAsync(CancellationToken cancellationToken = default);
 
 
-        ValueTask RemoveAsync(string value, CancellationToken cancellationToken = default);
-        ValueTask AddAsync(string value, CancellationToken cancellationToken = default);
-        ValueTask<bool> ContainsAsync(string value, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveAsync(string item, CancellationToken cancellationToken = default);
+        ValueTask AddAsync(string item, CancellationToken cancellationToken = default);
+        ValueTask<bool> ContainsAsync(string item, CancellationToken cancellationToken = default);
         ValueTask ClearAsync(CancellationToken cancellationToken = default);
     }
 }

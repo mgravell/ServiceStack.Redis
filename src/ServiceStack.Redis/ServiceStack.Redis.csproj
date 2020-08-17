@@ -15,7 +15,7 @@
   <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
     <DefineConstants>$(DefineConstants);ASYNC_MEMORY</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'netstandard2.0'">
+  <PropertyGroup>
     <DefineConstants>$(DefineConstants);NO_DEFAULT_INTERFACE_IMPLEMENTATIONS</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)'=='net45'">

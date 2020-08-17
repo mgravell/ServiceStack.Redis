@@ -25,34 +25,6 @@ namespace ServiceStack.Redis
     public interface IRedisClientAsync
         : IEntityStoreAsync, ICacheClientExtendedAsync, IRemoveByPatternAsync
     {
-
-        // The following APIs are mostly to help with "params" usage vs CancellationToken; the convention is for CancellationToken to
-        // come *last* on async APIs, which doesn't play nicely with "async" - however, frankly: CancellationToken usage is relatively
-        // rare, so it is awkward to lose the "params" convenience. If we used an extension method, the extra helpers would appear
-        // way too readily - they would effectively contaminate the RedisClient API (since RedisClient : IRedisClientAsync).
-        // We could just add the extra methods to the API - that is perhaps reasonable, but: default interface implementations
-        // gives us a nice way of expressing these convenince methods (with the caveat that it only works on some runtimes)/
-
-        // note: I will monitor this and re-evaluate later; it might be better to just add them as regular interface methods; let's
-        // see how many we accumulate!
-
-#if !NO_DEFAULT_INTERFACE_IMPLEMENTATIONS
-        public ValueTask<RedisText> CustomAsync(params object[] cmdWithArgs)
-            => CustomAsync(cmdWithArgs, default);
-
-        public ValueTask<RedisText> ExecLuaShaAsync(string sha1, params string[] args)
-            => ExecLuaShaAsync(sha1, Array.Empty<string>(), args, default);
-
-        public ValueTask<RedisText> ExecLuaAsync(string body, params string[] args)
-            => ExecLuaAsync(body, Array.Empty<string>(), args, default);
-
-        public ValueTask<string> ExecLuaShaAsStringAsync(string sha1, params string[] args)
-            => ExecLuaShaAsStringAsync(sha1, Array.Empty<string>(), args, default);
-
-        public ValueTask<string> ExecLuaAsStringAsync(string luaBody, params string[] args)
-            => ExecLuaAsStringAsync(luaBody, Array.Empty<string>(), args, default);
-#endif
-
         /* non-obvious changes from IRedisClient:
         - Db is read-only; added ChangeDbAsync for setting
         - sync API is Save (foreground) and SaveAsync (background); renamed here to ForegroundSaveAsync and BackgroundSaveAsync
@@ -93,6 +65,7 @@ namespace ServiceStack.Redis
         ValueTask<string> EchoAsync(string text, CancellationToken cancellationToken = default);
 
         ValueTask<RedisText> CustomAsync(object[] cmdWithArgs, CancellationToken cancellationToken = default);
+        ValueTask<RedisText> CustomAsync(params object[] cmdWithArgs); // convenience API
 
         ValueTask ForegroundSaveAsync(CancellationToken cancellationToken = default);
         ValueTask BackgroundSaveAsync(CancellationToken cancellationToken = default);

@@ -45,12 +45,12 @@ namespace ServiceStack.Redis
         ValueTask<string> BlockingPopAsync(TimeSpan? timeOut, CancellationToken cancellationToken = default);
         ValueTask<string> PopAndPushAsync(IRedisListAsync toList, CancellationToken cancellationToken = default);
         
-        ValueTask<bool> RemoveAsync(string value, CancellationToken cancellationToken = default);
-        ValueTask AddAsync(string value, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveAsync(string item, CancellationToken cancellationToken = default);
+        ValueTask AddAsync(string item, CancellationToken cancellationToken = default);
         ValueTask RemoveAtAsync(int index, CancellationToken cancellationToken = default);
-        ValueTask<bool> ContainsAsync(string value, CancellationToken cancellationToken = default);
+        ValueTask<bool> ContainsAsync(string item, CancellationToken cancellationToken = default);
         ValueTask ClearAsync(CancellationToken cancellationToken = default);
-        ValueTask<int> IndexOfAsync(string value, CancellationToken cancellationToken = default);
+        ValueTask<int> IndexOfAsync(string item, CancellationToken cancellationToken = default);
 
         ValueTask<string> ElementAtAsync(int index, CancellationToken cancellationToken = default);
         ValueTask SetValueAsync(int index, string value, CancellationToken cancellationToken = default);

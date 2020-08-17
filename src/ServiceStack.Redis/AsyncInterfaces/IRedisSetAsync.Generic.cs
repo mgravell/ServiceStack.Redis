@@ -26,13 +26,17 @@ namespace ServiceStack.Redis.Generic
         ValueTask<T> GetRandomItemAsync(CancellationToken cancellationToken = default);
         ValueTask MoveToAsync(T item, IRedisSetAsync<T> toSet, CancellationToken cancellationToken = default);
         ValueTask PopulateWithIntersectOfAsync(IRedisSetAsync<T>[] sets, CancellationToken cancellationToken = default);
+        ValueTask PopulateWithIntersectOfAsync(params IRedisSetAsync<T>[] sets); // convenience API
         ValueTask PopulateWithUnionOfAsync(IRedisSetAsync<T>[] sets, CancellationToken cancellationToken = default);
+        ValueTask PopulateWithUnionOfAsync(params IRedisSetAsync<T>[] sets); // convenience API
         ValueTask GetDifferencesAsync(IRedisSetAsync<T>[] withSets, CancellationToken cancellationToken = default);
+        ValueTask GetDifferencesAsync(params IRedisSetAsync<T>[] withSets); // convenience API
         ValueTask PopulateWithDifferencesOfAsync(IRedisSetAsync<T> fromSet, IRedisSetAsync<T>[] withSets, CancellationToken cancellationToken = default);
+        ValueTask PopulateWithDifferencesOfAsync(IRedisSetAsync<T> fromSet, params IRedisSetAsync<T>[] withSets); // convenience API
         ValueTask ClearAsync(CancellationToken cancellationToken = default);
-        ValueTask<bool> ContainsAsync(T value, CancellationToken cancellationToken = default);
-        ValueTask RemoveAsync(T value, CancellationToken cancellationToken = default);
-        ValueTask AddAsync(T value, CancellationToken cancellationToken = default);
+        ValueTask<bool> ContainsAsync(T item, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveAsync(T item, CancellationToken cancellationToken = default);
+        ValueTask AddAsync(T item, CancellationToken cancellationToken = default);
     }
 
 }

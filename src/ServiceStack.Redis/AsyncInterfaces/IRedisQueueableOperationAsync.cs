@@ -20,7 +20,7 @@ namespace ServiceStack.Redis.Pipeline
         void QueueCommand(Func<IRedisClientAsync, ValueTask<List<string>>> command, Action<List<string>> onSuccessCallback = null, Action<Exception> onErrorCallback = null);
         void QueueCommand(Func<IRedisClientAsync, ValueTask<HashSet<string>>> command, Action<HashSet<string>> onSuccessCallback = null, Action<Exception> onErrorCallback = null);
         void QueueCommand(Func<IRedisClientAsync, ValueTask<Dictionary<string, string>>> command, Action<Dictionary<string, string>> onSuccessCallback = null, Action<Exception> onErrorCallback = null);
-        void QueueCommand(Func<IRedisClientAsync, ValueTask<RedisData>> command, Action<RedisData> onSuccessCallback, Action<Exception> onErrorCallback);
+        void QueueCommand(Func<IRedisClientAsync, ValueTask<RedisData>> command, Action<RedisData> onSuccessCallback = null, Action<Exception> onErrorCallback = null);
         void QueueCommand(Func<IRedisClientAsync, ValueTask<RedisText>> command, Action<RedisText> onSuccessCallback = null, Action<Exception> onErrorCallback = null);
     }
 }

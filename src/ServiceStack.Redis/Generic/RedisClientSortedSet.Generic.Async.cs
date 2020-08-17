@@ -124,7 +124,13 @@ namespace ServiceStack.Redis.Generic
         ValueTask IRedisSortedSetAsync<T>.AddAsync(T value, CancellationToken cancellationToken)
             => AsyncClient.AddItemToSortedSetAsync(this, value, cancellationToken);
 
-        ValueTask IRedisSortedSetAsync<T>.RemoveAsync(T value, CancellationToken cancellationToken)
-            => AsyncClient.RemoveItemFromSortedSetAsync(this, value, cancellationToken).Await();
+        ValueTask<bool> IRedisSortedSetAsync<T>.RemoveAsync(T value, CancellationToken cancellationToken)
+            => AsyncClient.RemoveItemFromSortedSetAsync(this, value, cancellationToken).AwaitAsTrue(); // see Remove for why "true"
+
+        ValueTask<long> IRedisSortedSetAsync<T>.PopulateWithIntersectOfAsync(params IRedisSortedSetAsync<T>[] setIds)
+            => AsAsync().PopulateWithIntersectOfAsync(setIds, cancellationToken: default);
+
+        ValueTask<long> IRedisSortedSetAsync<T>.PopulateWithUnionOfAsync(params IRedisSortedSetAsync<T>[] setIds)
+            => AsAsync().PopulateWithUnionOfAsync(setIds, cancellationToken: default);
     }
 }

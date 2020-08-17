@@ -36,7 +36,7 @@
     <Compile Remove="**/*.Async.cs" />
     <None Include="**/*.Async.cs" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net472' or '$(TargetFramework)' == 'netcoreapp2.1'">
+  <PropertyGroup>
     <DefineConstants>$(DefineConstants);NO_DEFAULT_INTERFACE_IMPLEMENTATIONS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1' or '$(TargetFramework)' == 'netcoreapp3.1'">

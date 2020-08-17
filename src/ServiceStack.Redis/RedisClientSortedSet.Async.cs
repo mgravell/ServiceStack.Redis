@@ -78,8 +78,8 @@ namespace ServiceStack.Redis
         ValueTask<string> IRedisSortedSetAsync.PopItemWithLowestScoreAsync(CancellationToken cancellationToken)
             => AsyncClient.PopItemWithLowestScoreFromSortedSetAsync(setId, cancellationToken);
 
-        ValueTask IRedisSortedSetAsync.RemoveAsync(string value, CancellationToken cancellationToken)
-            => AsyncClient.RemoveItemFromSortedSetAsync(setId, value, cancellationToken).Await();
+        ValueTask<bool> IRedisSortedSetAsync.RemoveAsync(string value, CancellationToken cancellationToken)
+            => AsyncClient.RemoveItemFromSortedSetAsync(setId, value, cancellationToken).AwaitAsTrue(); // see Remove() for why "true"
 
         ValueTask IRedisSortedSetAsync.RemoveRangeAsync(int fromRank, int toRank, CancellationToken cancellationToken)
             => AsyncClient.RemoveRangeFromSortedSetAsync(setId, fromRank, toRank, cancellationToken).Await();
@@ -90,7 +90,13 @@ namespace ServiceStack.Redis
         ValueTask IRedisSortedSetAsync.StoreFromIntersectAsync(IRedisSortedSetAsync[] ofSets, CancellationToken cancellationToken)
             => AsyncClient.StoreIntersectFromSortedSetsAsync(setId, ofSets.GetIds(), cancellationToken).Await();
 
+        ValueTask IRedisSortedSetAsync.StoreFromIntersectAsync(params IRedisSortedSetAsync[] ofSets)
+            => AsAsync().StoreFromIntersectAsync(ofSets, cancellationToken: default);
+
         ValueTask IRedisSortedSetAsync.StoreFromUnionAsync(IRedisSortedSetAsync[] ofSets, CancellationToken cancellationToken)
             => AsyncClient.StoreUnionFromSortedSetsAsync(setId, ofSets.GetIds(), cancellationToken).Await();
+
+        ValueTask IRedisSortedSetAsync.StoreFromUnionAsync(params IRedisSortedSetAsync[] ofSets)
+            => AsAsync().StoreFromUnionAsync(ofSets, cancellationToken: default);
     }
 }

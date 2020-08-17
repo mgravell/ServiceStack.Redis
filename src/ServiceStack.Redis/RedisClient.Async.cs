@@ -1442,5 +1442,8 @@ namespace ServiceStack.Redis
 
         ValueTask IRedisClientAsync.KillRunningLuaScriptAsync(CancellationToken cancellationToken)
             => NativeAsync.ScriptKillAsync(cancellationToken);
+
+        ValueTask<RedisText> IRedisClientAsync.CustomAsync(params object[] cmdWithArgs)
+            => AsAsync().CustomAsync(cmdWithArgs, cancellationToken: default);
     }
 }
