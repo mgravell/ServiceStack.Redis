@@ -10,7 +10,7 @@ namespace ServiceStack.Redis
     {
         ValueTask<bool> AddIfNotExistsAsync(KeyValuePair<string, string> item, CancellationToken cancellationToken = default);
         ValueTask AddRangeAsync(IEnumerable<KeyValuePair<string, string>> items, CancellationToken cancellationToken = default);
-        ValueTask<long> IncrementValue(string key, int incrementBy, CancellationToken cancellationToken = default);
+        ValueTask<long> IncrementValueAsync(string key, int incrementBy, CancellationToken cancellationToken = default);
 
         // shim the basic ICollection etc APIs
         ValueTask<int> CountAsync(CancellationToken cancellationToken = default);

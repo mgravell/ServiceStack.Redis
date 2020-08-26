@@ -124,6 +124,24 @@ namespace ServiceStack.Redis.Tests
                     AddFrom(typeof(IList<>), "get_Item", true);
                 }
             }
+            else if (asyncInterface == typeof(IRedisHashAsync<,>))
+            {
+                AddFrom(typeof(ICollection<>).MakeGenericType(typeof(KeyValuePair<,>).MakeGenericType(asyncInterface.GetGenericArguments())), nameof(IDictionary<string,string>.Add));
+                AddFrom(typeof(IDictionary<,>), nameof(IDictionary<string, string>.Add));
+                AddFrom(typeof(ICollection<>), nameof(IDictionary<string, string>.Clear));
+                AddFrom(typeof(IDictionary<,>), nameof(IDictionary<string, string>.ContainsKey));
+                AddFrom(typeof(IDictionary<,>), nameof(IDictionary<string, string>.Remove));
+                AddFrom(typeof(ICollection<>), "get_" + nameof(IDictionary<string, string>.Count), true);
+            }
+            else if (asyncInterface == typeof(IRedisHashAsync))
+            {
+                AddFrom(typeof(ICollection<KeyValuePair<string, string>>), nameof(IDictionary<string, string>.Add));
+                AddFrom(typeof(IDictionary<string,string>), nameof(IDictionary<string, string>.Add));
+                AddFrom(typeof(ICollection<string>), nameof(IDictionary<string, string>.Clear));
+                AddFrom(typeof(IDictionary<string, string>), nameof(IDictionary<string, string>.ContainsKey));
+                AddFrom(typeof(IDictionary<string, string>), nameof(IDictionary<string, string>.Remove));
+                AddFrom(typeof(ICollection<string>), "get_" + nameof(IDictionary<string, string>.Count), true);
+            }
 
             void AddFrom(Type syncInterface, string name, bool fromPropertyToMethod = false)
                 => AddExpected(syncInterface.GetMethod(name), fromPropertyToMethod);
