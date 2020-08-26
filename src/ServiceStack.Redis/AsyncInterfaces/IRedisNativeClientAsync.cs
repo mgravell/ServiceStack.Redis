@@ -61,7 +61,9 @@ namespace ServiceStack.Redis
         ValueTask<RedisText> RoleAsync(CancellationToken cancellationToken = default);
 
         ValueTask<RedisData> RawCommandAsync(object[] cmdWithArgs, CancellationToken cancellationToken = default);
+        ValueTask<RedisData> RawCommandAsync(params object[] cmdWithArgs); // convenience API
         ValueTask<RedisData> RawCommandAsync(byte[][] cmdWithBinaryArgs, CancellationToken cancellationToken = default);
+        ValueTask<RedisData> RawCommandAsync(params byte[][] cmdWithBinaryArgs); // convenience API
 
         ValueTask<string> ClientGetNameAsync(CancellationToken cancellationToken = default);
         ValueTask ClientSetNameAsync(string client, CancellationToken cancellationToken = default);
@@ -88,9 +90,12 @@ namespace ServiceStack.Redis
         ValueTask<byte[]> GetAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<byte[]> GetSetAsync(string key, byte[] value, CancellationToken cancellationToken = default);
         ValueTask<byte[][]> MGetAsync(byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> MGetAsync(params byte[][] keysAndArgs); // convenience API
         ValueTask<byte[][]> MGetAsync(string[] keys, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> MGetAsync(params string[] keys); // convenience API
         ValueTask<long> DelAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> DelAsync(string[] keys, CancellationToken cancellationToken = default);
+        ValueTask<long> DelAsync(params string[] keys); // convenience API
         ValueTask<long> IncrAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> IncrByAsync(string key, long incrBy, CancellationToken cancellationToken = default);
         ValueTask<double> IncrByFloatAsync(string key, double incrBy, CancellationToken cancellationToken = default);
@@ -120,8 +125,10 @@ namespace ServiceStack.Redis
 
         //Hyperlog
         ValueTask<bool> PfAddAsync(string key, byte[][] elements, CancellationToken cancellationToken = default);
+        ValueTask<bool> PfAddAsync(string key, params byte[][] elements); // convenience API
         ValueTask<long> PfCountAsync(string key, CancellationToken cancellationToken = default);
         ValueTask PfMergeAsync(string toKeyId, string[] fromKeys, CancellationToken cancellationToken = default);
+        ValueTask PfMergeAsync(string toKeyId, params string[] fromKeys);
 
         //Redis Sort operation Async(works on lists, sets or hashes)
         ValueTask<byte[][]> SortAsync(string listOrSetId, SortOptions sortOptions, CancellationToken cancellationToken = default);
@@ -162,11 +169,17 @@ namespace ServiceStack.Redis
         ValueTask<long> SCardAsync(string setId, CancellationToken cancellationToken = default);
         ValueTask<long> SIsMemberAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
         ValueTask<byte[][]> SInterAsync(string[] setIds, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> SInterAsync(params string[] setIds); // convenience API
         ValueTask SInterStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken = default);
+        ValueTask SInterStoreAsync(string intoSetId, params string[] setIds); // convenience API
         ValueTask<byte[][]> SUnionAsync(string[] setIds, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> SUnionAsync(params string[] setIds); // convenience API
         ValueTask SUnionStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken = default);
+        ValueTask SUnionStoreAsync(string intoSetId, params string[] setIds); // convenience API
         ValueTask<byte[][]> SDiffAsync(string fromSetId, string[] withSetIds, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> SDiffAsync(string fromSetId, params string[] withSetIds); // convenience API
         ValueTask SDiffStoreAsync(string intoSetId, string fromSetId, string[] withSetIds, CancellationToken cancellationToken = default);
+        ValueTask SDiffStoreAsync(string intoSetId, string fromSetId, params string[] withSetIds); // convenience API
         ValueTask<byte[]> SRandMemberAsync(string setId, CancellationToken cancellationToken = default);
 
 
@@ -198,7 +211,9 @@ namespace ServiceStack.Redis
         ValueTask<long> ZCountAsync(string setId, double min, double max, CancellationToken cancellationToken = default);
         ValueTask<double>  ZScoreAsync(string setId, byte[] value, CancellationToken cancellationToken = default);
         ValueTask<long> ZUnionStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken = default);
+        ValueTask<long> ZUnionStoreAsync(string intoSetId, params string[] setIds); // convenience API
         ValueTask<long> ZInterStoreAsync(string intoSetId, string[] setIds, CancellationToken cancellationToken = default);
+        ValueTask<long> ZInterStoreAsync(string intoSetId, params string[] setIds); // convenience API
         ValueTask<byte[][]> ZRangeByLexAsync(string setId, string min, string max, int? skip = null, int? take = null, CancellationToken cancellationToken = default);
         ValueTask<long> ZLexCountAsync(string setId, string min, string max, CancellationToken cancellationToken = default);
         ValueTask<long> ZRemRangeByLexAsync(string setId, string min, string max, CancellationToken cancellationToken = default);
@@ -211,6 +226,7 @@ namespace ServiceStack.Redis
         ValueTask<double> HIncrbyFloatAsync(string hashId, byte[] key, double incrementBy, CancellationToken cancellationToken = default);
         ValueTask<byte[]> HGetAsync(string hashId, byte[] key, CancellationToken cancellationToken = default);
         ValueTask<byte[][]> HMGetAsync(string hashId, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> HMGetAsync(string hashId, params byte[][] keysAndArgs); // convenience API
         ValueTask<long> HDelAsync(string hashId, byte[] key, CancellationToken cancellationToken = default);
         ValueTask<long> HExistsAsync(string hashId, byte[] key, CancellationToken cancellationToken = default);
         ValueTask<long> HLenAsync(string hashId, CancellationToken cancellationToken = default);
@@ -221,9 +237,12 @@ namespace ServiceStack.Redis
         //Redis GEO operations
         ValueTask<long> GeoAddAsync(string key, double longitude, double latitude, string member, CancellationToken cancellationToken = default);
         ValueTask<long> GeoAddAsync(string key, RedisGeo[] geoPoints, CancellationToken cancellationToken = default);
+        ValueTask<long> GeoAddAsync(string key, params RedisGeo[] geoPoints); // convenience API
         ValueTask<double> GeoDistAsync(string key, string fromMember, string toMember, string unit = null, CancellationToken cancellationToken = default);
         ValueTask<string[]> GeoHashAsync(string key, string[] members, CancellationToken cancellationToken = default);
+        ValueTask<string[]> GeoHashAsync(string key, params string[] members); // convenience API
         ValueTask<List<RedisGeo>> GeoPosAsync(string key, string[] members, CancellationToken cancellationToken = default);
+        ValueTask<List<RedisGeo>> GeoPosAsync(string key, params string[] members); // convenience API
         ValueTask<List<RedisGeoResult>> GeoRadiusAsync(string key, double longitude, double latitude, double radius, string unit,
             bool withCoords = false, bool withDist = false, bool withHash = false, int? count = null, bool? asc = null, CancellationToken cancellationToken = default);
         ValueTask<List<RedisGeoResult>> GeoRadiusByMemberAsync(string key, string member, double radius, string unit,
@@ -231,29 +250,43 @@ namespace ServiceStack.Redis
 
         //Redis Pub/Sub operations
         ValueTask WatchAsync(string[] keys, CancellationToken cancellationToken = default);
+        ValueTask WatchAsync(params string[] keys); // convenience API
         ValueTask UnWatchAsync(CancellationToken cancellationToken = default);
         ValueTask<long> PublishAsync(string toChannel, byte[] message, CancellationToken cancellationToken = default);
         ValueTask<byte[][]> SubscribeAsync(string[] toChannels, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> SubscribeAsync(params string[] toChannels); // convenience API
         ValueTask<byte[][]> UnSubscribeAsync(string[] toChannels, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> UnSubscribeAsync(params string[] toChannels); // convenience API
         ValueTask<byte[][]> PSubscribeAsync(string[] toChannelsMatchingPatterns, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> PSubscribeAsync(params string[] toChannelsMatchingPatterns); // convenience API
         ValueTask<byte[][]> PUnSubscribeAsync(string[] toChannelsMatchingPatterns, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> PUnSubscribeAsync(params string[] toChannelsMatchingPatterns); // convenience API
         ValueTask<byte[][]> ReceiveMessagesAsync(CancellationToken cancellationToken = default);
         ValueTask<IRedisSubscriptionAsync> CreateSubscriptionAsync(CancellationToken cancellationToken = default);
 
         //Redis LUA support
         ValueTask<RedisData> EvalCommandAsync(string luaBody, int numberKeysInArgs, byte[][] keys, CancellationToken cancellationToken = default);
+        ValueTask<RedisData> EvalCommandAsync(string luaBody, int numberKeysInArgs, params byte[][] keys); // convenience API
         ValueTask<RedisData> EvalShaCommandAsync(string sha1, int numberKeysInArgs, byte[][] keys, CancellationToken cancellationToken = default);
+        ValueTask<RedisData> EvalShaCommandAsync(string sha1, int numberKeysInArgs, params byte[][] keys); // convenience API
 
         ValueTask<byte[][]> EvalAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> EvalAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs); // convenience API
         ValueTask<byte[][]> EvalShaAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> EvalShaAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs); // convenience API
 
         ValueTask<long> EvalIntAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<long> EvalIntAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs); // convenience API
         ValueTask<long> EvalShaIntAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<long> EvalShaIntAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs); // convenience API
         ValueTask<string> EvalStrAsync(string luaBody, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<string> EvalStrAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs); // convenience API
         ValueTask<string> EvalShaStrAsync(string sha1, int numberOfKeys, byte[][] keysAndArgs, CancellationToken cancellationToken = default);
+        ValueTask<string> EvalShaStrAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs); // convenience API
 
         ValueTask<string> CalculateSha1Async(string luaBody, CancellationToken cancellationToken = default);
         ValueTask<byte[][]> ScriptExistsAsync(byte[][] sha1Refs, CancellationToken cancellationToken = default);
+        ValueTask<byte[][]> ScriptExistsAsync(params byte[][] sha1Refs); // convenience API
         ValueTask ScriptFlushAsync(CancellationToken cancellationToken = default);
         ValueTask ScriptKillAsync(CancellationToken cancellationToken = default);
         ValueTask<byte[]> ScriptLoadAsync(string body, CancellationToken cancellationToken = default);

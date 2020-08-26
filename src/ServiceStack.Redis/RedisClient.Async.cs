@@ -364,8 +364,8 @@ namespace ServiceStack.Redis
         ValueTask IRedisClientAsync.SlowlogResetAsync(CancellationToken cancellationToken)
             => NativeAsync.SlowlogResetAsync(cancellationToken);
 
-        ValueTask<SlowlogItem[]> IRedisClientAsync.SlowlogGetAsync(int? top, CancellationToken cancellationToken)
-            => NativeAsync.SlowlogGetAsync(top, cancellationToken).Await(data => ParseSlowlog(data));
+        ValueTask<SlowlogItem[]> IRedisClientAsync.GetSlowlogAsync(int? numberOfRecords, CancellationToken cancellationToken)
+            => NativeAsync.SlowlogGetAsync(numberOfRecords, cancellationToken).Await(data => ParseSlowlog(data));
 
 
         ValueTask<bool> ICacheClientAsync.SetAsync<T>(string key, T value, CancellationToken cancellationToken)

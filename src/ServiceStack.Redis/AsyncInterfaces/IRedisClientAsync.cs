@@ -366,6 +366,6 @@ namespace ServiceStack.Redis
         #endregion
 
         ValueTask SlowlogResetAsync(CancellationToken cancellationToken = default);
-        ValueTask<SlowlogItem[]> SlowlogGetAsync(int? top = null, CancellationToken cancellationToken = default);
+        ValueTask<SlowlogItem[]> GetSlowlogAsync(int? numberOfRecords = null, CancellationToken cancellationToken = default);
     }
 }

@@ -142,9 +142,21 @@ namespace ServiceStack.Redis.Tests
                 AddFrom(typeof(IDictionary<string, string>), nameof(IDictionary<string, string>.Remove));
                 AddFrom(typeof(ICollection<string>), "get_" + nameof(IDictionary<string, string>.Count), true);
             }
+            else if (asyncInterface == typeof(IRedisNativeClientAsync))
+            {
+                AddFrom(typeof(RedisClient), nameof(RedisClient.SlowlogReset));
+                AddFrom(typeof(RedisClient), nameof(RedisClient.BitCount));
+                AddFromTyped(typeof(RedisClient), nameof(RedisClient.ZCount), typeof(string), typeof(double), typeof(double));
+                // can't expose as SlowlogItem because of interface locations
+                expected.Add("ValueTask<object[]> SlowlogGetAsync(int? top = default, CancellationToken cancellationToken = default)");
+                // adding missing "exists" capability
+                expected.Add("ValueTask<bool> SetAsync(string key, byte[] value, bool exists, long expirySeconds = 0, long expiryMilliseconds = 0, CancellationToken cancellationToken = default)");
+            }
 
             void AddFrom(Type syncInterface, string name, bool fromPropertyToMethod = false)
                 => AddExpected(syncInterface.GetMethod(name), fromPropertyToMethod);
+            void AddFromTyped(Type syncInterface, string name, params Type[] types)
+                => AddExpected(syncInterface.GetMethod(name, types), false);
 
             void AddExpected(MethodInfo method, bool fromPropertyToMethod = false)
             {
@@ -194,6 +206,27 @@ namespace ServiceStack.Redis.Tests
 
                 if (name.StartsWith("get_") || name.StartsWith("set_") || name.StartsWith("add_") || name.StartsWith("remove_"))
                 {
+                    bool fullyHandled = false;
+                    if (asyncInterface == typeof(IRedisNativeClientAsync))
+                    {
+                        switch (tok.Name)
+                        {
+                            case "get_" + nameof(IRedisNativeClient.DbSize):
+                            case "get_" + nameof(IRedisNativeClient.LastSave):
+                            case "get_" + nameof(IRedisNativeClient.Info):
+                                fromPropertyToMethod = true;
+                                break;
+                            case "get_" + nameof(IRedisNativeClient.Db):
+                                name = tok.Name; // preserve
+                                returnType = tok.ReturnType;
+                                break;
+                            case "set_" + nameof(IRedisNativeClient.Db):
+                                name = nameof(IRedisNativeClientAsync.SelectAsync);
+                                parameters[0] = parameters[0].WithName("db");
+                                fullyHandled = true;
+                                break;
+                        }
+                    }
                     if (fromPropertyToMethod)
                     {
                         name = name switch
@@ -203,6 +236,7 @@ namespace ServiceStack.Redis.Tests
                             _ => name.Substring(4), // don't worry about the remove, that isn't in this catchment
                         };
                     }
+                    else if (fullyHandled) { }
                     else
                     {
                         addCancellation = false;
@@ -279,10 +313,6 @@ namespace ServiceStack.Redis.Tests
                 {
                     for (int i = 0; i < parameters.Length; i++)
                     {
-                        if (name == "PopulateWithUnionOfAsync")
-                        {
-                            Debugger.Break();
-                        }
                         ref ParameterToken p = ref parameters[i];
                         Type type = p.ParameterType, swapped = SwapForAsyncIfNeedeed(type);
                         if (type != swapped)
@@ -322,6 +352,32 @@ namespace ServiceStack.Redis.Tests
                                 parameters = parameters.Where(x => !x.ParameterType.IsByRef).ToArray();
                             }
                             return parameters;
+                        }
+                    }
+                    if (asyncInterface == typeof(IRedisNativeClientAsync))
+                    {
+                        switch (tok.Name)
+                        {
+                            case nameof(IRedisNativeClient.DecrBy):
+                            case nameof(IRedisNativeClient.IncrBy):
+                                parameters[1] = parameters[1].WithParameterType(typeof(long));
+                                returnType = typeof(ValueTask<long>);
+                                break;
+                            case nameof(IRedisNativeClient.Shutdown):
+                                Insert(ref parameters, 0, new ParameterToken("noSave", typeof(bool), ParameterAttributes.Optional, false));
+                                break;
+                            case nameof(IRedisNativeClient.Set):
+                                Insert(ref parameters, 2, new ParameterToken("expirySeconds", typeof(long), ParameterAttributes.Optional, 0));
+                                Insert(ref parameters, 3, new ParameterToken("expiryMilliseconds", typeof(long), ParameterAttributes.Optional, 0));
+                                break;
+                        }
+
+                        static void Insert(ref ParameterToken[] parameters, int index, ParameterToken value)
+                        {
+                            // don't try to be clever; this is inefficient but correct
+                            var list = parameters.ToList();
+                            list.Insert(index, value);
+                            parameters = list.ToArray();
                         }
                     }
 
@@ -387,6 +443,7 @@ namespace ServiceStack.Redis.Tests
                 if (type == typeof(IRedisSet)) return typeof(IRedisSetAsync);
                 if (type == typeof(IRedisSortedSet)) return typeof(IRedisSortedSetAsync);
                 if (type == typeof(IRedisHash)) return typeof(IRedisHashAsync);
+                if (type == typeof(IRedisSubscription)) return typeof(IRedisSubscriptionAsync);
 
                 if (type.IsGenericType)
                 {
@@ -404,202 +461,6 @@ namespace ServiceStack.Redis.Tests
                 
                 return type;
             }
-
-            //    Type[] expectedSignature;
-            //    Type expectedReturnType;
-            //    string expectedName = method.Name + "Async";
-            //    var parameterTypes = Array.ConvertAll(method.GetParameters(), p => p.ParameterType);
-            //    if (method.IsSpecialName)
-            //    {
-            //        const string GET = "get_", SET = "set_";
-
-            //        string movedToAsyncGetter = default, movedToAsyncSetter = default;
-            //        if (syncInterface == typeof(IRedisClient))
-            //        {
-            //            expectedName = method.Name switch
-            //            {
-            //                // these are renamed to avoid "SaveAsync" and "SaveAsyncAsync" which would be hella confusing
-            //                nameof(IRedisClient.Save) => nameof(IRedisClientAsync.ForegroundSaveAsync),
-            //                nameof(IRedisClient.SaveAsync) => nameof(IRedisClientAsync.BackgroundSaveAsync),
-            //                // this is renamed for consistency with BackgroundSaveAsync
-            //                nameof(IRedisClient.RewriteAppendOnlyFileAsync) => nameof(IRedisClientAsync.BackgroundRewriteAppendOnlyFileAsync),
-            //                _ => expectedName,
-            //            };
-
-            //            movedToAsyncGetter = method.Name switch
-            //            {
-            //                GET + nameof(IRedisClient.DbSize) => nameof(IRedisClientAsync.DbSizeAsync),
-            //                GET + nameof(IRedisClient.LastSave) => nameof(IRedisClientAsync.LastSaveAsync),
-            //                GET + nameof(IRedisClient.Info) => nameof(IRedisClientAsync.InfoAsync),
-            //                _ => default,
-            //            };
-            //            movedToAsyncSetter = method.Name switch
-            //            {
-            //                SET + nameof(IRedisClient.Db) => nameof(IRedisClientAsync.ChangeDbAsync),
-            //                _ => default,
-            //            };
-            //        }
-            //        else if (syncInterface == typeof(IRedisNativeClient))
-            //        {
-            //            movedToAsyncGetter = method.Name switch
-            //            {
-            //                GET + nameof(IRedisNativeClient.DbSize) => nameof(IRedisNativeClientAsync.DbSizeAsync),
-            //                GET + nameof(IRedisNativeClient.LastSave) => nameof(IRedisNativeClientAsync.LastSaveAsync),
-            //                GET + nameof(IRedisNativeClient.Info) => nameof(IRedisNativeClientAsync.InfoAsync),
-            //                _ => default,
-            //            };
-            //            movedToAsyncSetter = method.Name switch
-            //            {
-            //                SET + nameof(IRedisNativeClient.Db) => nameof(IRedisNativeClientAsync.SelectAsync),
-            //                _ => default,
-            //            };
-            //        }
-
-            //        if (movedToAsyncGetter is object)
-            //        {
-            //            expectedName = movedToAsyncGetter;
-            //            expectedReturnType = typeof(ValueTask<>).MakeGenericType(method.ReturnType);
-            //            expectedSignature = new[] { typeof(CancellationToken) };
-            //        }
-            //        else if (movedToAsyncSetter is object)
-            //        {
-            //            expectedName = movedToAsyncSetter;
-            //            expectedReturnType = typeof(ValueTask);
-            //            expectedSignature = new[] { parameterTypes.Single(), typeof(CancellationToken) };
-            //        }
-            //        else
-            //        {
-            //            // default is for properties and indexers etc to remain "as-is"
-            //            expectedName = method.Name;
-            //            expectedReturnType = method.ReturnType;
-            //            expectedSignature = parameterTypes;
-            //        }
-            //    }
-
-            //    else if (syncInterface == typeof(IRedisClient) && method.Name == nameof(IRedisClient.AcquireLock))
-            //    {
-            //        // we're merging the two overloads into one nullable
-            //        if (parameterTypes.Length == 1) continue;
-            //        expectedReturnType = typeof(ValueTask<IAsyncDisposable>);
-            //        parameterTypes[1] = typeof(TimeSpan?); // make it optional
-            //        expectedSignature = parameterTypes;
-            //    }
-
-            //    else if (syncInterface == typeof(IDistributedLock) && method.Name == nameof(IDistributedLock.Lock))
-            //    {
-            //        // different API shape due to "out: not being supported in async
-            //        expectedReturnType = typeof(ValueTask<LockState>);
-            //        expectedSignature = new[] { typeof(string), typeof(int), typeof(int), typeof(IRedisClientAsync), typeof(CancellationToken) };
-            //    }
-            //    else if (syncInterface == typeof(IRedisQueueableOperation))
-            //    {
-            //        if (parameterTypes.Length < 3) continue; // not propagating the x3 overloads; use optional parameters instead
-            //        expectedReturnType = typeof(void);
-            //        Type arg0;
-            //        if (parameterTypes[0] == typeof(Action<IRedisClient>))
-            //        {
-            //            arg0 = typeof(Func<IRedisClientAsync, ValueTask>);
-            //        }
-            //        else // Func<IRedisClient, T> - replace with Func<IRedisClientAsync, ValueTask<T>>
-            //        {
-            //            arg0 = typeof(Func<,>).MakeGenericType(
-            //                typeof(IRedisClientAsync),
-            //                typeof(ValueTask<>).MakeGenericType(parameterTypes[0].GetGenericArguments()[1]));
-            //        }
-            //        expectedSignature = new[] { arg0, parameterTypes[1], parameterTypes[2] };
-            //        expectedName = method.Name;
-            //    }
-            //    else if (syncInterface == typeof(IRedisQueueCompletableOperation))
-            //    {
-            //        expectedReturnType = typeof(void);
-            //        expectedSignature = new Type[1];
-            //        if (parameterTypes[0] == typeof(Action))
-            //        {
-            //            expectedSignature[0] = typeof(Func<CancellationToken, ValueTask>);
-            //        }
-            //        else
-            //        {   // Func<T> for some T - replace with Func<CancellationToken, ValueTask<T>>
-            //            expectedSignature[0] = typeof(Func<,>).MakeGenericType(
-            //                typeof(CancellationToken),
-            //                typeof(ValueTask<>).MakeGenericType(parameterTypes[0].GetGenericArguments()));
-            //        }
-            //    }
-            //    else
-            //    {
-            //        // default interpretation
-            //        expectedSignature = new Type[parameterTypes.Length + 1];
-            //        for (int i = 0; i < parameterTypes.Length; i++)
-            //        {
-            //            expectedSignature[i] = SwapForAsyncIfNeedeed(parameterTypes[i]);
-            //        }
-            //        expectedSignature[parameterTypes.Length] = typeof(CancellationToken);
-
-            //        if (method.ReturnType == typeof(void))
-            //        {
-            //            expectedReturnType = typeof(ValueTask);
-            //        }
-            //        else if (method.ReturnType.IsGenericType && method.ReturnType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-            //        {
-            //            expectedReturnType = typeof(IAsyncEnumerable<>).MakeGenericType(method.ReturnType.GetGenericArguments());
-            //        }
-            //        else
-            //        {
-            //            expectedReturnType = typeof(ValueTask<>).MakeGenericType(SwapForAsyncIfNeedeed(method.ReturnType));
-            //        }
-            //    }
-
-            //    expected.Add(GetSignature(expectedReturnType, expectedName, method.IsGenericMethodDefinition ? method.GetGenericArguments() : default, expectedSignature));
-            //}
-            //expected.Sort();
-            //actual.Sort();
-            //int missing = 0, extra = 0;
-            //TestContext.Out.WriteLine($"Total: {expected.Count} expected ('{GetCSharpTypeName(syncInterface)}'), {actual.Count} actual ('{GetCSharpTypeName(asyncInterface)}')");
-            //foreach (var method in actual.Except(expected))
-            //{
-            //    TestContext.Out.WriteLine($"+ {method}");
-            //    extra++;
-            //}
-            //foreach (var method in expected.Except(actual))
-            //{
-            //    TestContext.Out.WriteLine($"- {method}");
-            //    missing++;
-            //}
-            //Assert.AreEqual(0, missing + extra, $"'{GetCSharpTypeName(asyncInterface)}' missing: {missing}; extra: {extra}; expected: {expected.Count}; actual: {actual.Count}");
-            //static Type SwapForAsyncIfNeedeed(Type type)
-            //{
-            //    if (type == typeof(IRedisClient)) return typeof(IRedisClientAsync);
-            //    if (type == typeof(ICacheClient)) return typeof(ICacheClientAsync);
-            //    if (type == typeof(IRedisPipeline)) return typeof(IRedisPipelineAsync);
-            //    if (type == typeof(IRedisPipelineShared)) return typeof(IRedisPipelineSharedAsync);
-            //    if (type == typeof(IDisposable)) return typeof(IAsyncDisposable);
-            //    return type;
-            //}
-
-            //static string GetSignature(Type returnType, string name, Type[] genericParameters, Type[] parameters)
-            //{
-            //    genericParameters ??= Type.EmptyTypes;
-            //    parameters ??= Type.EmptyTypes;
-            //    var sb = new StringBuilder();
-            //    AppendCSharpTypeName(returnType, sb);
-            //    sb.Append(" ").Append(name);
-            //    if (genericParameters.Length != 0)
-            //    {
-            //        sb.Append("<");
-            //        for (int i = 0; i < genericParameters.Length; i++)
-            //        {
-            //            if (i != 0) sb.Append(", ");
-            //            AppendCSharpTypeName(genericParameters[i], sb);
-            //        }
-            //        sb.Append(">");
-            //    }
-            //    sb.Append("(");
-            //    for (int i = 0; i < parameters.Length; i++)
-            //    {
-            //        if (i != 0) sb.Append(", ");
-            //        AppendCSharpTypeName(parameters[i], sb);
-            //    }
-            //    return sb.Append(")").ToString();
-            //}
         }
 
         static string GetCSharpTypeName(Type type)
@@ -761,6 +622,9 @@ namespace ServiceStack.Redis.Tests
 
             internal ParameterToken WithAttributes(ParameterAttributes attributes)
                 => new ParameterToken(Name, ParameterType, attributes, DefaultValue, _allAttributes);
+
+            internal ParameterToken WithName(string name)
+                => new ParameterToken(name, ParameterType, Attributes, DefaultValue, _allAttributes);
 
             public ParameterToken(ParameterInfo source)
             {

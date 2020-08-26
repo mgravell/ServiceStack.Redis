@@ -579,7 +579,7 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_get_slowlog()
         {
             await using var client = RedisClient.New().ForAsyncOnly();
-            var log = await client.SlowlogGetAsync(10);
+            var log = await client.GetSlowlogAsync(10);
 
             foreach (var t in log)
             {

@@ -1,15 +1,14 @@
-﻿using ServiceStack.Redis.Pipeline;
+﻿using ServiceStack.Redis.Internal;
+using ServiceStack.Redis.Pipeline;
 using ServiceStack.Text;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ServiceStack.Redis.Internal;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Globalization;
 
 namespace ServiceStack.Redis
 {
@@ -1385,5 +1384,104 @@ namespace ServiceStack.Redis
             AssertNotNull(key);
             return SendExpectLongAsync(cancellationToken, Commands.BitCount, key.ToUtf8Bytes());
         }
+
+        ValueTask<long> IRedisNativeClientAsync.DelAsync(params string[] keys)
+            => AsAsync().DelAsync(keys, default);
+
+        ValueTask IRedisNativeClientAsync.SInterStoreAsync(string intoSetId, params string[] setIds)
+            => AsAsync().SInterStoreAsync(intoSetId, setIds, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SUnionAsync(params string[] setIds)
+            => AsAsync().SUnionAsync(setIds, default);
+
+        ValueTask IRedisNativeClientAsync.WatchAsync(params string[] keys)
+            => AsAsync().WatchAsync(keys, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SubscribeAsync(params string[] toChannels)
+            => AsAsync().SubscribeAsync(toChannels, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.UnSubscribeAsync(params string[] toChannels)
+            => AsAsync().UnSubscribeAsync(toChannels, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.PSubscribeAsync(params string[] toChannelsMatchingPatterns)
+            => AsAsync().PSubscribeAsync(toChannelsMatchingPatterns, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.PUnSubscribeAsync(params string[] toChannelsMatchingPatterns)
+            => AsAsync().PUnSubscribeAsync(toChannelsMatchingPatterns, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SInterAsync(params string[] setIds)
+            => AsAsync().SInterAsync(setIds, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.SDiffAsync(string fromSetId, params string[] withSetIds)
+            => AsAsync().SDiffAsync(fromSetId, withSetIds, default);
+
+        ValueTask IRedisNativeClientAsync.SDiffStoreAsync(string intoSetId, string fromSetId, params string[] withSetIds)
+            => AsAsync().SDiffStoreAsync(intoSetId, fromSetId, withSetIds, default);
+
+        ValueTask<long> IRedisNativeClientAsync.ZUnionStoreAsync(string intoSetId, params string[] setIds)
+            => AsAsync().ZUnionStoreAsync(intoSetId, setIds, default);
+
+        ValueTask<long> IRedisNativeClientAsync.ZInterStoreAsync(string intoSetId, params string[] setIds)
+            => AsAsync().ZInterStoreAsync(intoSetId, setIds, default);
+
+        ValueTask<RedisData> IRedisNativeClientAsync.EvalCommandAsync(string luaBody, int numberKeysInArgs, params byte[][] keys)
+            => AsAsync().EvalCommandAsync(luaBody, numberKeysInArgs, keys, default);
+
+        ValueTask<RedisData> IRedisNativeClientAsync.EvalShaCommandAsync(string sha1, int numberKeysInArgs, params byte[][] keys)
+            => AsAsync().EvalShaCommandAsync(sha1, numberKeysInArgs, keys, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.EvalAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs)
+            => AsAsync().EvalAsync(luaBody, numberOfKeys, keysAndArgs, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.EvalShaAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs)
+            => AsAsync().EvalShaAsync(sha1, numberOfKeys, keysAndArgs, default);
+
+        ValueTask<long> IRedisNativeClientAsync.EvalIntAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs)
+            => AsAsync().EvalIntAsync(luaBody, numberOfKeys, keysAndArgs, default);
+
+        ValueTask<long> IRedisNativeClientAsync.EvalShaIntAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs)
+            => AsAsync().EvalShaIntAsync(sha1, numberOfKeys, keysAndArgs, default);
+
+        ValueTask<string> IRedisNativeClientAsync.EvalStrAsync(string luaBody, int numberOfKeys, params byte[][] keysAndArgs)
+            => AsAsync().EvalStrAsync(luaBody, numberOfKeys, keysAndArgs, default);
+
+        ValueTask<string> IRedisNativeClientAsync.EvalShaStrAsync(string sha1, int numberOfKeys, params byte[][] keysAndArgs)
+            => AsAsync().EvalShaStrAsync(sha1, numberOfKeys, keysAndArgs, default);
+
+        ValueTask<RedisData> IRedisNativeClientAsync.RawCommandAsync(params object[] cmdWithArgs)
+            => AsAsync().RawCommandAsync(cmdWithArgs, default);
+
+        ValueTask<RedisData> IRedisNativeClientAsync.RawCommandAsync(params byte[][] cmdWithBinaryArgs)
+            => AsAsync().RawCommandAsync(cmdWithBinaryArgs, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.MGetAsync(params string[] keys)
+            => AsAsync().MGetAsync(keys, default);
+
+        ValueTask<bool> IRedisNativeClientAsync.PfAddAsync(string key, params byte[][] elements)
+            => AsAsync().PfAddAsync(key, elements, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.HMGetAsync(string hashId, params byte[][] keysAndArgs)
+            => AsAsync().HMGetAsync(hashId, keysAndArgs, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.MGetAsync(params byte[][] keysAndArgs)
+            => AsAsync().MGetAsync(keysAndArgs, default);
+
+        ValueTask IRedisNativeClientAsync.SUnionStoreAsync(string intoSetId, params string[] setIds)
+            => AsAsync().SUnionStoreAsync(intoSetId, setIds, default);
+
+        ValueTask<byte[][]> IRedisNativeClientAsync.ScriptExistsAsync(params byte[][] sha1Refs)
+            => AsAsync().ScriptExistsAsync(sha1Refs, default);
+
+        ValueTask IRedisNativeClientAsync.PfMergeAsync(string toKeyId, params string[] fromKeys)
+            => AsAsync().PfMergeAsync(toKeyId, fromKeys, default);
+
+        ValueTask<long> IRedisNativeClientAsync.GeoAddAsync(string key, params RedisGeo[] geoPoints)
+            => AsAsync().GeoAddAsync(key, geoPoints, default);
+
+        ValueTask<string[]> IRedisNativeClientAsync.GeoHashAsync(string key, params string[] members)
+            => AsAsync().GeoHashAsync(key, members, default);
+
+        ValueTask<List<RedisGeo>> IRedisNativeClientAsync.GeoPosAsync(string key, params string[] members)
+            => AsAsync().GeoPosAsync(key, members, default);
     }
 }
