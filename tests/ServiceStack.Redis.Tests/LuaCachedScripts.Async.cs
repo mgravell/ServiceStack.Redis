@@ -239,7 +239,7 @@ return cjson.encode(keyAttrs)";
 
             if (keys.Count > 0)
             {
-                await using (var pipeline = await Redis.CreatePipelineAsync())
+                await using (var pipeline = Redis.CreatePipeline())
                 {
                     foreach (var key in keys)
                         pipeline.QueueCommand(r => r.TypeAsync(key), x => keyTypes[key] = x);
@@ -250,7 +250,7 @@ return cjson.encode(keyAttrs)";
                     await pipeline.FlushAsync();
                 }
 
-                await using (var pipeline = await Redis.CreatePipelineAsync())
+                await using (var pipeline = Redis.CreatePipeline())
                 {
                     foreach (var entry in keyTypes)
                     {

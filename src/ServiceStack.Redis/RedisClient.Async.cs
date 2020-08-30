@@ -81,8 +81,8 @@ namespace ServiceStack.Redis
         ValueTask<DateTime> IRedisClientAsync.GetServerTimeAsync(CancellationToken cancellationToken)
             => NativeAsync.TimeAsync(cancellationToken).Await(parts => ParseTimeResult(parts));
 
-        ValueTask<IRedisPipelineAsync> IRedisClientAsync.CreatePipelineAsync(CancellationToken cancellationToken)
-            => new RedisAllPurposePipeline(this).AsValueTask<IRedisPipelineAsync>();
+        IRedisPipelineAsync IRedisClientAsync.CreatePipeline()
+            => new RedisAllPurposePipeline(this);
 
         ValueTask<IRedisTransactionAsync> IRedisClientAsync.CreateTransactionAsync(CancellationToken cancellationToken)
         {
@@ -207,7 +207,7 @@ namespace ServiceStack.Redis
         ValueTask<string> IRedisClientAsync.GetRandomKeyAsync(CancellationToken cancellationToken)
             => NativeAsync.RandomKeyAsync(cancellationToken);
 
-        ValueTask IRedisClientAsync.ChangeDbAsync(long db, CancellationToken cancellationToken)
+        ValueTask IRedisClientAsync.SelectAsync(long db, CancellationToken cancellationToken)
             => NativeAsync.SelectAsync(db, cancellationToken);
 
         ValueTask<bool> IRedisClientAsync.ExpireEntryInAsync(string key, TimeSpan expireIn, CancellationToken cancellationToken)
@@ -1445,5 +1445,80 @@ namespace ServiceStack.Redis
 
         ValueTask<RedisText> IRedisClientAsync.CustomAsync(params object[] cmdWithArgs)
             => AsAsync().CustomAsync(cmdWithArgs, cancellationToken: default);
+
+        ValueTask<bool> IRedisClientAsync.RemoveEntryAsync(params string[] args)
+            => AsAsync().RemoveEntryAsync(args, cancellationToken: default);
+
+        ValueTask<bool> IRedisClientAsync.AddToHyperLogAsync(string key, params string[] elements)
+            => AsAsync().AddToHyperLogAsync(key, elements, cancellationToken: default);
+
+        ValueTask IRedisClientAsync.MergeHyperLogsAsync(string toKey, params string[] fromKeys)
+            => AsAsync().MergeHyperLogsAsync(toKey, fromKeys, cancellationToken: default);
+
+        ValueTask<long> IRedisClientAsync.AddGeoMembersAsync(string key, params RedisGeo[] geoPoints)
+            => AsAsync().AddGeoMembersAsync(key, geoPoints, cancellationToken: default);
+
+        ValueTask<string[]> IRedisClientAsync.GetGeohashesAsync(string key, params string[] members)
+            => AsAsync().GetGeohashesAsync(key, members, cancellationToken: default);
+
+        ValueTask<List<RedisGeo>> IRedisClientAsync.GetGeoCoordinatesAsync(string key, params string[] members)
+            => AsAsync().GetGeoCoordinatesAsync(key, members, cancellationToken: default);
+
+        ValueTask IRedisClientAsync.WatchAsync(params string[] keys)
+            => AsAsync().WatchAsync(keys, cancellationToken: default);
+
+        ValueTask<HashSet<string>> IRedisClientAsync.GetIntersectFromSetsAsync(params string[] setIds)
+            => AsAsync().GetIntersectFromSetsAsync(setIds, cancellationToken: default);
+
+        ValueTask IRedisClientAsync.StoreIntersectFromSetsAsync(string intoSetId, params string[] setIds)
+            => AsAsync().StoreIntersectFromSetsAsync(intoSetId, setIds, cancellationToken: default);
+
+        ValueTask<HashSet<string>> IRedisClientAsync.GetUnionFromSetsAsync(params string[] setIds)
+            => AsAsync().GetUnionFromSetsAsync(setIds, cancellationToken: default);
+
+        ValueTask IRedisClientAsync.StoreUnionFromSetsAsync(string intoSetId, params string[] setIds)
+            => AsAsync().StoreUnionFromSetsAsync(intoSetId, setIds, cancellationToken: default);
+
+        ValueTask<HashSet<string>> IRedisClientAsync.GetDifferencesFromSetAsync(string fromSetId, params string[] withSetIds)
+            => AsAsync().GetDifferencesFromSetAsync(fromSetId, withSetIds, cancellationToken: default);
+
+        ValueTask IRedisClientAsync.StoreDifferencesFromSetAsync(string intoSetId, string fromSetId, params string[] withSetIds)
+            => AsAsync().StoreDifferencesFromSetAsync(intoSetId, fromSetId, withSetIds, cancellationToken: default);
+
+        ValueTask<long> IRedisClientAsync.StoreIntersectFromSortedSetsAsync(string intoSetId, params string[] setIds)
+            => AsAsync().StoreIntersectFromSortedSetsAsync(intoSetId, setIds, cancellationToken: default);
+
+        ValueTask<long> IRedisClientAsync.StoreUnionFromSortedSetsAsync(string intoSetId, params string[] setIds)
+            => AsAsync().StoreUnionFromSortedSetsAsync(intoSetId, setIds, cancellationToken: default);
+
+        ValueTask<List<string>> IRedisClientAsync.GetValuesFromHashAsync(string hashId, params string[] keys)
+            => AsAsync().GetValuesFromHashAsync(hashId, keys, cancellationToken: default);
+
+        ValueTask<RedisText> IRedisClientAsync.ExecLuaAsync(string body, params string[] args)
+            => AsAsync().ExecLuaAsync(body, args, cancellationToken: default);
+
+        ValueTask<RedisText> IRedisClientAsync.ExecLuaShaAsync(string sha1, params string[] args)
+            => AsAsync().ExecLuaShaAsync(sha1, args, cancellationToken: default);
+
+        ValueTask<string> IRedisClientAsync.ExecLuaAsStringAsync(string luaBody, params string[] args)
+            => AsAsync().ExecLuaAsStringAsync(luaBody, args, cancellationToken: default);
+
+        ValueTask<string> IRedisClientAsync.ExecLuaShaAsStringAsync(string sha1, params string[] args)
+            => AsAsync().ExecLuaShaAsStringAsync(sha1, args, cancellationToken: default);
+
+        ValueTask<long> IRedisClientAsync.ExecLuaAsIntAsync(string luaBody, params string[] args)
+            => AsAsync().ExecLuaAsIntAsync(luaBody, args, cancellationToken: default);
+
+        ValueTask<long> IRedisClientAsync.ExecLuaShaAsIntAsync(string sha1, params string[] args)
+            => AsAsync().ExecLuaShaAsIntAsync(sha1, args, cancellationToken: default);
+
+        ValueTask<List<string>> IRedisClientAsync.ExecLuaAsListAsync(string luaBody, params string[] args)
+            => AsAsync().ExecLuaAsListAsync(luaBody, args, cancellationToken: default);
+
+        ValueTask<List<string>> IRedisClientAsync.ExecLuaShaAsListAsync(string sha1, params string[] args)
+            => AsAsync().ExecLuaShaAsListAsync(sha1, args, cancellationToken: default);
+
+        ValueTask<Dictionary<string, bool>> IRedisClientAsync.WhichLuaScriptsExistsAsync(params string[] sha1Refs)
+            => AsAsync().WhichLuaScriptsExistsAsync(sha1Refs, cancellationToken: default);
     }
 }

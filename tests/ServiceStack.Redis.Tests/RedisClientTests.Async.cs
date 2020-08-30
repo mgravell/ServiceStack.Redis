@@ -138,7 +138,7 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_get_RandomKey()
         {
-            await RedisAsync.ChangeDbAsync(15);
+            await RedisAsync.SelectAsync(15);
             var keysMap = new Dictionary<string, string>();
 
             10.Times(i => keysMap.Add(RedisRaw.NamespacePrefix + "key" + i, "val" + i));
@@ -600,15 +600,15 @@ namespace ServiceStack.Redis.Tests
             try
             {
                 await redis.SetAsync(key, val);
-                await redis.ChangeDbAsync(2);
+                await redis.SelectAsync(2);
                 Assert.That(await redis.GetAsync<int>(key), Is.EqualTo(0));
-                await redis.ChangeDbAsync(1);
+                await redis.SelectAsync(1);
                 Assert.That(await redis.GetAsync<int>(key), Is.EqualTo(val));
                 await redis.DisposeAsync();
             }
             finally
             {
-                await redis.ChangeDbAsync(1);
+                await redis.SelectAsync(1);
                 await redis.RemoveAsync(key);
             }
         }

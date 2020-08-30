@@ -30,7 +30,7 @@ namespace ServiceStack.Redis.Generic
         // T this[string key] { get; set; }
 
         ValueTask<IRedisTypedTransactionAsync<T>> CreateTransactionAsync(CancellationToken cancellationToken = default);
-        IRedisTypedPipelineAsync<T> CreatePipelineAsync();
+        IRedisTypedPipelineAsync<T> CreatePipeline();
 
         IRedisClientAsync RedisClient { get; }
         IRedisNativeClientAsync NativeClient { get; }
@@ -38,7 +38,7 @@ namespace ServiceStack.Redis.Generic
         ValueTask<IAsyncDisposable> AcquireLockAsync(TimeSpan? timeOut = default, CancellationToken cancellationToken = default);
 
         long Db { get; }
-        ValueTask ChangeDbAsync(long db, CancellationToken cancellationToken = default);
+        ValueTask SelectAsync(long db, CancellationToken cancellationToken = default);
 
         ValueTask<List<string>> GetAllKeysAsync(CancellationToken cancellationToken = default);
 

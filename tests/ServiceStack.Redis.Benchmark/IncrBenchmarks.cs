@@ -208,7 +208,7 @@ namespace ServiceStack.Redis.Benchmark
         {
             long last = default;
             _ssredis.Del(Key); // todo: asyncify
-            await using var trans = await _ssAsync.CreatePipelineAsync();
+            await using var trans = _ssAsync.CreatePipeline();
             for (int i = 0; i < PER_TEST; i++)
             {
                 trans.QueueCommand(r => r.IncrementValueAsync(Key), l => last = l);

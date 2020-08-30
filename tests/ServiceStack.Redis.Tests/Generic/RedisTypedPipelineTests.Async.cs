@@ -39,7 +39,7 @@ namespace ServiceStack.Redis.Tests.Generic
         {
             Assert.That(await typedClient.GetValueAsync(Key), Is.Null);
 
-            await using (var pipeline = typedClient.CreatePipelineAsync())
+            await using (var pipeline = typedClient.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.SetValueAsync(Key, model));
 
@@ -54,7 +54,7 @@ namespace ServiceStack.Redis.Tests.Generic
         {
             Assert.That(await typedClient.GetValueAsync(Key), Is.Null);
 
-            await using (var pipeline = typedClient.CreatePipelineAsync())
+            await using (var pipeline = typedClient.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.SetValueAsync(Key, model));
             }
@@ -68,7 +68,7 @@ namespace ServiceStack.Redis.Tests.Generic
             Assert.That(await typedClient.GetValueAsync(Key), Is.Null);
             try
             {
-                await using var pipeline = typedClient.CreatePipelineAsync();
+                await using var pipeline = typedClient.CreatePipeline();
                 pipeline.QueueCommand(r => r.SetValueAsync(Key, model));
                 throw new NotSupportedException();
             }
@@ -84,7 +84,7 @@ namespace ServiceStack.Redis.Tests.Generic
             var typedList = typedClient.Lists[ListKey];
             Assert.That(await typedList.CountAsync(), Is.EqualTo(0));
 
-            await using (var pipeline = typedClient.CreatePipelineAsync())
+            await using (var pipeline = typedClient.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.AddItemToListAsync(typedList, modelFactory.CreateInstance(1)));
                 pipeline.QueueCommand(r => r.AddItemToListAsync(typedList, modelFactory.CreateInstance(2)));
@@ -104,7 +104,7 @@ namespace ServiceStack.Redis.Tests.Generic
             var typedList = typedClient.Lists[ListKey];
             Assert.That(await typedList.CountAsync(), Is.EqualTo(0));
 
-            await using (var pipeline = typedClient.CreatePipelineAsync())
+            await using (var pipeline = typedClient.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.AddItemToListAsync(typedList, modelFactory.CreateInstance(1)), () => results.Add(1));
                 pipeline.QueueCommand(r => r.AddItemToListAsync(typedList, modelFactory.CreateInstance(2)), () => results.Add(2));
@@ -129,7 +129,7 @@ namespace ServiceStack.Redis.Tests.Generic
             var typedSortedSet = typedClient.SortedSets[SortedSetKey];
 
             Assert.That(await typedClient.GetValueAsync(Key), Is.Null);
-            await using (var pipeline = typedClient.CreatePipelineAsync())
+            await using (var pipeline = typedClient.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key), intResult => incrementResults.Add(intResult));
                 pipeline.QueueCommand(r => r.AddItemToListAsync(typedList, modelFactory.CreateInstance(1)));
@@ -179,7 +179,7 @@ namespace ServiceStack.Redis.Tests.Generic
             var typedList = typedClient.Lists[ListKey];
             Assert.That(await typedList.CountAsync(), Is.EqualTo(0));
 
-            await using (var pipeline = typedClient.CreatePipelineAsync())
+            await using (var pipeline = typedClient.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.AddItemToListAsync(typedList, modelFactory.CreateInstance(1)));
                 pipeline.QueueCommand(r => r.AddItemToListAsync(typedList, modelFactory.CreateInstance(2)));
@@ -207,7 +207,7 @@ namespace ServiceStack.Redis.Tests.Generic
             const string keySquared = Key + Key;
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             Assert.That(await RedisAsync.GetValueAsync(keySquared), Is.Null);
-            await using var pipeline = typedClient.CreatePipelineAsync();
+            await using var pipeline = typedClient.CreatePipeline();
             pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
             pipeline.QueueCommand(r => r.IncrementValueAsync(keySquared));
             await pipeline.FlushAsync();

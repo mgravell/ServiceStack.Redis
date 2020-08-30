@@ -156,7 +156,7 @@ namespace ServiceStack.Redis.Generic
             return obj.AsValueTask();
         }
 
-        IRedisTypedPipelineAsync<T> IRedisTypedClientAsync<T>.CreatePipelineAsync()
+        IRedisTypedPipelineAsync<T> IRedisTypedClientAsync<T>.CreatePipeline()
             => new RedisTypedPipeline<T>(this);
 
 
@@ -171,8 +171,8 @@ namespace ServiceStack.Redis.Generic
 
         IRedisHashAsync<TKey, T> IRedisTypedClientAsync<T>.GetHashAsync<TKey>(string hashId) => GetHash<TKey>(hashId) as IRedisHashAsync<TKey, T> ?? throw new NotSupportedException("The provided Hash does not support IRedisHashAsync");
 
-        ValueTask IRedisTypedClientAsync<T>.ChangeDbAsync(long db, CancellationToken cancellationToken)
-            => AsyncClient.ChangeDbAsync(db, cancellationToken);
+        ValueTask IRedisTypedClientAsync<T>.SelectAsync(long db, CancellationToken cancellationToken)
+            => AsyncClient.SelectAsync(db, cancellationToken);
 
         ValueTask<List<string>> IRedisTypedClientAsync<T>.GetAllKeysAsync(CancellationToken cancellationToken)
             => AsyncClient.GetAllKeysAsync(cancellationToken);

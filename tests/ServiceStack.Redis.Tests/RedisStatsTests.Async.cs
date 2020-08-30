@@ -28,7 +28,7 @@ namespace ServiceStack.Redis.Tests
             Assert.That(RedisNativeClient.RequestsPerHour, Is.EqualTo(reqCount + 1));
 
             var keyTypes = new Dictionary<string, string>();
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
+            await using (var pipeline = RedisAsync.CreatePipeline())
             {
                 map.Keys.Each(key =>
                     pipeline.QueueCommand(r => r.TypeAsync(key), x => keyTypes[key] = x));

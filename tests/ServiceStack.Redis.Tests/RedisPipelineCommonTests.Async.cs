@@ -18,7 +18,7 @@ namespace ServiceStack.Redis.Tests
             var oneSec = TimeSpan.FromSeconds(1);
 
             Assert.That(await RedisAsync.GetValueAsync("key"), Is.Null);
-            await using (var trans = await RedisAsync.CreatePipelineAsync())              //Calls 'MULTI'
+            await using (var trans = RedisAsync.CreatePipeline())              //Calls 'MULTI'
             {
                 trans.QueueCommand(r => r.SetValueAsync("key", "a"));      //Queues 'SET key a'
                 trans.QueueCommand(r => r.ExpireEntryInAsync("key", oneSec)); //Queues 'EXPIRE key 1'
@@ -36,7 +36,7 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_SetAll_and_Publish_in_atomic_transaction()
         {
             var messages = new Dictionary<string, string> { { "a", "a" }, { "b", "b" } };
-            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            await using var pipeline = RedisAsync.CreatePipeline();
             pipeline.QueueCommand(c => c.SetAllAsync(messages.ToDictionary(t => t.Key, t => t.Value)));
             pipeline.QueueCommand(c => c.PublishMessageAsync("uc", "b"));
 
@@ -55,7 +55,7 @@ namespace ServiceStack.Redis.Tests
 
             var highestPriorityMessage = await RedisAsync.PopItemWithHighestScoreFromSortedSetAsync("prioritymsgs");
 
-            await using (var trans = await RedisAsync.CreatePipelineAsync())
+            await using (var trans = RedisAsync.CreatePipeline())
             {
                 trans.QueueCommand(r => r.RemoveItemFromSortedSetAsync("prioritymsgs", highestPriorityMessage));
                 trans.QueueCommand(r => r.AddItemToListAsync("workq", highestPriorityMessage));

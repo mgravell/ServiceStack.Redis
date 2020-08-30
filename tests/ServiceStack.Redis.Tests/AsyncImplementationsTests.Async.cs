@@ -11,6 +11,7 @@ using ServiceStack.Redis.Support.Locking;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -152,6 +153,11 @@ namespace ServiceStack.Redis.Tests
                 // adding missing "exists" capability
                 expected.Add("ValueTask<bool> SetAsync(string key, byte[] value, bool exists, long expirySeconds = 0, long expiryMilliseconds = 0, CancellationToken cancellationToken = default)");
             }
+            else if (asyncInterface == typeof(IRedisClientAsync))
+            {
+                expected.Add("ValueTask<SlowlogItem[]> GetSlowlogAsync(int? numberOfRecords = default, CancellationToken cancellationToken = default)");
+                expected.Add("ValueTask SlowlogResetAsync(CancellationToken cancellationToken = default)");
+            }
 
             void AddFrom(Type syncInterface, string name, bool fromPropertyToMethod = false)
                 => AddExpected(syncInterface.GetMethod(name), fromPropertyToMethod);
@@ -206,8 +212,9 @@ namespace ServiceStack.Redis.Tests
 
                 if (name.StartsWith("get_") || name.StartsWith("set_") || name.StartsWith("add_") || name.StartsWith("remove_"))
                 {
-                    bool fullyHandled = false;
-                    if (asyncInterface == typeof(IRedisNativeClientAsync))
+                    bool preserve = (name.StartsWith("get_") || name.StartsWith("set_")), fullyHandled = false;
+                    if (asyncInterface == typeof(IRedisNativeClientAsync) || asyncInterface == typeof(IRedisClientAsync)
+                        || asyncInterface == typeof(IRedisTypedClientAsync<>))
                     {
                         switch (tok.Name)
                         {
@@ -215,18 +222,24 @@ namespace ServiceStack.Redis.Tests
                             case "get_" + nameof(IRedisNativeClient.LastSave):
                             case "get_" + nameof(IRedisNativeClient.Info):
                                 fromPropertyToMethod = true;
-                                break;
-                            case "get_" + nameof(IRedisNativeClient.Db):
-                                name = tok.Name; // preserve
-                                returnType = tok.ReturnType;
+                                preserve = false;
                                 break;
                             case "set_" + nameof(IRedisNativeClient.Db):
                                 name = nameof(IRedisNativeClientAsync.SelectAsync);
                                 parameters[0] = parameters[0].WithName("db");
                                 fullyHandled = true;
                                 break;
+                            case "set_" + nameof(IRedisClientAsync.Hashes):
+                            case "set_" + nameof(IRedisClientAsync.Lists):
+                            case "set_" + nameof(IRedisClientAsync.Sets):
+                            case "set_" + nameof(IRedisClientAsync.SortedSets):
+                                return; // no "set" included
+                            case "get_Item":
+                            case "set_Item":
+                                return; // no indexer
                         }
                     }
+
                     if (fromPropertyToMethod)
                     {
                         name = name switch
@@ -236,6 +249,13 @@ namespace ServiceStack.Redis.Tests
                             _ => name.Substring(4), // don't worry about the remove, that isn't in this catchment
                         };
                     }
+                    else if (preserve && !fullyHandled)
+                    {   // just keep it the same by default
+                        name = tok.Name;
+                        returnType = SwapForAsyncIfNeedeed(tok.ReturnType);
+                        addCancellation = false;
+                    }
+                    
                     else if (fullyHandled) { }
                     else
                     {
@@ -388,6 +408,58 @@ namespace ServiceStack.Redis.Tests
                         returnType = tok.ReturnType;
                     }
 
+                    if (asyncInterface == typeof(IRedisClientAsync) || asyncInterface == typeof(IRedisTypedClientAsync<>))
+                    {
+                        switch (tok.Name)
+                        {
+                            case nameof(IRedisClient.UrnKey):
+                            case nameof(IRedisClient.As):
+                                addCancellation = false;
+                                name = tok.Name;
+                                returnType = SwapForAsyncIfNeedeed(tok.ReturnType);
+                                break;
+                            case nameof(IRedisClient.Save): // to avoid AsyncAsync and overloaded meaning of Async
+                                name = nameof(IRedisClientAsync.ForegroundSaveAsync);
+                                break;
+                            case nameof(IRedisClient.SaveAsync): // to avoid AsyncAsync and overloaded meaning of Async
+                                name = nameof(IRedisClientAsync.BackgroundSaveAsync);
+                                break;
+                            case nameof(IRedisClient.RewriteAppendOnlyFileAsync): // for consistency
+                                name = nameof(IRedisClientAsync.BackgroundRewriteAppendOnlyFileAsync);
+                                break;
+                            case nameof(IRedisClient.ExecCachedLua):
+                                // Func<string, T> scriptSha1 => Func<string, ValueTask<T>> scriptSha1
+                                parameters[1] = parameters[1].WithParameterType(typeof(Func<,>).MakeGenericType(typeof(string), typeof(ValueTask<>).MakeGenericType(method.GetGenericArguments())));
+                                break;
+                            case nameof(IRedisClient.AcquireLock):
+                                if (parameters.Length != 2) return; // 2 overloads combined into 1
+                                parameters[1] = parameters[1].AsNullable().AsOptional();
+                                returnType = typeof(ValueTask<>).MakeGenericType(returnType); // add await for acquisition
+                                break;
+                            case nameof(IRedisClient.SetValueIfExists):
+                            case nameof(IRedisClient.SetValueIfNotExists):
+                                if (parameters.Length != 3) return; // 2 overloads combined into 1
+                                parameters[2] = parameters[2].AsNullable().AsOptional();
+                                break;
+                            case nameof(IRedisClient.CreatePipeline):
+                                addCancellation = false;
+                                name = tok.Name;
+                                returnType = SwapForAsyncIfNeedeed(tok.ReturnType);
+                                break;
+                        }
+                    }
+
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        ref ParameterToken p = ref parameters[i];
+                        var type = p.ParameterType;
+                        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                        {
+                            // prefer IDictionary<,> to Dictionary<,>
+                            p = p.WithParameterType(typeof(IDictionary<,>).MakeGenericType(type.GetGenericArguments()));
+                        }
+                    }
+
                     // append optional cancellationToken
                     if (addCancellation)
                     {
@@ -444,6 +516,7 @@ namespace ServiceStack.Redis.Tests
                 if (type == typeof(IRedisSortedSet)) return typeof(IRedisSortedSetAsync);
                 if (type == typeof(IRedisHash)) return typeof(IRedisHashAsync);
                 if (type == typeof(IRedisSubscription)) return typeof(IRedisSubscriptionAsync);
+                if (type == typeof(IRedisTransaction)) return typeof(IRedisTransactionAsync);
 
                 if (type.IsGenericType)
                 {
@@ -456,7 +529,11 @@ namespace ServiceStack.Redis.Tests
                     if (genDef == typeof(IRedisList<>)) return typeof(IRedisListAsync<>).MakeGenericType(targs);
                     if (genDef == typeof(IRedisSet<>)) return typeof(IRedisSetAsync<>).MakeGenericType(targs);
                     if (genDef == typeof(IRedisSortedSet<>)) return typeof(IRedisSortedSetAsync<>).MakeGenericType(targs);
-                    if (genDef == typeof(IHasNamed<>)) return typeof(IHasNamed<>).MakeGenericType(targs);
+                    if (genDef == typeof(IRedisTypedTransaction<>)) return typeof(IRedisTypedTransactionAsync<>).MakeGenericType(targs);
+                    if (genDef == typeof(IRedisHash<,>)) return typeof(IRedisHashAsync<,>).MakeGenericType(targs);
+                    if (genDef == typeof(IRedisTypedPipeline<>)) return typeof(IRedisTypedPipelineAsync<>).MakeGenericType(targs);
+
+                    return genDef.MakeGenericType(targs);
                 }
                 
                 return type;
@@ -619,6 +696,17 @@ namespace ServiceStack.Redis.Tests
 
             internal ParameterToken WithParameterType(Type parameterType)
                 => new ParameterToken(Name, parameterType, Attributes, DefaultValue, _allAttributes);
+
+            internal ParameterToken AsNullable()
+            {
+                if (!ParameterType.IsValueType) return this; // already nullable (ish)
+                var existing = Nullable.GetUnderlyingType(ParameterType);
+                if (existing is object) return this; // already nullable
+                return WithParameterType(typeof(Nullable<>).MakeGenericType(ParameterType));
+            }
+
+            internal ParameterToken AsOptional()
+                => WithAttributes(Attributes | ParameterAttributes.Optional);
 
             internal ParameterToken WithAttributes(ParameterAttributes attributes)
                 => new ParameterToken(Name, ParameterType, attributes, DefaultValue, _allAttributes);

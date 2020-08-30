@@ -25,7 +25,7 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_call_single_operation_in_pipeline()
         {
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
+            await using (var pipeline = RedisAsync.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
                 var map = new Dictionary<string, int>();
@@ -41,7 +41,7 @@ namespace ServiceStack.Redis.Tests
         public async Task No_commit_of_atomic_pipelines_discards_all_commands()
         {
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
+            await using (var pipeline = RedisAsync.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
             }
@@ -54,7 +54,7 @@ namespace ServiceStack.Redis.Tests
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             try
             {
-                await using var pipeline = await RedisAsync.CreatePipelineAsync();
+                await using var pipeline = RedisAsync.CreatePipeline();
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
                 throw new NotSupportedException();
             }
@@ -68,7 +68,7 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_call_single_operation_3_Times_in_pipeline()
         {
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
+            await using (var pipeline = RedisAsync.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
@@ -98,7 +98,7 @@ namespace ServiceStack.Redis.Tests
 
             }
             byte[][] members = null;
-            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            await using var pipeline = RedisAsync.CreatePipeline();
 
 
             pipeline.QueueCommand(r => ((IRedisNativeClientAsync)r).HMSetAsync(Key, fieldBytes, valueBytes));
@@ -122,7 +122,7 @@ namespace ServiceStack.Redis.Tests
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             var keys = new[] { Key + "key1", Key + "key2", Key + "key3" };
             var values = new[] { "1", "2", "3" };
-            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            await using var pipeline = RedisAsync.CreatePipeline();
 
             for (int i = 0; i < 3; ++i)
             {
@@ -143,7 +143,7 @@ namespace ServiceStack.Redis.Tests
         {
             var results = new List<long>();
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
+            await using (var pipeline = RedisAsync.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key), results.Add);
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key), results.Add);
@@ -164,7 +164,7 @@ namespace ServiceStack.Redis.Tests
             var containsItem = false;
 
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
+            await using (var pipeline = RedisAsync.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.IncrementValueAsync(Key), intResult => incrementResults.Add(intResult));
                 pipeline.QueueCommand(r => r.AddItemToListAsync(ListKey, "listitem1"));
@@ -199,7 +199,7 @@ namespace ServiceStack.Redis.Tests
 
             var results = new List<string>();
             Assert.That(await RedisAsync.GetListCountAsync(ListKey), Is.EqualTo(0));
-            await using (var pipeline = await RedisAsync.CreatePipelineAsync())
+            await using (var pipeline = RedisAsync.CreatePipeline())
             {
                 pipeline.QueueCommand(r => r.AddItemToListAsync(ListKey, "listitem1"));
                 pipeline.QueueCommand(r => r.AddItemToListAsync(ListKey, "listitem2"));
@@ -222,7 +222,7 @@ namespace ServiceStack.Redis.Tests
         public async Task Can_call_operation_not_supported_on_older_servers_in_pipeline()
         {
             var temp = new byte[1];
-            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            await using var pipeline = RedisAsync.CreatePipeline();
             pipeline.QueueCommand(r => ((IRedisNativeClientAsync)r).SetExAsync(Key + "key", 5, temp));
             await pipeline.FlushAsync();
         }
@@ -232,7 +232,7 @@ namespace ServiceStack.Redis.Tests
             string KeySquared = Key + Key;
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
-            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            await using var pipeline = RedisAsync.CreatePipeline();
             pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
             pipeline.QueueCommand(r => r.IncrementValueAsync(KeySquared));
             await pipeline.FlushAsync();
@@ -256,7 +256,7 @@ namespace ServiceStack.Redis.Tests
             string KeySquared = Key + Key;
             Assert.That(await RedisAsync.GetValueAsync(Key), Is.Null);
             Assert.That(await RedisAsync.GetValueAsync(KeySquared), Is.Null);
-            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            await using var pipeline = RedisAsync.CreatePipeline();
             pipeline.QueueCommand(r => r.IncrementValueAsync(Key));
             pipeline.QueueCommand(r => r.IncrementValueAsync(KeySquared));
             pipeline.QueueCommand(r => ((IRedisNativeClientAsync)r).WatchAsync(new[] { Key + "FOO" }));
@@ -269,7 +269,7 @@ namespace ServiceStack.Redis.Tests
         [Test]
         public async Task Can_call_AddRangeToSet_in_pipeline()
         {
-            await using var pipeline = await RedisAsync.CreatePipelineAsync();
+            await using var pipeline = RedisAsync.CreatePipeline();
             var key = "pipeline-test";
 
             pipeline.QueueCommand(r => r.RemoveAsync(key));
