@@ -23,7 +23,7 @@ namespace ServiceStack.Redis.Generic
         IHasNamed<IRedisListAsync<T>> Lists { get; }
         IHasNamed<IRedisSetAsync<T>> Sets { get; }
         IHasNamed<IRedisSortedSetAsync<T>> SortedSets { get; }
-        IRedisHashAsync<TKey, T> GetHashAsync<TKey>(string hashId);
+        IRedisHashAsync<TKey, T> GetHash<TKey>(string hashId);
         IRedisSetAsync TypeIdsSet { get; }
 
         // not provided: use GetValueAsync/SetValueAsync instead
@@ -33,7 +33,6 @@ namespace ServiceStack.Redis.Generic
         IRedisTypedPipelineAsync<T> CreatePipeline();
 
         IRedisClientAsync RedisClient { get; }
-        IRedisNativeClientAsync NativeClient { get; }
 
         ValueTask<IAsyncDisposable> AcquireLockAsync(TimeSpan? timeOut = default, CancellationToken cancellationToken = default);
 
@@ -63,7 +62,9 @@ namespace ServiceStack.Redis.Generic
         ValueTask<bool> ContainsKeyAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<bool> RemoveEntryAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<bool> RemoveEntryAsync(string[] args, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveEntryAsync(params string[] args); // convenience API
         ValueTask<bool> RemoveEntryAsync(IHasStringId[] entities, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveEntryAsync(params IHasStringId[] entities); // convenience API
         ValueTask<long> IncrementValueAsync(string key, CancellationToken cancellationToken = default);
         ValueTask<long> IncrementValueByAsync(string key, int count, CancellationToken cancellationToken = default);
         ValueTask<long> DecrementValueAsync(string key, CancellationToken cancellationToken = default);
@@ -94,11 +95,17 @@ namespace ServiceStack.Redis.Generic
         ValueTask<long> GetSetCountAsync(IRedisSetAsync<T> set, CancellationToken cancellationToken = default);
         ValueTask<bool> SetContainsItemAsync(IRedisSetAsync<T> set, T item, CancellationToken cancellationToken = default);
         ValueTask<HashSet<T>> GetIntersectFromSetsAsync(IRedisSetAsync<T>[] sets, CancellationToken cancellationToken = default);
+        ValueTask<HashSet<T>> GetIntersectFromSetsAsync(params IRedisSetAsync<T>[] sets);
         ValueTask StoreIntersectFromSetsAsync(IRedisSetAsync<T> intoSet, IRedisSetAsync<T>[] sets, CancellationToken cancellationToken = default);
+        ValueTask StoreIntersectFromSetsAsync(IRedisSetAsync<T> intoSet, params IRedisSetAsync<T>[] sets); // convenience API
         ValueTask<HashSet<T>> GetUnionFromSetsAsync(IRedisSetAsync<T>[] sets, CancellationToken cancellationToken = default);
+        ValueTask<HashSet<T>> GetUnionFromSetsAsync(params IRedisSetAsync<T>[] sets); // convenience API
         ValueTask StoreUnionFromSetsAsync(IRedisSetAsync<T> intoSet, IRedisSetAsync<T>[] sets, CancellationToken cancellationToken = default);
+        ValueTask StoreUnionFromSetsAsync(IRedisSetAsync<T> intoSet, params IRedisSetAsync<T>[] sets); // convenience API
         ValueTask<HashSet<T>> GetDifferencesFromSetAsync(IRedisSetAsync<T> fromSet, IRedisSetAsync<T>[] withSets, CancellationToken cancellationToken = default);
+        ValueTask<HashSet<T>> GetDifferencesFromSetAsync(IRedisSetAsync<T> fromSet, params IRedisSetAsync<T>[] withSets); // convenience API
         ValueTask StoreDifferencesFromSetAsync(IRedisSetAsync<T> intoSet, IRedisSetAsync<T> fromSet, IRedisSetAsync<T>[] withSets, CancellationToken cancellationToken = default);
+        ValueTask StoreDifferencesFromSetAsync(IRedisSetAsync<T> intoSet, IRedisSetAsync<T> fromSet, params IRedisSetAsync<T>[] withSets); // convenience API
         ValueTask<T> GetRandomItemFromSetAsync(IRedisSetAsync<T> fromSet, CancellationToken cancellationToken = default);
 
         //List operations
@@ -170,8 +177,10 @@ namespace ServiceStack.Redis.Generic
         ValueTask<long> GetSortedSetCountAsync(IRedisSortedSetAsync<T> set, CancellationToken cancellationToken = default);
         ValueTask<double> GetItemScoreInSortedSetAsync(IRedisSortedSetAsync<T> set, T value, CancellationToken cancellationToken = default);
         ValueTask<long> StoreIntersectFromSortedSetsAsync(IRedisSortedSetAsync<T> intoSetId, IRedisSortedSetAsync<T>[] setIds, CancellationToken cancellationToken = default);
+        ValueTask<long> StoreIntersectFromSortedSetsAsync(IRedisSortedSetAsync<T> intoSetId, params IRedisSortedSetAsync<T>[] setIds); // convenience API
         ValueTask<long> StoreIntersectFromSortedSetsAsync(IRedisSortedSetAsync<T> intoSetId, IRedisSortedSetAsync<T>[] setIds, string[] args, CancellationToken cancellationToken = default);
         ValueTask<long> StoreUnionFromSortedSetsAsync(IRedisSortedSetAsync<T> intoSetId, IRedisSortedSetAsync<T>[] setIds, CancellationToken cancellationToken = default);
+        ValueTask<long> StoreUnionFromSortedSetsAsync(IRedisSortedSetAsync<T> intoSetId, params IRedisSortedSetAsync<T>[] setIds); // convenience API
         ValueTask<long> StoreUnionFromSortedSetsAsync(IRedisSortedSetAsync<T> intoSetId, IRedisSortedSetAsync<T>[] setIds, string[] args, CancellationToken cancellationToken = default);
 
         //Hash operations
@@ -189,6 +198,7 @@ namespace ServiceStack.Redis.Generic
         //Useful common app-logic 
         ValueTask StoreRelatedEntitiesAsync<TChild>(object parentId, List<TChild> children, CancellationToken cancellationToken = default);
         ValueTask StoreRelatedEntitiesAsync<TChild>(object parentId, TChild[] children, CancellationToken cancellationToken = default);
+        ValueTask StoreRelatedEntitiesAsync<TChild>(object parentId, params TChild[] children); // convenience API
         ValueTask DeleteRelatedEntitiesAsync<TChild>(object parentId, CancellationToken cancellationToken = default);
         ValueTask DeleteRelatedEntityAsync<TChild>(object parentId, object childId, CancellationToken cancellationToken = default);
         ValueTask<List<TChild>> GetRelatedEntitiesAsync<TChild>(object parentId, CancellationToken cancellationToken = default);

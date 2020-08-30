@@ -139,11 +139,15 @@ namespace ServiceStack.Redis.Generic
         async ValueTask IRedisListAsync<T>.RemoveAtAsync(int index, CancellationToken cancellationToken)
         {
             //TODO: replace with native implementation when one exists
+
+            var nativeClient = client.NativeClient as IRedisNativeClientAsync ?? throw new NotSupportedException(
+                $"The native client ('{client.NativeClient.GetType().Name}') does not implement {nameof(IRedisNativeClientAsync)}");
+
             var markForDelete = Guid.NewGuid().ToString();
-            await AsyncClient.NativeClient.LSetAsync(listId, index, Encoding.UTF8.GetBytes(markForDelete), cancellationToken).ConfigureAwait(false);
+            await nativeClient.LSetAsync(listId, index, Encoding.UTF8.GetBytes(markForDelete), cancellationToken).ConfigureAwait(false);
 
             const int removeAll = 0;
-            await AsyncClient.NativeClient.LRemAsync(listId, removeAll, Encoding.UTF8.GetBytes(markForDelete), cancellationToken).ConfigureAwait(false);
+            await nativeClient.LRemAsync(listId, removeAll, Encoding.UTF8.GetBytes(markForDelete), cancellationToken).ConfigureAwait(false);
         }
 
         async ValueTask<bool> IRedisListAsync<T>.ContainsAsync(T value, CancellationToken cancellationToken)

@@ -431,17 +431,23 @@ namespace ServiceStack.Redis.Tests
                                 // Func<string, T> scriptSha1 => Func<string, ValueTask<T>> scriptSha1
                                 parameters[1] = parameters[1].WithParameterType(typeof(Func<,>).MakeGenericType(typeof(string), typeof(ValueTask<>).MakeGenericType(method.GetGenericArguments())));
                                 break;
-                            case nameof(IRedisClient.AcquireLock):
+                            case nameof(IRedisClient.AcquireLock) when asyncInterface == typeof(IRedisClientAsync):
                                 if (parameters.Length != 2) return; // 2 overloads combined into 1
                                 parameters[1] = parameters[1].AsNullable().AsOptional();
                                 returnType = typeof(ValueTask<>).MakeGenericType(returnType); // add await for acquisition
                                 break;
-                            case nameof(IRedisClient.SetValueIfExists):
-                            case nameof(IRedisClient.SetValueIfNotExists):
+                            case nameof(IRedisClient.AcquireLock) when asyncInterface == typeof(IRedisTypedClientAsync<>):
+                                if (parameters.Length != 1) return; // 2 overloads combined into 1
+                                parameters[0] = parameters[0].AsNullable().AsOptional();
+                                returnType = typeof(ValueTask<>).MakeGenericType(returnType); // add await for acquisition
+                                break;
+                            case nameof(IRedisClient.SetValueIfExists) when asyncInterface == typeof(IRedisClientAsync):
+                            case nameof(IRedisClient.SetValueIfNotExists) when asyncInterface == typeof(IRedisClientAsync):
                                 if (parameters.Length != 3) return; // 2 overloads combined into 1
                                 parameters[2] = parameters[2].AsNullable().AsOptional();
                                 break;
                             case nameof(IRedisClient.CreatePipeline):
+                            case nameof(IRedisTypedClient<string>.GetHash):
                                 addCancellation = false;
                                 name = tok.Name;
                                 returnType = SwapForAsyncIfNeedeed(tok.ReturnType);

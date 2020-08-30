@@ -32,7 +32,7 @@ namespace ServiceStack.Redis.Tests.Generic
 
             redis = client.As<T>();
 
-            Hash = redis.GetHashAsync<string>(HashId);
+            Hash = redis.GetHash<string>(HashId);
         }
 
         private Dictionary<string, T> CreateMap()
@@ -147,7 +147,7 @@ namespace ServiceStack.Redis.Tests.Generic
             await mapValues.ForEachAsync(async (k, v) => await redis.SetEntryInHashAsync(Hash, k, v));
 
             var members = new List<string>();
-            await foreach (var item in redis.GetHashAsync<string>(HashId))
+            await foreach (var item in redis.GetHash<string>(HashId))
             {
                 Assert.That(mapValues.ContainsKey(item.Key), Is.True);
                 members.Add(item.Key);
@@ -158,7 +158,7 @@ namespace ServiceStack.Redis.Tests.Generic
         [Test]
         public async Task Can_Add_to_IDictionary_Hash()
         {
-            var hash = redis.GetHashAsync<string>(HashId);
+            var hash = redis.GetHash<string>(HashId);
             var mapValues = CreateMap();
             await mapValues.ForEachAsync((k, v) => hash.AddAsync(k, v));
 
@@ -169,7 +169,7 @@ namespace ServiceStack.Redis.Tests.Generic
         [Test]
         public async Task Can_Clear_IDictionary_Hash()
         {
-            var hash = redis.GetHashAsync<string>(HashId);
+            var hash = redis.GetHash<string>(HashId);
             var mapValues = CreateMap();
             await mapValues.ForEachAsync((k, v) => hash.AddAsync(k, v));
 
@@ -183,7 +183,7 @@ namespace ServiceStack.Redis.Tests.Generic
         [Test]
         public async Task Can_Test_Contains_in_IDictionary_Hash()
         {
-            var hash = redis.GetHashAsync<string>(HashId);
+            var hash = redis.GetHash<string>(HashId);
             var mapValues = CreateMap();
             await mapValues.ForEachAsync((k, v) => hash.AddAsync(k, v));
 
@@ -197,7 +197,7 @@ namespace ServiceStack.Redis.Tests.Generic
         [Test]
         public async Task Can_Remove_value_from_IDictionary_Hash()
         {
-            var hash = redis.GetHashAsync<string>(HashId);
+            var hash = redis.GetHash<string>(HashId);
             var mapValues = CreateMap();
             await mapValues.ForEachAsync((k, v) => hash.AddAsync(k, v));
 

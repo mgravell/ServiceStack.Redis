@@ -35,8 +35,6 @@ namespace ServiceStack.Redis.Generic
 
         IRedisSetAsync IRedisTypedClientAsync<T>.TypeIdsSet => TypeIdsSetRaw;
 
-        IRedisNativeClientAsync IRedisTypedClientAsync<T>.NativeClient => client;
-
         IRedisClientAsync IRedisTypedClientAsync<T>.RedisClient => client;
 
         internal ValueTask ExpectQueuedAsync(CancellationToken cancellationToken)
@@ -169,7 +167,7 @@ namespace ServiceStack.Redis.Generic
         IHasNamed<IRedisSetAsync<T>> IRedisTypedClientAsync<T>.Sets => Sets as IHasNamed<IRedisSetAsync<T>> ?? throw new NotSupportedException("The provided Sets does not support IRedisSetAsync");
         IHasNamed<IRedisSortedSetAsync<T>> IRedisTypedClientAsync<T>.SortedSets => SortedSets as IHasNamed<IRedisSortedSetAsync<T>> ?? throw new NotSupportedException("The provided SortedSets does not support IRedisSortedSetAsync");
 
-        IRedisHashAsync<TKey, T> IRedisTypedClientAsync<T>.GetHashAsync<TKey>(string hashId) => GetHash<TKey>(hashId) as IRedisHashAsync<TKey, T> ?? throw new NotSupportedException("The provided Hash does not support IRedisHashAsync");
+        IRedisHashAsync<TKey, T> IRedisTypedClientAsync<T>.GetHash<TKey>(string hashId) => GetHash<TKey>(hashId) as IRedisHashAsync<TKey, T> ?? throw new NotSupportedException("The provided Hash does not support IRedisHashAsync");
 
         ValueTask IRedisTypedClientAsync<T>.SelectAsync(long db, CancellationToken cancellationToken)
             => AsyncClient.SelectAsync(db, cancellationToken);
@@ -720,5 +718,38 @@ namespace ServiceStack.Redis.Generic
             var values = await AsAsync().GetValuesAsync(keys, cancellationToken).ConfigureAwait(false);
             return values;
         }
+
+        ValueTask<bool> IRedisTypedClientAsync<T>.RemoveEntryAsync(params string[] args)
+            => AsAsync().RemoveEntryAsync(args, cancellationToken: default);
+
+        ValueTask<bool> IRedisTypedClientAsync<T>.RemoveEntryAsync(params IHasStringId[] entities)
+            => AsAsync().RemoveEntryAsync(entities, cancellationToken: default);
+
+        ValueTask<HashSet<T>> IRedisTypedClientAsync<T>.GetIntersectFromSetsAsync(params IRedisSetAsync<T>[] sets)
+            => AsAsync().GetIntersectFromSetsAsync(sets, cancellationToken: default);
+
+        ValueTask IRedisTypedClientAsync<T>.StoreIntersectFromSetsAsync(IRedisSetAsync<T> intoSet, params IRedisSetAsync<T>[] sets)
+            => AsAsync().StoreIntersectFromSetsAsync(intoSet, sets, cancellationToken: default);
+
+        ValueTask<HashSet<T>> IRedisTypedClientAsync<T>.GetUnionFromSetsAsync(params IRedisSetAsync<T>[] sets)
+            => AsAsync().GetUnionFromSetsAsync(sets, cancellationToken: default);
+
+        ValueTask IRedisTypedClientAsync<T>.StoreUnionFromSetsAsync(IRedisSetAsync<T> intoSet, params IRedisSetAsync<T>[] sets)
+            => AsAsync().StoreUnionFromSetsAsync(intoSet, sets, cancellationToken: default);
+
+        ValueTask<HashSet<T>> IRedisTypedClientAsync<T>.GetDifferencesFromSetAsync(IRedisSetAsync<T> fromSet, params IRedisSetAsync<T>[] withSets)
+            => AsAsync().GetDifferencesFromSetAsync(fromSet, withSets, cancellationToken: default);
+
+        ValueTask IRedisTypedClientAsync<T>.StoreDifferencesFromSetAsync(IRedisSetAsync<T> intoSet, IRedisSetAsync<T> fromSet, params IRedisSetAsync<T>[] withSets)
+            => AsAsync().StoreDifferencesFromSetAsync(intoSet, fromSet, withSets, cancellationToken: default);
+
+        ValueTask<long> IRedisTypedClientAsync<T>.StoreIntersectFromSortedSetsAsync(IRedisSortedSetAsync<T> intoSetId, params IRedisSortedSetAsync<T>[] setIds)
+            => AsAsync().StoreIntersectFromSortedSetsAsync(intoSetId, setIds, cancellationToken: default);
+
+        ValueTask<long> IRedisTypedClientAsync<T>.StoreUnionFromSortedSetsAsync(IRedisSortedSetAsync<T> intoSetId, params IRedisSortedSetAsync<T>[] setIds)
+            => AsAsync().StoreUnionFromSortedSetsAsync(intoSetId, setIds, cancellationToken: default);
+
+        ValueTask IRedisTypedClientAsync<T>.StoreRelatedEntitiesAsync<TChild>(object parentId, params TChild[] children)
+            => AsAsync().StoreRelatedEntitiesAsync<TChild>(parentId, children, cancellationToken: default);
     }
 }
