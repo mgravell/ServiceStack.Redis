@@ -11,7 +11,6 @@ namespace ServiceStack.Redis.Tests
     public class CustomCommandTestsAsync
         : RedisClientTestsBaseAsync
     {
-#if !NO_DEFAULT_INTERFACE_IMPLEMENTATIONS
         [Test]
         public async Task Can_send_custom_commands()
         {
@@ -49,7 +48,6 @@ namespace ServiceStack.Redis.Tests
 
             ret.PrintDump();
         }
-#endif
 
         [Test]
         public async Task Can_send_custom_commands_longhand()
@@ -89,7 +87,6 @@ namespace ServiceStack.Redis.Tests
             ret.PrintDump();
         }
 
-#if !NO_DEFAULT_INTERFACE_IMPLEMENTATIONS
         [Test]
         public async Task Can_send_complex_types_in_Custom_Commands()
         {
@@ -114,7 +111,6 @@ namespace ServiceStack.Redis.Tests
 
             ret.PrintDump();
         }
-#endif
 
         [Test]
         public async Task Can_send_complex_types_in_Custom_Commands_longhand()

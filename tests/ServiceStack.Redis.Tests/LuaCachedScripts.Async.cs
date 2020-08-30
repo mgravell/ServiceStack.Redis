@@ -36,7 +36,6 @@ return results
                 await redis.SetValueAsync("key:" + i, "value:" + i);
         }
 
-#if !NO_DEFAULT_INTERFACE_IMPLEMENTATIONS
         [Test]
         public async Task Can_call_repeated_scans_in_LUA()
         {
@@ -81,7 +80,6 @@ return results
                 redis.ExecLuaShaAsync(sha1, "key:*", "10"));
             Assert.That(r.Children.Count, Is.EqualTo(10));
         }
-#endif
 
         [Test]
         public async Task Can_call_repeated_scans_in_LUA_longhand()
@@ -169,7 +167,6 @@ end
 
 return cjson.encode(keyAttrs)";
 
-#if !NO_DEFAULT_INTERFACE_IMPLEMENTATIONS
         [Test]
         public async Task Can_call_script_with_complex_response()
         {
@@ -189,7 +186,6 @@ return cjson.encode(keyAttrs)";
             Assert.That(result.Size, Is.GreaterThan("value:".Length));
             Assert.That(result.Ttl, Is.EqualTo(-1));
         }
-#endif
 
         [Test]
         public async Task Can_call_script_with_complex_response_longhand()
